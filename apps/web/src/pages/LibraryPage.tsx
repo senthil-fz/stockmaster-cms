@@ -1,0 +1,138 @@
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
+import type { User, WorkKind, WorkSummary } from '@blockpress/shared';
+import { worksApi } from '../lib/api';
+import { workQueryOptions, worksQueryOptions } from '../lib/queries';
+import { useAuth } from '../lib/auth';
+import { AppShell } from '../components/AppShell';
+import { Sidebar } from '../components/Sidebar';
+import { Topbar } from '../components/Topbar';
+import { Library, type LibraryTab } from '../components/Library';
+import { Icons } from '../components/icons';
+
+function LibrarySidebar({
+  user,
+  works,
+  tab,
+  onTab,
+  onOpenWork,
+}: {
+  user: User;
+  works: WorkSummary[];
+  tab: string;
+  onTab: (t: string) => void;
+  onOpenWork: (w: WorkSummary) => void;
+}) {
+  const drafts = works.filter((w) => w.status === 'draft').length;
+  return (
+    <Sidebar>
+      <Sidebar.Brand />
+      <Sidebar.Scroll>
+        <Sidebar.SectionLabel>Workspace</Sidebar.SectionLabel>
+        <Sidebar.NavItem icon="Library" label="Library" active={tab === 'all'} count={works.length} onClick={() => onTab('all')} />
+        <Sidebar.NavItem icon="Pencil" label="Drafts" active={tab === 'drafts'} count={drafts} onClick={() => onTab('drafts')} />
+        <Sidebar.NavItem icon="CheckCircle" label="Published" active={tab === 'published'} onClick={() => onTab('published')} />
+        <Sidebar.NavItem icon="Trash" label="Trash" onClick={() => undefined} />
+
+        <Sidebar.SectionLabel>Recent</Sidebar.SectionLabel>
+        {works.slice(0, 4).map((w) => (
+          <Sidebar.NavItem key={w.id} icon={w.kind === 'book' ? 'Book' : 'Doc'} label={w.title} onClick={() => onOpenWork(w)} />
+        ))}
+
+        <Sidebar.SectionLabel>General</Sidebar.SectionLabel>
+        <Sidebar.NavItem icon="Chart" label="Reporting" onClick={() => undefined} />
+        <Sidebar.NavItem icon="Users" label="Authors" onClick={() => undefined} />
+        <Sidebar.NavItem icon="Settings" label="Settings" onClick={() => undefined} />
+      </Sidebar.Scroll>
+      <Sidebar.User user={user} />
+    </Sidebar>
+  );
+}
+
+export function LibraryPage() {
+  const auth = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [tab, setTab] = useState('all');
+
+  const { data: works = [] } = useQuery(worksQueryOptions());
+
+  const openWork = async (work: WorkSummary) => {
+    const detail = await queryClient.ensureQueryData(workQueryOptions(work.id));
+    const firstPage = detail.chapters[0]?.pages[0];
+    if (firstPage) {
+      void navigate({
+        to: '/works/$workId/pages/$pageId',
+        params: { workId: work.id, pageId: firstPage.id },
+      });
+    }
+  };
+
+  const createWork = useMutation({
+    mutationFn: (kind: WorkKind) => worksApi.create({ kind }),
+    onSuccess: async (work) => {
+      await queryClient.invalidateQueries({ queryKey: ['works'] });
+      await openWork(work);
+    },
+  });
+
+  const counts = {
+    all: works.length,
+    books: works.filter((w) => w.kind === 'book').length,
+    articles: works.filter((w) => w.kind === 'article').length,
+    drafts: works.filter((w) => w.status === 'draft').length,
+  };
+
+  const filtered = works.filter((w) => {
+    if (tab === 'books') return w.kind === 'book';
+    if (tab === 'articles') return w.kind === 'article';
+    if (tab === 'drafts') return w.status === 'draft';
+    if (tab === 'published') return w.status === 'published';
+    return true;
+  });
+
+  const tabs: LibraryTab[] = [
+    { key: 'all', label: 'All', count: counts.all },
+    { key: 'books', label: 'Books', count: counts.books },
+    { key: 'articles', label: 'Articles', count: counts.articles },
+    { key: 'drafts', label: 'Drafts', count: counts.drafts },
+  ];
+
+  return (
+    <AppShell
+      sidebar={() => (
+        <LibrarySidebar user={auth.user!} works={works} tab={tab} onTab={setTab} onOpenWork={openWork} />
+      )}
+    >
+      <Topbar>
+        <Topbar.Crumbs>
+          <Topbar.Crumb current>Library</Topbar.Crumb>
+        </Topbar.Crumbs>
+      </Topbar>
+
+      <div className="canvas-scroll">
+        <Library>
+          <Library.Hero>
+            <button className="btn btn-secondary" onClick={() => createWork.mutate('article')}>
+              <Icons.Doc /> New article
+            </button>
+            <button className="btn btn-primary" onClick={() => createWork.mutate('book')}>
+              <Icons.Plus /> New book
+            </button>
+          </Library.Hero>
+          <Library.Tabs tabs={tabs} active={tab} onSelect={setTab} />
+          {filtered.length === 0 ? (
+            <Library.Empty />
+          ) : (
+            <Library.Grid>
+              {filtered.map((w) => (
+                <Library.Card key={w.id} work={w} onOpen={openWork} />
+              ))}
+            </Library.Grid>
+          )}
+        </Library>
+      </div>
+    </AppShell>
+  );
+}

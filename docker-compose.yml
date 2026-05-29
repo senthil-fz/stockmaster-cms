@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: blockpress-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: blockpress
+      POSTGRES_PASSWORD: blockpress
+      POSTGRES_DB: blockpress
+    # Host 5433 → container 5432 (avoids clashing with a host Postgres on 5432).
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blockpress -d blockpress"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    container_name: blockpress-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      # Allow browser PUTs to presigned URLs from the Vite dev origin (and any origin in dev).
+      MINIO_API_CORS_ALLOW_ORIGIN: "*"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+
+  # One-shot: create the bucket and make it publicly readable so <img src> works.
+  minio-init:
+    image: minio/mc:latest
+    container_name: blockpress-minio-init
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://minio:9000 minioadmin minioadmin; do echo 'waiting for minio...'; sleep 2; done;
+      mc mb --ignore-existing local/blockpress;
+      mc anonymous set download local/blockpress;
+      echo 'minio bucket [blockpress] ready (public-read)';
+      "
+
+volumes:
+  pgdata:
+  miniodata:

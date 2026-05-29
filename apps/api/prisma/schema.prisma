@@ -1,0 +1,85 @@
+// Blockpress — Prisma schema.
+// Shared editorial workspace: no per-user row filtering. `createdById` is recorded
+// for display ("author") only, never used to gate reads or writes.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WorkKind {
+  book
+  article
+}
+
+enum PublishStatus {
+  draft
+  published
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  avatarColor  String   @default("#7d8b6a")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  works Work[]
+}
+
+model Work {
+  id          String        @id @default(cuid())
+  kind        WorkKind
+  title       String
+  subtitle    String        @default("")
+  author      String        @default("")
+  year        String        @default("")
+  coverTone   String        @default("default")
+  coverUrl    String?
+  status      PublishStatus @default(draft)
+  tags        String[]      @default([])
+  createdById String?
+  createdBy   User?         @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  chapters Chapter[]
+
+  @@index([kind])
+  @@index([status])
+}
+
+model Chapter {
+  id        String   @id @default(cuid())
+  workId    String
+  work      Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
+  title     String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pages Page[]
+
+  @@index([workId, order])
+}
+
+model Page {
+  id        String        @id @default(cuid())
+  chapterId String
+  chapter   Chapter       @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  title     String        @default("")
+  content   Json
+  status    PublishStatus @default(draft)
+  order     Int           @default(0)
+  wordCount Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([chapterId, order])
+}
