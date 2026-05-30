@@ -1,5 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { loginSchema, signupSchema } from '@blockpress/shared';
 
-export class SignupDto extends createZodDto(signupSchema) {}
+// Body for POST /auth/users (authenticated user-creation). Same shape as the old public
+// signup; reuses `signupSchema` (name/email/password).
+export class CreateUserDto extends createZodDto(signupSchema) {}
 export class LoginDto extends createZodDto(loginSchema) {}

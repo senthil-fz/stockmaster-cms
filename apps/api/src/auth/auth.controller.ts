@@ -3,7 +3,7 @@ import type { Request, Response } from 'express';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser, type AuthUser } from '../common/decorators/current-user.decorator';
 import { AuthService } from './auth.service';
-import { LoginDto, SignupDto } from './dto';
+import { CreateUserDto, LoginDto } from './dto';
 
 const REFRESH_COOKIE = 'bp_refresh';
 const REFRESH_PATH = '/auth/refresh';
@@ -30,12 +30,11 @@ function setRefreshCookie(res: Response, token: string): void {
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
 
-  @Public()
-  @Post('signup')
-  async signup(@Body() dto: SignupDto, @Res({ passthrough: true }) res: Response) {
-    const { user, accessToken, refreshToken } = await this.auth.signup(dto);
-    setRefreshCookie(res, refreshToken);
-    return { user, accessToken };
+  // No public self-signup. New accounts are created by an already-authenticated user
+  // (the global JwtAuthGuard protects this route — there is no @Public() here).
+  @Post('users')
+  async createUser(@Body() dto: CreateUserDto) {
+    return this.auth.createUser(dto);
   }
 
   @Public()

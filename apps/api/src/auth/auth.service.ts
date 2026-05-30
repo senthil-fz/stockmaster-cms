@@ -19,7 +19,12 @@ export class AuthService {
     private readonly jwt: JwtService,
   ) {}
 
-  async signup(input: SignupInput): Promise<{ user: User } & AuthTokens> {
+  /**
+   * Create a new account. Used by the protected POST /auth/users endpoint — there is no
+   * public self-signup. Deliberately issues NO tokens and sets no cookie: the signed-in
+   * creator stays themselves; the new user signs in later with the password set here.
+   */
+  async createUser(input: SignupInput): Promise<{ user: User }> {
     const existing = await this.prisma.user.findUnique({ where: { email: input.email } });
     if (existing) throw new ConflictException('That email is already registered');
 
@@ -28,7 +33,7 @@ export class AuthService {
     const user = await this.prisma.user.create({
       data: { email: input.email, name: input.name, passwordHash, avatarColor },
     });
-    return { user: this.toUser(user), ...(await this.issueTokens(user)) };
+    return { user: this.toUser(user) };
   }
 
   async login(input: LoginInput): Promise<{ user: User } & AuthTokens> {

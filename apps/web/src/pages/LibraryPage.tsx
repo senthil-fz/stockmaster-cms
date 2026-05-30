@@ -9,6 +9,7 @@ import { AppShell } from '../components/AppShell';
 import { Sidebar } from '../components/Sidebar';
 import { Topbar } from '../components/Topbar';
 import { Library, type LibraryTab } from '../components/Library';
+import { AddMember } from '../components/AddMember';
 import { Icons } from '../components/icons';
 
 function LibrarySidebar({
@@ -42,7 +43,7 @@ function LibrarySidebar({
 
         <Sidebar.SectionLabel>General</Sidebar.SectionLabel>
         <Sidebar.NavItem icon="Chart" label="Reporting" onClick={() => undefined} />
-        <Sidebar.NavItem icon="Users" label="Authors" onClick={() => undefined} />
+        <Sidebar.NavItem icon="Users" label="Authors" active={tab === 'authors'} onClick={() => onTab('authors')} />
         <Sidebar.NavItem icon="Settings" label="Settings" onClick={() => undefined} />
       </Sidebar.Scroll>
       <Sidebar.User user={user} />
@@ -110,31 +111,35 @@ export function LibraryPage() {
     >
       <Topbar>
         <Topbar.Crumbs>
-          <Topbar.Crumb current>Library</Topbar.Crumb>
+          <Topbar.Crumb current>{tab === 'authors' ? 'Authors' : 'Library'}</Topbar.Crumb>
         </Topbar.Crumbs>
       </Topbar>
 
       <div className="canvas-scroll">
-        <Library>
-          <Library.Hero>
-            <button className="btn btn-secondary" onClick={() => createWork.mutate('article')}>
-              <Icons.Doc /> New article
-            </button>
-            <button className="btn btn-primary" onClick={() => createWork.mutate('book')}>
-              <Icons.Plus /> New book
-            </button>
-          </Library.Hero>
-          <Library.Tabs tabs={tabs} active={tab} onSelect={setTab} />
-          {filtered.length === 0 ? (
-            <Library.Empty />
-          ) : (
-            <Library.Grid>
-              {filtered.map((w) => (
-                <Library.Card key={w.id} work={w} onOpen={openWork} onRead={readWork} />
-              ))}
-            </Library.Grid>
-          )}
-        </Library>
+        {tab === 'authors' ? (
+          <AddMember />
+        ) : (
+          <Library>
+            <Library.Hero>
+              <button className="btn btn-secondary" onClick={() => createWork.mutate('article')}>
+                <Icons.Doc /> New article
+              </button>
+              <button className="btn btn-primary" onClick={() => createWork.mutate('book')}>
+                <Icons.Plus /> New book
+              </button>
+            </Library.Hero>
+            <Library.Tabs tabs={tabs} active={tab} onSelect={setTab} />
+            {filtered.length === 0 ? (
+              <Library.Empty />
+            ) : (
+              <Library.Grid>
+                {filtered.map((w) => (
+                  <Library.Card key={w.id} work={w} onOpen={openWork} onRead={readWork} />
+                ))}
+              </Library.Grid>
+            )}
+          </Library>
+        )}
       </div>
     </AppShell>
   );

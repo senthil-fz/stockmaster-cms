@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { LoginInput, SignupInput, User } from '@blockpress/shared';
+import type { LoginInput, User } from '@blockpress/shared';
 import { authApi } from './api';
 
 export interface AuthState {
@@ -7,7 +7,6 @@ export interface AuthState {
   isAuthed: boolean;
   status: 'loading' | 'ready';
   login: (input: LoginInput) => Promise<void>;
-  signup: (input: SignupInput) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -42,18 +41,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(me);
   }, []);
 
-  const signup = useCallback(async (input: SignupInput) => {
-    const { user: me } = await authApi.signup(input);
-    setUser(me);
-  }, []);
-
   const logout = useCallback(async () => {
     await authApi.logout();
     setUser(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthed: user !== null, status, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, isAuthed: user !== null, status, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

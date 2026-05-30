@@ -124,11 +124,6 @@ export const authApi = {
     setAccessToken(r.accessToken);
     return r;
   },
-  signup: async (input: SignupInput) => {
-    const r = await request('/auth/signup', { method: 'POST', body: input, schema: authResponseSchema });
-    setAccessToken(r.accessToken);
-    return r;
-  },
   me: () => request('/auth/me', { schema: meResponseSchema }),
   refresh: refreshAccessToken,
   logout: async () => {
@@ -138,6 +133,13 @@ export const authApi = {
       setAccessToken(null);
     }
   },
+};
+
+// Authenticated user management. Creating a user does NOT touch the current session's
+// access token — the signed-in creator stays themselves; the new user signs in later.
+export const usersApi = {
+  create: (input: SignupInput) =>
+    request('/auth/users', { method: 'POST', body: input, schema: meResponseSchema }),
 };
 
 export const worksApi = {
