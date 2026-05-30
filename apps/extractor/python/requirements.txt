@@ -1,0 +1,6 @@
+# Document extraction stack.
+# docling: PDF understanding + layout + OCR pipeline.
+# ocrmac:  macOS-native Apple Vision OCR engine (best quality + speed on Apple Silicon,
+#          no model downloads). docling shells into it via OcrMacOptions.
+docling==2.96.0
+ocrmac

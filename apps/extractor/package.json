@@ -1,0 +1,26 @@
+{
+  "name": "@blockpress/extractor",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Reusable document pipeline: docling OCR extraction → Tiptap conversion → DB seeding.",
+  "scripts": {
+    "setup:py": "bash python/setup.sh",
+    "extract": "python/.venv/bin/python python/extract.py",
+    "db:generate": "prisma generate --schema ../api/prisma/schema.prisma",
+    "ingest": "dotenv -e ../../.env -- ts-node --transpile-only src/ingest.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@blockpress/shared": "workspace:*",
+    "@prisma/client": "^6.5.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "dotenv-cli": "^8.0.0",
+    "prisma": "^6.5.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  }
+}

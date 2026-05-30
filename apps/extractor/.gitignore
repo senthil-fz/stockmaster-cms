@@ -1,0 +1,24 @@
+# ── Python ───────────────────────────────────────────────────────────────────
+# Virtualenv (recreate with `pnpm --filter @blockpress/extractor setup:py`)
+.venv/
+python/.venv/
+# Byte-compiled / cache
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+# Packaging
+*.egg-info/
+.python-version
+
+# ── Pipeline artifacts ───────────────────────────────────────────────────────
+# Extraction output (markdown / json / rendered page images). Re-generated, not committed.
+out/
+
+# ── TS build (also covered by root .gitignore) ───────────────────────────────
+dist/
