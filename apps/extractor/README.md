@@ -41,12 +41,28 @@ pnpm --filter @blockpress/extractor extract -- \
 # Structure items.json → book.json (chapter/section split, cleanup)
 #   (see python/structure.py)
 
-# Seed book.json into the DB as Work → Chapters → Pages (idempotent by title)
-pnpm --filter @blockpress/extractor ingest -- out/full/book.json
+# Seed a committed book into the DB as Work → Chapters → Pages (idempotent by title)
+pnpm --filter @blockpress/extractor ingest -- books/a-common-mans-voyage-in-the-stock-market.json
 ```
 
-`out/` and `python/.venv/` are git-ignored — artifacts and the venv are
-regenerated, not committed.
+`out/` and `python/.venv/` are git-ignored — the venv and the intermediate
+artifacts (`items.json`, per-chapter files, rendered pages) are regenerated,
+not committed.
+
+## Committed seed data: `books/`
+
+`books/<book-name>.json` holds the **final, audited IR** for a fully imported
+document — the exact content that seeded the DB. These are committed so the
+import is reproducible without re-running OCR + the (non-deterministic) agent
+structuring pass:
+
+```bash
+pnpm --filter @blockpress/extractor ingest -- books/a-common-mans-voyage-in-the-stock-market.json
+```
+
+- `books/a-common-mans-voyage-in-the-stock-market.json` — 11 chapters, 70 pages,
+  ~42.6k words; audited page-by-page against the source images (99.9%+), with all
+  found OCR/formatting issues corrected.
 
 ## The IR (`book.json`)
 
