@@ -8,12 +8,20 @@ import { LoginDto, SignupDto } from './dto';
 const REFRESH_COOKIE = 'bp_refresh';
 const REFRESH_PATH = '/auth/refresh';
 
-function setRefreshCookie(res: Response, token: string): void {
-  res.cookie(REFRESH_COOKIE, token, {
+// Set and clear MUST share identical attributes (minus maxAge) or compliant browsers
+// won't delete the cookie on logout. Keep them in one place so they can't drift.
+function refreshCookieOptions() {
+  return {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'lax' as const,
     secure: process.env.NODE_ENV === 'production',
     path: REFRESH_PATH,
+  };
+}
+
+function setRefreshCookie(res: Response, token: string): void {
+  res.cookie(REFRESH_COOKIE, token, {
+    ...refreshCookieOptions(),
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 }
@@ -47,9 +55,12 @@ export class AuthController {
     return { accessToken };
   }
 
+  @Public()
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie(REFRESH_COOKIE, { path: REFRESH_PATH });
+    // Public: logout needs no identity and must work even after the access token expires.
+    // Clear with the same options used to set the cookie so browsers actually delete it.
+    res.clearCookie(REFRESH_COOKIE, refreshCookieOptions());
     return { ok: true };
   }
 
