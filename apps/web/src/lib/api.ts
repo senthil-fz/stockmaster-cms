@@ -38,15 +38,30 @@ export class ApiError extends Error {
   }
 }
 
-async function refreshAccessToken(): Promise<boolean> {
-  const res = await fetch(`${API_URL}/auth/refresh`, { method: 'POST', credentials: 'include' });
-  if (!res.ok) {
-    accessToken = null;
-    return false;
-  }
-  const data = (await res.json()) as { accessToken: string };
-  accessToken = data.accessToken;
-  return true;
+// Single-flight: concurrent 401s collapse into one /auth/refresh call so we don't
+// stampede the endpoint or let racing refreshes clobber each other's token.
+let refreshInFlight: Promise<boolean> | null = null;
+
+function refreshAccessToken(): Promise<boolean> {
+  if (refreshInFlight) return refreshInFlight;
+  refreshInFlight = (async () => {
+    try {
+      const res = await fetch(`${API_URL}/auth/refresh`, { method: 'POST', credentials: 'include' });
+      if (!res.ok) {
+        accessToken = null;
+        return false;
+      }
+      const data = (await res.json()) as { accessToken: string };
+      accessToken = data.accessToken;
+      return true;
+    } catch {
+      accessToken = null;
+      return false;
+    } finally {
+      refreshInFlight = null;
+    }
+  })();
+  return refreshInFlight;
 }
 
 interface RequestOptions<T> {

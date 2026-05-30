@@ -1,7 +1,7 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Node, mergeAttributes } from '@tiptap/core';
 import { NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from '@tiptap/react';
-import { MAX_UPLOAD_BYTES } from '@blockpress/shared';
+import { IMAGE_TYPE_MESSAGE, MAX_UPLOAD_BYTES, isAllowedImageType } from '@blockpress/shared';
 import { uploadsApi } from '../../lib/api';
 
 export type ImageAlign = 'full' | 'left';
@@ -37,6 +37,7 @@ export const CaptionedImage = Node.create({
 
 function ImageView({ node, updateAttributes, editor }: NodeViewProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [status, setStatus] = useState<'idle' | 'uploading' | 'error'>('idle');
   const { src, caption, align, label } = node.attrs as {
     src: string;
     caption: string;
@@ -45,19 +46,43 @@ function ImageView({ node, updateAttributes, editor }: NodeViewProps) {
   };
 
   const upload = async (file: File) => {
+    if (!isAllowedImageType(file.type)) {
+      setStatus('error');
+      window.alert(IMAGE_TYPE_MESSAGE);
+      return;
+    }
     if (file.size > MAX_UPLOAD_BYTES) {
+      setStatus('error');
       window.alert('Image is too large (max 15MB).');
       return;
     }
-    const contentType = file.type || 'application/octet-stream';
-    const { uploadUrl, publicUrl } = await uploadsApi.presign({
-      filename: file.name,
-      contentType,
-      size: file.size,
-    });
-    await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': contentType }, body: file });
-    updateAttributes({ src: publicUrl });
+    setStatus('uploading');
+    try {
+      const { uploadUrl, publicUrl } = await uploadsApi.presign({
+        filename: file.name,
+        contentType: file.type,
+        size: file.size,
+      });
+      const res = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      });
+      if (!res.ok) throw new Error(`Upload failed (${res.status})`);
+      updateAttributes({ src: publicUrl }); // only set src on a confirmed-ok upload
+      setStatus('idle');
+    } catch {
+      setStatus('error');
+      window.alert('Image upload failed. Please try again.');
+    }
   };
+
+  const placeholderLabel =
+    status === 'uploading'
+      ? 'uploading…'
+      : status === 'error'
+        ? 'upload failed — click to retry'
+        : `click to upload an image ‹ ${label} ›`;
 
   return (
     <NodeViewWrapper className={'b-image align-' + align} data-drag-handle>
@@ -71,12 +96,13 @@ function ImageView({ node, updateAttributes, editor }: NodeViewProps) {
           />
         ) : (
           <div
-            className="ph"
+            className={'ph' + (status === 'error' ? ' is-error' : '')}
             role="button"
-            onClick={() => editor.isEditable && inputRef.current?.click()}
+            aria-busy={status === 'uploading'}
+            onClick={() => editor.isEditable && status !== 'uploading' && inputRef.current?.click()}
             contentEditable={false}
           >
-            <span className="label">click to upload an image ‹ {label} ›</span>
+            <span className="label">{placeholderLabel}</span>
           </div>
         )}
         {caption && <figcaption contentEditable={false}>{caption}</figcaption>}
