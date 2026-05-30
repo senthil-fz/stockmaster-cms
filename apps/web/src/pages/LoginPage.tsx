@@ -64,21 +64,29 @@ export function LoginPage() {
 
         {isSignup && (
           <div className="field">
-            <label>Name</label>
-            <input className="input" placeholder="Jane Author" {...register('name')} />
+            <label htmlFor="auth-name">Name</label>
+            <input id="auth-name" className="input" placeholder="Jane Author" {...register('name')} />
             {errors.name && <span className="field-error">{errors.name.message}</span>}
           </div>
         )}
 
         <div className="field">
-          <label>Email</label>
-          <input className="input" type="email" placeholder="you@example.com" {...register('email')} />
+          <label htmlFor="auth-email">Email</label>
+          <input
+            id="auth-email"
+            className="input"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            {...register('email')}
+          />
           {errors.email && <span className="field-error">{errors.email.message}</span>}
         </div>
 
         <div className="field">
-          <label>Password</label>
+          <label htmlFor="auth-password">Password</label>
           <input
+            id="auth-password"
             className="input"
             type="password"
             placeholder="••••••••"

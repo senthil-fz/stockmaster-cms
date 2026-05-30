@@ -10,6 +10,28 @@
   place-items: center;
   background: var(--bg-app);
 }
+
+/* route error / not-found fallback */
+.route-fallback {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  padding: 48px 24px;
+}
+.route-fallback h1 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.route-fallback p {
+  color: var(--text-secondary);
+  margin: 0 0 8px;
+}
 .splash-logo {
   width: 44px;
   height: 44px;

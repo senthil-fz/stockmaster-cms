@@ -18,7 +18,6 @@
     "strict": true,
     "strictNullChecks": true,
     "strictPropertyInitialization": false,
-    "noImplicitAny": false,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
