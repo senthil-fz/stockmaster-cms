@@ -146,6 +146,23 @@ export const pagesApi = {
   update: (id: string, body: UpdatePageInput) =>
     request(`/pages/${id}`, { method: 'PATCH', body, schema: pageSchema }),
   remove: (id: string) => request(`/pages/${id}`, { method: 'DELETE' }),
+  /**
+   * Fire-and-forget page update that survives page unload (tab close / refresh).
+   * Uses `keepalive: true` so the browser completes the request after teardown.
+   * No refresh-on-401 retry (the page is going away) and no response parsing.
+   */
+  updateOnUnload: (id: string, body: UpdatePageInput): void => {
+    void fetch(`${API_URL}/pages/${id}`, {
+      method: 'PATCH',
+      keepalive: true,
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      },
+      body: JSON.stringify(body),
+    }).catch(() => undefined);
+  },
 };
 
 export const uploadsApi = {

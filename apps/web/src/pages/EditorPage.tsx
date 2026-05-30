@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEditorState } from '@tiptap/react';
@@ -8,6 +8,7 @@ import {
   type Chapter,
   type Page,
   type PublishStatus,
+  type UpdatePageInput,
   type WorkDetail,
 } from '@blockpress/shared';
 import { pagesApi, worksApi } from '../lib/api';
@@ -106,6 +107,11 @@ function EditorWorkspace({
   const [saveState, setSaveState] = useState<SaveState>('saved');
   const [title, setTitle] = useState(page.title);
 
+  // Latest edited values vs what has actually been persisted. Drives the teardown
+  // safety-net save (reference comparison: each edit sets a new object, each save records it).
+  const latest = useRef<{ content?: JSONContent; title?: string }>({});
+  const saved = useRef<{ content: unknown; title: string }>({ content: page.content, title: page.title });
+
   const invalidateTree = () => {
     void queryClient.invalidateQueries({ queryKey: ['work', work.id] });
     void queryClient.invalidateQueries({ queryKey: ['works'] });
@@ -115,7 +121,8 @@ function EditorWorkspace({
     mutationFn: (content: JSONContent) =>
       pagesApi.update(page.id, { content: content as never }),
     onMutate: () => setSaveState('saving'),
-    onSuccess: (updated) => {
+    onSuccess: (updated, content) => {
+      saved.current.content = content;
       queryClient.setQueryData(pageQueryOptions(page.id).queryKey, updated);
       setSaveState('saved');
       invalidateTree();
@@ -126,7 +133,8 @@ function EditorWorkspace({
 
   const saveTitle = useMutation({
     mutationFn: (t: string) => pagesApi.update(page.id, { title: t }),
-    onSuccess: (updated) => {
+    onSuccess: (updated, t) => {
+      saved.current.title = t;
       queryClient.setQueryData(pageQueryOptions(page.id).queryKey, updated);
       invalidateTree();
     },
@@ -144,6 +152,7 @@ function EditorWorkspace({
   const editor = useBlockEditor({
     content: page.content,
     onChange: (doc) => {
+      latest.current.content = doc;
       setSaveState('dirty');
       debouncedSave(doc);
     },
@@ -159,8 +168,38 @@ function EditorWorkspace({
 
   const active = useActiveBlock(editor);
 
-  const flushSave = () => {
-    if (editor) saveContent.mutate(editor.getJSON());
+  // Safety net for the debounce window: if the user navigates away (this component is
+  // keyed by page.id, so it unmounts) or closes the tab before the debounced save fires,
+  // persist any unsaved edits directly with a keepalive fetch. This bypasses the React
+  // Query observer that is being torn down (so the network write always lands), and never
+  // touches state on an unmounting component.
+  useEffect(() => {
+    const pageId = page.id;
+    const pendingBody = (): UpdatePageInput | null => {
+      const body: UpdatePageInput = {};
+      if (latest.current.content && latest.current.content !== saved.current.content) {
+        body.content = latest.current.content as never;
+      }
+      if (latest.current.title !== undefined && latest.current.title !== saved.current.title) {
+        body.title = latest.current.title;
+      }
+      return Object.keys(body).length > 0 ? body : null;
+    };
+    const persist = () => {
+      const body = pendingBody();
+      if (body) pagesApi.updateOnUnload(pageId, body);
+    };
+    window.addEventListener('pagehide', persist);
+    return () => {
+      window.removeEventListener('pagehide', persist);
+      persist();
+    };
+  }, [page.id]);
+
+  // Flush pending debounced saves immediately (used by explicit Save/Publish, while mounted).
+  const flushPending = () => {
+    debouncedSave.flush();
+    debouncedTitle.flush();
   };
 
   return (
@@ -189,8 +228,8 @@ function EditorWorkspace({
           <button
             className="btn btn-secondary"
             onClick={() => {
+              flushPending();
               setStatus.mutate('draft');
-              flushSave();
             }}
           >
             Save as draft
@@ -198,8 +237,8 @@ function EditorWorkspace({
           <button
             className="btn btn-primary"
             onClick={() => {
+              flushPending();
               setStatus.mutate('published');
-              flushSave();
             }}
           >
             Publish changes
@@ -227,10 +266,12 @@ function EditorWorkspace({
               </div>
               <input
                 className="doc-title-input"
+                aria-label="Page title"
                 value={title}
                 placeholder="Untitled page"
                 onChange={(e) => {
                   setTitle(e.target.value);
+                  latest.current.title = e.target.value;
                   debouncedTitle(e.target.value);
                 }}
               />
@@ -253,6 +294,7 @@ function EditorWorkspace({
                 updatedLabel="just now"
                 onTitle={(t) => {
                   setTitle(t);
+                  latest.current.title = t;
                   debouncedTitle(t);
                 }}
                 onStatus={(s) => setStatus.mutate(s)}
