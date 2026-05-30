@@ -44,7 +44,9 @@ export function blockToNode(b: Block): TiptapNode {
     case 'bulletList':
       return { type: 'bulletList', content: b.items.map(listItem) };
     case 'orderedList':
-      return { type: 'orderedList', content: b.items.map(listItem) };
+      // `start` lets a list that the book splits across a page boundary keep numbering
+      // (page 2 of the list begins at "2.", not "1."). Tiptap renders <ol start="N">.
+      return { type: 'orderedList', attrs: { start: b.start }, content: b.items.map(listItem) };
     case 'quote':
       return { type: 'quote', attrs: { cite: b.cite }, content: inline(b.text) };
     case 'callout':

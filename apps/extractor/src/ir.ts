@@ -13,7 +13,7 @@ export const blockSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('paragraph'), text: z.string() }),
   z.object({ type: z.literal('heading'), level: z.union([z.literal(2), z.literal(3)]), text: z.string() }),
   z.object({ type: z.literal('bulletList'), items: z.array(z.string()).min(1) }),
-  z.object({ type: z.literal('orderedList'), items: z.array(z.string()).min(1) }),
+  z.object({ type: z.literal('orderedList'), items: z.array(z.string()).min(1), start: z.number().int().min(1).default(1) }),
   z.object({ type: z.literal('quote'), text: z.string(), cite: z.string().default('') }),
   z.object({
     type: z.literal('callout'),

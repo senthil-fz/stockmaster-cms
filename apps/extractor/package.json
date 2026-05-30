@@ -6,6 +6,8 @@
   "scripts": {
     "setup:py": "bash python/setup.sh",
     "extract": "python/.venv/bin/python python/extract.py",
+    "pageocr": "uv run --with ocrmac --python 3.13 python/pageocr.py",
+    "rebucket": "python3 python/rebucket.py",
     "db:generate": "prisma generate --schema ../api/prisma/schema.prisma",
     "ingest": "dotenv -e ../../.env -- ts-node --transpile-only src/ingest.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
