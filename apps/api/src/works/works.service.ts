@@ -104,12 +104,14 @@ export class WorksService {
 
   async addChapter(workId: string, input: CreateChapterInput) {
     await this.ensureWork(workId);
-    const count = await this.prisma.chapter.count({ where: { workId } });
+    // Append after the current highest order — `count()` collides after a non-tail delete.
+    const agg = await this.prisma.chapter.aggregate({ where: { workId }, _max: { order: true } });
+    const order = (agg._max.order ?? -1) + 1;
     const chapter = await this.prisma.chapter.create({
       data: {
         workId,
-        title: input.title ?? `Chapter ${count + 1}`,
-        order: count,
+        title: input.title ?? `Chapter ${order + 1}`,
+        order,
         pages: {
           create: [
             {

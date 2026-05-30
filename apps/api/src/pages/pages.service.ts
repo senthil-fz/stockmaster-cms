@@ -23,13 +23,15 @@ export class PagesService {
   async addPage(chapterId: string, input: CreatePageInput) {
     const chapter = await this.prisma.chapter.findUnique({ where: { id: chapterId } });
     if (!chapter) throw new NotFoundException('Chapter not found');
-    const count = await this.prisma.page.count({ where: { chapterId } });
+    // Append after the current highest order — `count()` collides after a non-tail delete.
+    const agg = await this.prisma.page.aggregate({ where: { chapterId }, _max: { order: true } });
+    const order = (agg._max.order ?? -1) + 1;
     const content = blankDoc();
     const page = await this.prisma.page.create({
       data: {
         chapterId,
         title: input.title ?? 'New page',
-        order: count,
+        order,
         content: content as Prisma.InputJsonValue,
         wordCount: countWordsInDoc(content),
       },
