@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppWorksWorkIdReadIndexRouteImport } from './routes/_app/works.$workId.read.index'
+import { Route as AppWorksWorkIdReadPageIdRouteImport } from './routes/_app/works.$workId.read.$pageId'
 import { Route as AppWorksWorkIdPagesPageIdRouteImport } from './routes/_app/works.$workId.pages.$pageId'
 
 const LoginRoute = LoginRouteImport.update({
@@ -28,6 +30,17 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppWorksWorkIdReadIndexRoute = AppWorksWorkIdReadIndexRouteImport.update({
+  id: '/works/$workId/read/',
+  path: '/works/$workId/read/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppWorksWorkIdReadPageIdRoute =
+  AppWorksWorkIdReadPageIdRouteImport.update({
+    id: '/works/$workId/read/$pageId',
+    path: '/works/$workId/read/$pageId',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppWorksWorkIdPagesPageIdRoute =
   AppWorksWorkIdPagesPageIdRouteImport.update({
     id: '/works/$workId/pages/$pageId',
@@ -39,11 +52,15 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
   '/works/$workId/pages/$pageId': typeof AppWorksWorkIdPagesPageIdRoute
+  '/works/$workId/read/$pageId': typeof AppWorksWorkIdReadPageIdRoute
+  '/works/$workId/read/': typeof AppWorksWorkIdReadIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/': typeof AppIndexRoute
   '/works/$workId/pages/$pageId': typeof AppWorksWorkIdPagesPageIdRoute
+  '/works/$workId/read/$pageId': typeof AppWorksWorkIdReadPageIdRoute
+  '/works/$workId/read': typeof AppWorksWorkIdReadIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -51,18 +68,32 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_app/': typeof AppIndexRoute
   '/_app/works/$workId/pages/$pageId': typeof AppWorksWorkIdPagesPageIdRoute
+  '/_app/works/$workId/read/$pageId': typeof AppWorksWorkIdReadPageIdRoute
+  '/_app/works/$workId/read/': typeof AppWorksWorkIdReadIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/works/$workId/pages/$pageId'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/works/$workId/pages/$pageId'
+    | '/works/$workId/read/$pageId'
+    | '/works/$workId/read/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/' | '/works/$workId/pages/$pageId'
+  to:
+    | '/login'
+    | '/'
+    | '/works/$workId/pages/$pageId'
+    | '/works/$workId/read/$pageId'
+    | '/works/$workId/read'
   id:
     | '__root__'
     | '/_app'
     | '/login'
     | '/_app/'
     | '/_app/works/$workId/pages/$pageId'
+    | '/_app/works/$workId/read/$pageId'
+    | '/_app/works/$workId/read/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -93,6 +124,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/works/$workId/read/': {
+      id: '/_app/works/$workId/read/'
+      path: '/works/$workId/read'
+      fullPath: '/works/$workId/read/'
+      preLoaderRoute: typeof AppWorksWorkIdReadIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/works/$workId/read/$pageId': {
+      id: '/_app/works/$workId/read/$pageId'
+      path: '/works/$workId/read/$pageId'
+      fullPath: '/works/$workId/read/$pageId'
+      preLoaderRoute: typeof AppWorksWorkIdReadPageIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/works/$workId/pages/$pageId': {
       id: '/_app/works/$workId/pages/$pageId'
       path: '/works/$workId/pages/$pageId'
@@ -106,11 +151,15 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
   AppWorksWorkIdPagesPageIdRoute: typeof AppWorksWorkIdPagesPageIdRoute
+  AppWorksWorkIdReadPageIdRoute: typeof AppWorksWorkIdReadPageIdRoute
+  AppWorksWorkIdReadIndexRoute: typeof AppWorksWorkIdReadIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
   AppWorksWorkIdPagesPageIdRoute: AppWorksWorkIdPagesPageIdRoute,
+  AppWorksWorkIdReadPageIdRoute: AppWorksWorkIdReadPageIdRoute,
+  AppWorksWorkIdReadIndexRoute: AppWorksWorkIdReadIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

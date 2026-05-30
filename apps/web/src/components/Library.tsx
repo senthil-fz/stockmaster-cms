@@ -56,29 +56,39 @@ function Empty() {
   );
 }
 
-function Card({ work, onOpen }: { work: WorkSummary; onOpen: (work: WorkSummary) => void }) {
+function Card({
+  work,
+  onOpen,
+  onRead,
+}: {
+  work: WorkSummary;
+  onOpen: (work: WorkSummary) => void;
+  onRead: (work: WorkSummary) => void;
+}) {
   return (
-    <button className="work-card" onClick={() => onOpen(work)}>
-      <div className="cover-wrap">
-        {work.kind === 'book' ? (
-          <BookCover work={work} className="cover" />
-        ) : (
-          <div className="doc-glyph">
-            <Icons.Doc />
+    <div className="work-card">
+      <button className="wc-open" onClick={() => onOpen(work)}>
+        <div className="cover-wrap">
+          {work.kind === 'book' ? (
+            <BookCover work={work} className="cover" />
+          ) : (
+            <div className="doc-glyph">
+              <Icons.Doc />
+            </div>
+          )}
+          <div className="wc-meta">
+            <h3>{work.title}</h3>
+            <div className="byline">
+              {work.author}
+              {work.year ? ` · ${work.year}` : ''}
+            </div>
+            <span className="kind-tag">
+              {work.kind === 'book' ? <Icons.Book /> : <Icons.Doc />}
+              {work.kind}
+            </span>
           </div>
-        )}
-        <div className="wc-meta">
-          <h3>{work.title}</h3>
-          <div className="byline">
-            {work.author}
-            {work.year ? ` · ${work.year}` : ''}
-          </div>
-          <span className="kind-tag">
-            {work.kind === 'book' ? <Icons.Book /> : <Icons.Doc />}
-            {work.kind}
-          </span>
         </div>
-      </div>
+      </button>
       <div className="wc-foot">
         <span className={'status ' + work.status}>
           <span className="led" />
@@ -92,8 +102,18 @@ function Card({ work, onOpen }: { work: WorkSummary; onOpen: (work: WorkSummary)
         )}
         <span className="dot" />
         <span>{readingTimeMinutes(work.wordCount)} min read</span>
+        <button
+          className="wc-read"
+          aria-label={`Read ${work.title}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRead(work);
+          }}
+        >
+          <Icons.Eye /> Read
+        </button>
       </div>
-    </button>
+    </div>
   );
 }
 

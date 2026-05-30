@@ -222,7 +222,17 @@ function EditorWorkspace({
         <Topbar.Spacer />
         <Topbar.Actions>
           <Topbar.SaveStatus state={saveState} />
-          <button className="icon-btn bordered" title="Preview">
+          <button
+            className="icon-btn bordered"
+            title="Preview"
+            onClick={() => {
+              flushPending();
+              navigate({
+                to: '/works/$workId/read/$pageId',
+                params: { workId: work.id, pageId: page.id },
+              });
+            }}
+          >
             <Icons.Eye />
           </button>
           <button

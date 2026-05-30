@@ -69,6 +69,9 @@ export function LibraryPage() {
     }
   };
 
+  const readWork = (work: WorkSummary) =>
+    navigate({ to: '/works/$workId/read', params: { workId: work.id } });
+
   const createWork = useMutation({
     mutationFn: (kind: WorkKind) => worksApi.create({ kind }),
     onSuccess: async (work) => {
@@ -127,7 +130,7 @@ export function LibraryPage() {
           ) : (
             <Library.Grid>
               {filtered.map((w) => (
-                <Library.Card key={w.id} work={w} onOpen={openWork} />
+                <Library.Card key={w.id} work={w} onOpen={openWork} onRead={readWork} />
               ))}
             </Library.Grid>
           )}
