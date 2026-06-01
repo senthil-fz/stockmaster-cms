@@ -1,0 +1,28 @@
+# Dev image for the Blockpress pnpm workspace — hot-reload api + web.
+# A single image serves both services (they share the workspace install); the
+# compose `command` picks which app to run.
+FROM node:22-bookworm-slim
+
+# Prisma's query engine links against libssl/openssl at generate + runtime;
+# the slim image omits them.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN corepack enable
+WORKDIR /app
+
+# ── dependency layer (cached until a manifest/lockfile changes) ──────────────
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc ./
+COPY apps/api/package.json        apps/api/package.json
+COPY apps/web/package.json        apps/web/package.json
+COPY apps/extractor/package.json  apps/extractor/package.json
+COPY packages/shared/package.json packages/shared/package.json
+# The api's `postinstall: prisma generate` needs the schema present at install.
+COPY apps/api/prisma apps/api/prisma
+
+RUN pnpm install --frozen-lockfile
+
+# Source is bind-mounted at runtime (see compose); this COPY is a fallback so the
+# image is usable without a mount. node_modules dirs are shadowed by anon volumes.
+COPY . .

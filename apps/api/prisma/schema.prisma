@@ -30,7 +30,8 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  works Work[]
+  works      Work[]
+  readEvents ReadEvent[]
 }
 
 model Work {
@@ -49,7 +50,8 @@ model Work {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  chapters Chapter[]
+  chapters   Chapter[]
+  readEvents ReadEvent[]
 
   @@index([kind])
   @@index([status])
@@ -82,4 +84,27 @@ model Page {
   updatedAt DateTime      @updatedAt
 
   @@index([chapterId, order])
+}
+
+// Append-only read-activity log. One row per tracked read (a page read, or a book open),
+// written by ReadTrackingInterceptor. All book read-stats (popularity, completion, unique
+// readers, trends) are queries over this table. `client` is the X-Client tag (e.g.
+// "mobile-ios" / "web"); `userId` is the authenticated reader. Never updated.
+model ReadEvent {
+  id        String   @id @default(cuid())
+  workId    String
+  work      Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
+  pageId    String? // null for a book_open event
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  client    String   @default("unknown")
+  kind      String // 'page_read' | 'book_open'
+  createdAt DateTime @default(now())
+
+  // No standalone @@index([client]): a default-collation btree can't serve the
+  // `client LIKE 'prefix%'` filter, and on this append-heavy log it would only add
+  // write cost. The client filter rides along the workId/createdAt-scoped scans.
+  @@index([workId, createdAt])
+  @@index([workId, userId])
+  @@index([createdAt])
 }

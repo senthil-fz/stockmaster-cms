@@ -48,6 +48,101 @@ services:
       echo 'minio bucket [blockpress] ready (public-read)';
       "
 
+  # ───────────────────────────────────────────────────────────────────────────
+  # Application containers (hot-reload dev). Opt-in via `--profile apps` so the
+  # default `docker compose up` / `pnpm infra:up` stays infra-only.
+  # ───────────────────────────────────────────────────────────────────────────
+
+  # One-shot: apply migrations + seed demo content, then exit.
+  app-init:
+    profiles: ["apps"]
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: blockpress-app-init
+    working_dir: /app/apps/api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql://blockpress:blockpress@postgres:5432/blockpress?schema=public"
+    command: >
+      sh -c "pnpm exec prisma migrate deploy && pnpm exec ts-node prisma/seed.ts"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/api/node_modules
+      - /app/apps/web/node_modules
+      - /app/apps/extractor/node_modules
+      - /app/packages/shared/node_modules
+    restart: "no"
+
+  api:
+    profiles: ["apps"]
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: blockpress-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      app-init:
+        condition: service_completed_successfully
+    # Env set explicitly here (authoritative) — we bypass the dotenv-wrapped npm
+    # script so the container never reads the host-targeted ../../.env.
+    # DATABASE_URL → internal postgres:5432. S3 URLs stay localhost: presigning is
+    # offline (no API→MinIO connection) and the URLs are used by the browser.
+    environment:
+      DATABASE_URL: "postgresql://blockpress:blockpress@postgres:5432/blockpress?schema=public"
+      JWT_ACCESS_SECRET: "dev-only-access-secret-change-me-0123456789abcdef"
+      JWT_REFRESH_SECRET: "dev-only-refresh-secret-change-me-0123456789abcdef"
+      JWT_ACCESS_TTL: "15m"
+      JWT_REFRESH_TTL: "7d"
+      MOBILE_APP_SECRET: "dev-only-mobile-app-secret-change-me-0123456789abcdef"
+      API_PORT: "3001"
+      WEB_ORIGIN: "http://localhost:5173"
+      S3_ENDPOINT: "http://localhost:9000"
+      S3_REGION: "us-east-1"
+      S3_BUCKET: "blockpress"
+      S3_ACCESS_KEY: "minioadmin"
+      S3_SECRET_KEY: "minioadmin"
+      S3_FORCE_PATH_STYLE: "true"
+      S3_PUBLIC_URL: "http://localhost:9000/blockpress"
+    command: pnpm --filter @blockpress/api exec nest start --watch
+    ports:
+      - "3001:3001"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/api/node_modules
+      - /app/apps/web/node_modules
+      - /app/apps/extractor/node_modules
+      - /app/packages/shared/node_modules
+
+  web:
+    profiles: ["apps"]
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: blockpress-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    # VITE_API_URL is unset on purpose — the client falls back to
+    # http://localhost:3001 (api.ts), which the browser reaches via the published
+    # port. Vite must bind 0.0.0.0 to be reachable from the host.
+    command: pnpm --filter @blockpress/web exec vite --host 0.0.0.0 --port 5173
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/api/node_modules
+      - /app/apps/web/node_modules
+      - /app/apps/extractor/node_modules
+      - /app/packages/shared/node_modules
+
 volumes:
   pgdata:
   miniodata:

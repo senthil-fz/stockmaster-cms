@@ -12,6 +12,8 @@ const envSchema = z
     JWT_REFRESH_SECRET: secret,
     JWT_ACCESS_TTL: z.string().default('15m'),
     JWT_REFRESH_TTL: z.string().default('7d'),
+    // Shared secret the mobile app uses to HMAC-sign reader API (/v1) requests.
+    MOBILE_APP_SECRET: secret,
     // S3 / object storage — S3_PUBLIC_URL must be a real URL or presign returns a
     // body the client's z.string().url() rejects. endpoint/forcePathStyle are
     // optional (set for MinIO in dev; omitted for AWS in prod).
@@ -33,7 +35,11 @@ const envSchema = z
     }
     // Reject the shipped dev placeholders in production (they are public in .env.example).
     if (env.NODE_ENV === 'production') {
-      for (const key of ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'] as const) {
+      for (const key of [
+        'JWT_ACCESS_SECRET',
+        'JWT_REFRESH_SECRET',
+        'MOBILE_APP_SECRET',
+      ] as const) {
         if (placeholder.test(env[key])) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,

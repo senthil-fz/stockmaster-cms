@@ -1,0 +1,11 @@
+# Keep the build context small and avoid baking host-platform (darwin/arm)
+# node_modules or build output into the linux image.
+node_modules
+**/node_modules
+dist
+**/dist
+.turbo
+.git
+.playwright-mcp
+**/.venv
+*.log

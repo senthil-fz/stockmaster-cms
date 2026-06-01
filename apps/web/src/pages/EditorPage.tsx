@@ -16,6 +16,7 @@ import { pageQueryOptions, workQueryOptions } from '../lib/queries';
 import { useDebouncedCallback } from '../lib/useDebouncedCallback';
 import { AppShell } from '../components/AppShell';
 import { Sidebar } from '../components/Sidebar';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Topbar, type SaveState } from '../components/Topbar';
 import { Panel } from '../components/Panel';
 import { PageSettings } from '../components/PageSettings';
@@ -27,6 +28,21 @@ import { BlockSettings } from '../editor/BlockSettings';
 
 const ROUTE_ID = '/_app/works/$workId/pages/$pageId';
 const ROUTE_TO = '/works/$workId/pages/$pageId';
+
+interface ConfirmState {
+  title: string;
+  message: string;
+  confirmLabel: string;
+  run: () => void;
+}
+
+/** Given the flat page order, pick the page to open after `removed` pages are deleted. */
+function nextPageId(flat: string[], removed: Set<string>, currentId: string): string | null {
+  const idx = flat.indexOf(currentId);
+  for (let i = idx + 1; i < flat.length; i++) if (!removed.has(flat[i])) return flat[i];
+  for (let i = idx - 1; i >= 0; i--) if (!removed.has(flat[i])) return flat[i];
+  return null;
+}
 
 export function EditorPage() {
   const { workId, pageId } = useParams({ from: ROUTE_ID });
@@ -56,38 +72,135 @@ export function EditorPage() {
     },
   });
 
+  const [confirm, setConfirm] = useState<ConfirmState | null>(null);
+
+  const afterTreeChange = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['work', workId] });
+    await queryClient.invalidateQueries({ queryKey: ['works'] });
+  };
+  const navigateAfterDelete = (goTo: string | null) => {
+    setConfirm(null);
+    if (goTo === '/') void navigate({ to: '/' });
+    else if (goTo) void goToPage(goTo);
+  };
+
+  const deletePage = useMutation({
+    mutationFn: (vars: { pageId: string; goTo: string | null }) => pagesApi.remove(vars.pageId),
+    onSuccess: async (_r, vars) => {
+      await afterTreeChange();
+      navigateAfterDelete(vars.goTo);
+    },
+  });
+
+  const deleteChapter = useMutation({
+    mutationFn: (vars: { chapterId: string; goTo: string | null }) =>
+      worksApi.removeChapter(vars.chapterId),
+    onSuccess: async (_r, vars) => {
+      await afterTreeChange();
+      navigateAfterDelete(vars.goTo);
+    },
+  });
+
+  const deleteWork = useMutation({
+    mutationFn: () => worksApi.remove(workId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['works'] });
+      setConfirm(null);
+      void navigate({ to: '/' });
+    },
+  });
+
   if (!work || !page) return null;
 
+  const activePage = page;
   const chapter =
-    work.chapters.find((c) => c.pages.some((p) => p.id === page.id)) ?? work.chapters[0];
+    work.chapters.find((c) => c.pages.some((p) => p.id === activePage.id)) ?? work.chapters[0];
+
+  const flatPageIds = work.chapters.flatMap((c) => c.pages.map((p) => p.id));
+
+  const requestDeletePage = (pageId: string) => {
+    const goTo =
+      pageId === activePage.id ? (nextPageId(flatPageIds, new Set([pageId]), activePage.id) ?? '/') : null;
+    setConfirm({
+      title: 'Delete page?',
+      message: 'This permanently removes the page and its content. This cannot be undone.',
+      confirmLabel: 'Delete page',
+      run: () => deletePage.mutate({ pageId, goTo }),
+    });
+  };
+
+  const requestDeleteWork = () => {
+    setConfirm({
+      title: work.kind === 'book' ? 'Delete book?' : 'Delete article?',
+      message: `This permanently removes "${work.title || 'Untitled'}"${
+        work.kind === 'book' ? ' and all its chapters and pages' : ''
+      }. This cannot be undone.`,
+      confirmLabel: work.kind === 'book' ? 'Delete book' : 'Delete article',
+      run: () => deleteWork.mutate(),
+    });
+  };
+
+  const requestDeleteChapter = (chapterId: string) => {
+    const ch = work.chapters.find((c) => c.id === chapterId);
+    const removed = new Set(ch?.pages.map((p) => p.id) ?? []);
+    const goTo = removed.has(activePage.id)
+      ? (nextPageId(flatPageIds, removed, activePage.id) ?? '/')
+      : null;
+    const n = removed.size;
+    setConfirm({
+      title: 'Delete chapter?',
+      message: `This permanently removes "${ch?.title ?? 'this chapter'}"${
+        n ? ` and its ${n} page${n === 1 ? '' : 's'}` : ''
+      }. This cannot be undone.`,
+      confirmLabel: 'Delete chapter',
+      run: () => deleteChapter.mutate({ chapterId, goTo }),
+    });
+  };
 
   return (
-    <AppShell
-      sidebar={() => (
-        <Sidebar>
-          <Sidebar.Brand />
-          <Sidebar.BookHead work={work} onBack={() => navigate({ to: '/' })} />
-          <Sidebar.Scroll style={{ paddingTop: 0 }}>
-            <Sidebar.Tree>
-              {work.chapters.map((ch) => (
-                <Sidebar.Chapter
-                  key={ch.id}
-                  chapter={ch}
-                  activePageId={page.id}
-                  onOpenPage={(_chId, pId) => goToPage(pId)}
-                  onAddPage={(chId) => addPage.mutate(chId)}
-                />
-              ))}
-              {work.kind === 'book' && (
-                <Sidebar.TreeAdd label="Add chapter" onClick={() => addChapter.mutate()} />
-              )}
-            </Sidebar.Tree>
-          </Sidebar.Scroll>
-        </Sidebar>
-      )}
-    >
-      <EditorWorkspace key={page.id} work={work} chapter={chapter} page={page} />
-    </AppShell>
+    <>
+      <AppShell
+        sidebar={() => (
+          <Sidebar>
+            <Sidebar.Brand />
+            <Sidebar.BookHead
+              work={work}
+              onBack={() => navigate({ to: '/' })}
+              onDelete={requestDeleteWork}
+            />
+            <Sidebar.Scroll style={{ paddingTop: 0 }}>
+              <Sidebar.Tree>
+                {work.chapters.map((ch) => (
+                  <Sidebar.Chapter
+                    key={ch.id}
+                    chapter={ch}
+                    activePageId={activePage.id}
+                    onOpenPage={(_chId, pId) => goToPage(pId)}
+                    onAddPage={(chId) => addPage.mutate(chId)}
+                    onDeletePage={(_chId, pId) => requestDeletePage(pId)}
+                    onDeleteChapter={work.kind === 'book' ? (chId) => requestDeleteChapter(chId) : undefined}
+                  />
+                ))}
+                {work.kind === 'book' && (
+                  <Sidebar.TreeAdd label="Add chapter" onClick={() => addChapter.mutate()} />
+                )}
+              </Sidebar.Tree>
+            </Sidebar.Scroll>
+          </Sidebar>
+        )}
+      >
+        <EditorWorkspace key={activePage.id} work={work} chapter={chapter} page={activePage} />
+      </AppShell>
+      <ConfirmDialog
+        open={confirm !== null}
+        title={confirm?.title ?? ''}
+        message={confirm?.message ?? ''}
+        confirmLabel={confirm?.confirmLabel}
+        busy={deletePage.isPending || deleteChapter.isPending || deleteWork.isPending}
+        onConfirm={() => confirm?.run()}
+        onCancel={() => setConfirm(null)}
+      />
+    </>
   );
 }
 

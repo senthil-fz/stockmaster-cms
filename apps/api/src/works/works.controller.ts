@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { CurrentUser, type AuthUser } from '../common/decorators/current-user.decorator';
+import { TrackRead } from '../common/decorators/track-read.decorator';
 import { WorksService } from './works.service';
 import {
   CreateChapterDto,
@@ -24,6 +25,7 @@ export class WorksController {
   }
 
   @Get('works/:id')
+  @TrackRead('book_open')
   detail(@Param('id') id: string) {
     return this.works.detail(id);
   }

@@ -76,7 +76,15 @@ function UserCard({ user }: { user: User }) {
   );
 }
 
-function BookHead({ work, onBack }: { work: WorkDetail; onBack: () => void }) {
+function BookHead({
+  work,
+  onBack,
+  onDelete,
+}: {
+  work: WorkDetail;
+  onBack: () => void;
+  onDelete?: () => void;
+}) {
   return (
     <div className="book-head">
       <button className="book-back" onClick={onBack} title="Back to library">
@@ -101,6 +109,16 @@ function BookHead({ work, onBack }: { work: WorkDetail; onBack: () => void }) {
           {work.year ? ` · ${work.year}` : ''}
         </div>
       </div>
+      {onDelete && (
+        <button
+          className="book-del"
+          onClick={onDelete}
+          title={`Delete ${work.kind}`}
+          aria-label={`Delete ${work.kind} ${work.title}`}
+        >
+          <Icons.Trash />
+        </button>
+      )}
     </div>
   );
 }
@@ -114,11 +132,15 @@ function ChapterNode({
   activePageId,
   onOpenPage,
   onAddPage,
+  onDeletePage,
+  onDeleteChapter,
 }: {
   chapter: Chapter;
   activePageId: string | null;
   onOpenPage: (chapterId: string, pageId: string) => void;
   onAddPage: (chapterId: string) => void;
+  onDeletePage?: (chapterId: string, pageId: string) => void;
+  onDeleteChapter?: (chapterId: string) => void;
 }) {
   const [collapsed, setCollapsed] = useState(false);
   return (
@@ -138,6 +160,19 @@ function ChapterNode({
         >
           <Icons.Plus />
         </button>
+        {onDeleteChapter && (
+          <button
+            className="row-del"
+            title="Delete chapter"
+            aria-label={`Delete chapter ${chapter.title}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteChapter(chapter.id);
+            }}
+          >
+            <Icons.Trash />
+          </button>
+        )}
       </div>
       {!collapsed && (
         <div className="pages">
@@ -149,6 +184,19 @@ function ChapterNode({
             >
               <Icons.Doc />
               <span className="pg-name">{pg.title || 'Untitled'}</span>
+              {onDeletePage && (
+                <button
+                  className="row-del"
+                  title="Delete page"
+                  aria-label={`Delete page ${pg.title || 'Untitled'}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeletePage(chapter.id, pg.id);
+                  }}
+                >
+                  <Icons.Trash />
+                </button>
+              )}
             </div>
           ))}
           <button className="tree-add" style={{ marginTop: 2 }} onClick={() => onAddPage(chapter.id)}>

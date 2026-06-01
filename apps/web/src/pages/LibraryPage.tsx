@@ -10,6 +10,8 @@ import { Sidebar } from '../components/Sidebar';
 import { Topbar } from '../components/Topbar';
 import { Library, type LibraryTab } from '../components/Library';
 import { AddMember } from '../components/AddMember';
+import { ReportingDashboard } from '../components/ReportingDashboard';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Icons } from '../components/icons';
 
 function LibrarySidebar({
@@ -42,7 +44,7 @@ function LibrarySidebar({
         ))}
 
         <Sidebar.SectionLabel>General</Sidebar.SectionLabel>
-        <Sidebar.NavItem icon="Chart" label="Reporting" onClick={() => undefined} />
+        <Sidebar.NavItem icon="Chart" label="Reporting" active={tab === 'reporting'} onClick={() => onTab('reporting')} />
         <Sidebar.NavItem icon="Users" label="Authors" active={tab === 'authors'} onClick={() => onTab('authors')} />
         <Sidebar.NavItem icon="Settings" label="Settings" onClick={() => undefined} />
       </Sidebar.Scroll>
@@ -81,6 +83,15 @@ export function LibraryPage() {
     },
   });
 
+  const [pendingDelete, setPendingDelete] = useState<WorkSummary | null>(null);
+  const deleteWork = useMutation({
+    mutationFn: (id: string) => worksApi.remove(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['works'] });
+      setPendingDelete(null);
+    },
+  });
+
   const counts = {
     all: works.length,
     books: works.filter((w) => w.kind === 'book').length,
@@ -104,6 +115,7 @@ export function LibraryPage() {
   ];
 
   return (
+    <>
     <AppShell
       sidebar={() => (
         <LibrarySidebar user={auth.user!} works={works} tab={tab} onTab={setTab} onOpenWork={openWork} />
@@ -111,12 +123,16 @@ export function LibraryPage() {
     >
       <Topbar>
         <Topbar.Crumbs>
-          <Topbar.Crumb current>{tab === 'authors' ? 'Authors' : 'Library'}</Topbar.Crumb>
+          <Topbar.Crumb current>
+            {tab === 'authors' ? 'Authors' : tab === 'reporting' ? 'Reporting' : 'Library'}
+          </Topbar.Crumb>
         </Topbar.Crumbs>
       </Topbar>
 
       <div className="canvas-scroll">
-        {tab === 'authors' ? (
+        {tab === 'reporting' ? (
+          <ReportingDashboard />
+        ) : tab === 'authors' ? (
           <AddMember />
         ) : (
           <Library>
@@ -134,7 +150,13 @@ export function LibraryPage() {
             ) : (
               <Library.Grid>
                 {filtered.map((w) => (
-                  <Library.Card key={w.id} work={w} onOpen={openWork} onRead={readWork} />
+                  <Library.Card
+                    key={w.id}
+                    work={w}
+                    onOpen={openWork}
+                    onRead={readWork}
+                    onDelete={setPendingDelete}
+                  />
                 ))}
               </Library.Grid>
             )}
@@ -142,5 +164,21 @@ export function LibraryPage() {
         )}
       </div>
     </AppShell>
+    <ConfirmDialog
+      open={pendingDelete !== null}
+      title={pendingDelete?.kind === 'book' ? 'Delete book?' : 'Delete article?'}
+      message={
+        pendingDelete
+          ? `This permanently removes "${pendingDelete.title}"${
+              pendingDelete.kind === 'book' ? ' and all its chapters and pages' : ''
+            }. This cannot be undone.`
+          : ''
+      }
+      confirmLabel={pendingDelete?.kind === 'book' ? 'Delete book' : 'Delete article'}
+      busy={deleteWork.isPending}
+      onConfirm={() => pendingDelete && deleteWork.mutate(pendingDelete.id)}
+      onCancel={() => setPendingDelete(null)}
+    />
+    </>
   );
 }

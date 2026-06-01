@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { TrackRead } from '../common/decorators/track-read.decorator';
 import { PagesService } from './pages.service';
 import { CreatePageDto, UpdatePageDto } from './dto';
 
@@ -12,6 +13,7 @@ export class PagesController {
   }
 
   @Get('pages/:id')
+  @TrackRead('page_read')
   get(@Param('id') id: string) {
     return this.pages.get(id);
   }

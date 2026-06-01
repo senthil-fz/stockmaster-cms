@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import {
   authResponseSchema,
+  bookStatDetailSchema,
+  bookStatsResponseSchema,
   chapterSchema,
   pageSchema,
   presignResponseSchema,
@@ -13,6 +15,7 @@ import {
   type LoginInput,
   type PresignRequest,
   type SignupInput,
+  type StatsQuery,
   type UpdatePageInput,
   type UpdateWorkInput,
   type WorksQuery,
@@ -78,6 +81,7 @@ async function request<T>(path: string, opts: RequestOptions<T> = {}): Promise<T
       method,
       credentials: 'include',
       headers: {
+        'X-Client': 'web', // tags this app's reads in analytics (see ReadTrackingInterceptor)
         ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
@@ -142,6 +146,15 @@ export const usersApi = {
     request('/auth/users', { method: 'POST', body: input, schema: meResponseSchema }),
 };
 
+const statsQs = (q: StatsQuery): string => qs({ client: q.client, from: q.from, to: q.to });
+
+export const statsApi = {
+  books: (q: StatsQuery = {}) =>
+    request(`/stats/books${statsQs(q)}`, { schema: bookStatsResponseSchema }),
+  bookDetail: (id: string, q: StatsQuery = {}) =>
+    request(`/stats/books/${id}${statsQs(q)}`, { schema: bookStatDetailSchema }),
+};
+
 export const worksApi = {
   list: (query: WorksQuery = {}) =>
     request(`/works${qs({ kind: query.kind, status: query.status })}`, {
@@ -154,6 +167,7 @@ export const worksApi = {
   remove: (id: string) => request(`/works/${id}`, { method: 'DELETE' }),
   addChapter: (workId: string, body: CreateChapterInput) =>
     request(`/works/${workId}/chapters`, { method: 'POST', body, schema: chapterSchema }),
+  removeChapter: (id: string) => request(`/chapters/${id}`, { method: 'DELETE' }),
 };
 
 export const pagesApi = {

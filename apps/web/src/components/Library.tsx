@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import type { WorkSummary } from '@blockpress/shared';
-import { readingTimeMinutes } from '@blockpress/shared';
 import { Icons } from './icons';
 import { BookCover } from './ui/BookCover';
 
@@ -60,13 +59,28 @@ function Card({
   work,
   onOpen,
   onRead,
+  onDelete,
 }: {
   work: WorkSummary;
   onOpen: (work: WorkSummary) => void;
   onRead: (work: WorkSummary) => void;
+  onDelete?: (work: WorkSummary) => void;
 }) {
   return (
     <div className="work-card">
+      {onDelete && (
+        <button
+          className="wc-del"
+          aria-label={`Delete ${work.title}`}
+          title={`Delete ${work.kind}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(work);
+          }}
+        >
+          <Icons.Trash />
+        </button>
+      )}
       <button className="wc-open" onClick={() => onOpen(work)}>
         <div className="cover-wrap">
           {work.kind === 'book' ? (
@@ -100,8 +114,6 @@ function Card({
         ) : (
           <span>{work.wordCount.toLocaleString()} words</span>
         )}
-        <span className="dot" />
-        <span>{readingTimeMinutes(work.wordCount)} min read</span>
         <button
           className="wc-read"
           aria-label={`Read ${work.title}`}
