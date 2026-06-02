@@ -1,0 +1,26 @@
+{
+  "name": "@blockpress/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "bin": {
+    "blockpress-mcp": "dist/server.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "dotenv -e ../../.env -- ts-node src/server.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@blockpress/editor-schema": "workspace:*",
+    "@blockpress/shared": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@tiptap/core": "^3.23.6",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "dotenv-cli": "^8.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  }
+}

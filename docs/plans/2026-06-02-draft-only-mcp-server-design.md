@@ -249,3 +249,59 @@ Sources: [MCP TS SDK README](https://github.com/modelcontextprotocol/typescript-
 - Per-work / per-collection key scoping (all-or-nothing draft write for now).
 - Rate limiting on the API-key path beyond what already exists.
 - Native attestation / key rotation automation.
+
+---
+
+## v1 amendments (as built — 2026-06-02)
+
+This section records how v1 actually shipped so this design doc and the code do not diverge.
+It supplements (and is the authoritative resolution of) the warning banner at the top. Full
+detail lives in [the implementation plan](./2026-06-02-draft-only-mcp-server-implementation-plan.md).
+
+- **Enforcement inverted to default-deny.** `ScopeGuard` runs after the (generalized) global
+  auth guard with a fixed decision order: `@Public` → allow; `req.scopes` includes `'*'` (JWT)
+  → allow; otherwise an ApiKey principal is **denied everywhere except an explicit `@ContentRoute`
+  allowlist** (the 9 works/pages/chapters routes). This replaces the original opt-in
+  `@RequireScope` model, which was fail-open (a forgotten marker on a new status/delete route
+  would have silently allowed it) and would have left `POST /auth/users` / `POST /api-keys`
+  ApiKey-reachable.
+- **Publish check is body/method-driven, pinned to `publishStatusSchema`.** Inside the content
+  allowlist, `wantsPublish = (PATCH) && publishStatusSchema.safeParse(req.body?.status).success
+  && parsed === 'published'`; `wantsDelete = (method === 'DELETE')`. Guards run before the
+  validation pipe, so the check is bound to the same zod schema as persistence (not a raw string
+  compare) and is guarded against non-object bodies.
+- **Editing already-published rows is blocked (no versioning exists).** A `works:write` key may
+  create + edit **draft** `Work`/`Page` rows only; a `PATCH` on an already-`published` row (like a
+  publish transition) requires `works:publish`. Implemented as a published-row guard that reads
+  the target's current `status`. *Residual:* `Chapter` has no `status`, so chapter structural
+  edits under a published work are not caught — structural-only, low-risk, deferred to a future
+  versioning path.
+- **`authType` + `@JwtOnly`.** The auth guard records `req.authType` (`'jwt' | 'apikey'`).
+  `@JwtOnly()` routes (`POST /auth/users`, the `/api-keys` routes) reject ApiKey principals,
+  making the JWT-only contract explicit on top of default-deny.
+- **`/api-keys` scope-enum validation.** `apiKeyScopeSchema = z.enum(['works:write','works:publish',
+  'works:delete'])`; a caller can never mint a `['*']`/`['admin']` key. The raw key is returned
+  **once** (only its sha256 hash is stored).
+- **`validate_content` ships in v1.** Backed by the new React-free `@blockpress/editor-schema`
+  package — `apps/mcp` calls `getSchema(schemaExtensions)` (headless, no DOM/jsdom) and runs
+  `nodeFromJSON → check → round-trip drop-diff + a Zod enum overlay` (catches invalid `callout.tone`
+  / `divider.variant` / `captionedImage.align` the round-trip can't see). The schema is **imported,
+  never hand-copied.** *Residual:* `callout.icon` name validity is unchecked (the icon registry
+  lives in `apps/web`).
+- **Content vocabulary corrected.** `blockquote`/`codeBlock` are **disabled** in the editor and do
+  **not** exist; the real custom nodes are `quote`, `callout`, `captionedImage`, `divider`, plus the
+  `table` family. The corrected set (with a worked example) is advertised on `update_page` and in
+  `apps/mcp/README.md`.
+- **`expiresAt` (optional key time-box).** Additive nullable column; `revokedAt` remains the
+  primary kill switch. The auth guard 401s an expired key (`'expired API key'`), and minting with a
+  past `expiresAt` is rejected (400). The web mint form must emit a UTC/ISO-with-offset instant to
+  avoid clock-skew.
+- **MCP module format.** `apps/mcp` is a standalone CommonJS Node package (`module:commonjs`,
+  `moduleResolution:node`, `esModuleInterop`, `allowSyntheticDefaultImports`) that does **not**
+  extend `tsconfig.base.json` (the base is ESNext/Bundler — incompatible); it mirrors
+  `apps/api/tsconfig.json`. The MCP SDK + Tiptap ship CJS entries, so `require()` interop works.
+- **MCP tool surface.** Exactly 10 tools: `list_works`, `get_work`, `create_work`, `update_work`,
+  `add_chapter`, `update_chapter`, `get_page`, `add_page`, `update_page`, `validate_content`. There
+  is intentionally **no publish/status/delete tool**, and `update_work`/`update_page` omit `status`.
+  `inputSchema` is registered as a raw `ZodRawShape` (the SDK wraps it in `z.object()` internally) —
+  the `z.object(...)` form shown in the Research notes example is illustrative, not the literal API.
