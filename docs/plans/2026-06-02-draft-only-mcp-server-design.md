@@ -21,6 +21,9 @@
 > 4. **The documented content vocabulary below is wrong** — `blockquote`/`codeBlock` are
 >    disabled in the editor; real nodes are `quote`, `callout`, `captionedImage`, `divider`,
 >    `table`. See the plan for the corrected set.
+> 5. **Editing already-published rows is blocked** (no versioning exists). A `works:write`
+>    key may edit draft `Work`/`Page` rows only; editing a published row requires
+>    `works:publish`. The key **may read** (`get_work`/`get_page` stay enabled).
 
 ## Goal
 

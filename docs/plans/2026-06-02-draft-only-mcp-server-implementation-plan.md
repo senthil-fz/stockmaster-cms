@@ -132,9 +132,11 @@ Full detail (file:line evidence) is in the workflow transcript; summarized:
 
 **Files:** `apps/api/src/common/guards/scope.guard.ts`
 
-**Change:** Implement CanActivate with this FIXED decision order: (1) `if (reflector.getAllAndOverride(IS_PUBLIC_KEY, [handler,class])) return true;` (mirrors JwtAuthGuard so it never reads undefined scopes on @Public reader routes). (2) `const scopes = req.scopes ?? []; if (scopes.includes('*')) return true;` (JWT bypass — THIS is the backward-compat contract; must precede all per-scope logic). (3) `if (reflector.getAllAndOverride(IS_JWT_ONLY, ...)) throw new ForbiddenException('this endpoint requires a user session');` (also assert req.authType === 'jwt'). (4) `if (!reflector.getAllAndOverride(IS_CONTENT_ROUTE, ...)) throw new ForbiddenException('API key not permitted on this route');` (DEFAULT-DENY: any non-allowlisted route is forbidden for ApiKey principals). (5) On content routes: compute wantsPublish via `publishStatusSchema.safeParse(req.body?.status)` (parsed === 'published'), guarding non-object bodies; if wantsPublish && !scopes.includes('works:publish') -> `throw new ForbiddenException('draft-only key cannot publish')`. If `req.method === 'DELETE'` && !scopes.includes('works:delete') -> `throw new ForbiddenException('draft-only key cannot delete')`. Else return true. Log (without the raw key) which scope was missing on rejection.
+**Change:** Inject `PrismaService` (needed for the published-row check in clause 6). Implement CanActivate with this FIXED decision order: (1) `if (reflector.getAllAndOverride(IS_PUBLIC_KEY, [handler,class])) return true;` (mirrors JwtAuthGuard so it never reads undefined scopes on @Public reader routes). (2) `const scopes = req.scopes ?? []; if (scopes.includes('*')) return true;` (JWT bypass — THIS is the backward-compat contract; must precede all per-scope logic). (3) `if (reflector.getAllAndOverride(IS_JWT_ONLY, ...)) throw new ForbiddenException('this endpoint requires a user session');` (also assert req.authType === 'jwt'). (4) `if (!reflector.getAllAndOverride(IS_CONTENT_ROUTE, ...)) throw new ForbiddenException('API key not permitted on this route');` (DEFAULT-DENY: any non-allowlisted route is forbidden for ApiKey principals). (5) On content routes: compute wantsPublish via `publishStatusSchema.safeParse(req.body?.status)` (parsed === 'published'), guarding non-object bodies; if wantsPublish && !scopes.includes('works:publish') -> `throw new ForbiddenException('draft-only key cannot publish')`. If `req.method === 'DELETE'` && !scopes.includes('works:delete') -> `throw new ForbiddenException('draft-only key cannot delete')`. **(6) Published-row guard (REFINEMENT 2026-06-02 — no versioning exists, so a draft-only key must not mutate already-live content): if `req.method === 'PATCH'` on `works/:id` or `pages/:id` and !scopes.includes('works:publish'), fetch the target's current status — `prisma.work.findUnique({where:{id}, select:{status:true}})` / `prisma.page.findUnique(...)` — and if it is `'published'` -> `throw new ForbiddenException('draft-only key cannot edit published content')` (404 if the row is missing, matching the service). This makes `works:write` mean create + edit DRAFT rows only; editing a published row, like publishing, requires `works:publish`.** Else return true. Log (without the raw key) which scope was missing on rejection.
 
-**Verify:** Tests (step 13) matrix: JWT (['*']) PATCH status=published -> allowed AND all 3 DELETE routes -> allowed (the regression gate the design omits); ApiKey ['works:write'] PATCH status=published -> 403 'draft-only key cannot publish'; same key DELETE /works/:id -> 403 'draft-only key cannot delete'; ApiKey ['works:write','works:publish'] publish -> allowed; ApiKey on POST /auth/users and POST /api-keys -> 403; @Public reader route (GET via ReaderController) -> unaffected (ScopeGuard returns true at step 1). status:'PUBLISHED'/['published']/{} do NOT bypass into a successful publish.
+> **Residual (documented, not blocked in v1):** `Chapter` has no `status` field, so chapter add/edit/reorder under a published work is *not* caught by clause 6. This is structural-only and low-risk; full coverage is the v2 versioning path (see Open questions). Pages under a published work that are themselves still `draft` remain editable — correct, since the reader serves published pages only.
+
+**Verify:** Tests (step 13) matrix: JWT (['*']) PATCH status=published -> allowed AND all 3 DELETE routes -> allowed AND PATCH on a published work -> allowed (the regression gate the design omits); ApiKey ['works:write'] PATCH status=published -> 403 'draft-only key cannot publish'; same key DELETE /works/:id -> 403 'draft-only key cannot delete'; **same key PATCH title on an already-published work or page -> 403 'draft-only key cannot edit published content'; same key PATCH on a DRAFT work/page -> allowed;** ApiKey ['works:write','works:publish'] publish AND edit-published -> allowed; ApiKey on POST /auth/users and POST /api-keys -> 403; @Public reader route (GET via ReaderController) -> unaffected (ScopeGuard returns true at step 1). status:'PUBLISHED'/['published']/{} do NOT bypass into a successful publish.
 
 ### Step 8 — Register ScopeGuard after JwtAuthGuard and annotate routes
 `api-auth`  ·  **deps:** #5, #7
@@ -210,12 +212,30 @@ Full detail (file:line evidence) is in the workflow transcript; summarized:
 
 ---
 
-## Open questions (need a decision before/during build)
+## Resolved decisions (2026-06-02)
 
-- MEDIUM (must be a conscious decision before ship): ScopeGuard gates the publish TRANSITION (status:'published' in the body) and deletes, but NOT which row is mutated. Verified PagesService.update (pages.service.ts:54-57) and WorksService.update (works.service.ts:78-96) will happily write new title/content to a row whose current status is already 'published' — so a draft-only key can edit a LIVE page and push changes live immediately (wordCount recomputed and persisted). This is a softer but real violation of the design's 'only ever in draft' intent (lines 8-11). Options: (a) accept it and document explicitly that draft-only keys may edit already-published content without review; or (b) in ScopeGuard's content path, for non-wildcard principals fetch the target's current status and 403 if it is already 'published'. Not resolved here because it needs a product decision; flagged rather than silently shipped.
-- validate_content is deferred to v2 (design_change). The v2 path is to extract a React-free @blockpress/editor-schema package (node name/group/content/attrs; NodeViews stay in apps/web) so apps/web and apps/mcp share the EXACT schema getSchema() needs. This was not made a v1 step because the extraction is non-trivial (5 custom nodes currently import @tiptap/react and CaptionedImage imports uploadsApi) and design lines 215-217 sanction deferral; confirm the team accepts shipping v1 without an automated content-drop check, relying on corrected vocabulary + get_page echo + verbatim error pass-through.
-- Should ApiKey principals be allowed to READ (GET /works/:id, GET /pages/:id) at all? Step 8 proposes annotating the GET content routes with @ContentRoute so get_work/get_page work for the MCP agent (needed for read-modify-write). If the team prefers ApiKey to be write-only, drop those GET annotations — but then the MCP get_page echo mitigation breaks. Defaulting to allow-read since the design's tool table exposes get_work/get_page; confirm this is intended.
-- Key expiry: the model has no expiresAt — revocation (revokedAt) is the only kill switch, so a leaked draft-only key is valid until manually revoked (HARDEN Security medium #6). Out of scope per design YAGNI (line 228 'native attestation / key rotation'), but if the MCP agent key warrants time-boxing, adding an optional expiresAt + an auth-path check is a small, additive follow-up.
+- **✅ Editing already-published rows — BLOCKED.** There is no versioning in the schema
+  (confirmed: `Work`/`Page` carry a single `status`, no version/history table), so there is
+  no safe "land edits as a new draft version" path. Decision: a `works:write` key may edit
+  **draft rows only**; editing a published `Work`/`Page` requires `works:publish` (same scope
+  as publishing). Implemented as clause 6 of **Step 7**. *Future:* if versioning is added,
+  editing published content could be re-enabled by creating a new draft version — that's the
+  v2 unlock, not a v1 concern.
+- **✅ ApiKey READ access — ALLOWED.** `get_work` / `get_page` stay enabled (GET works/pages
+  routes annotated `@ContentRoute` in **Step 8**). Needed for read-modify-write and the
+  `get_page` echo safety net.
+
+## Open questions (still need a decision)
+
+- **`validate_content` deferred to v2 — confirm acceptance.** v1 ships without an automated
+  content-drop check, relying on corrected vocabulary + `get_page` echo + verbatim API-error
+  pass-through. The v2 path is a React-free `@blockpress/editor-schema` package (node
+  name/group/content/attrs; NodeViews stay in `apps/web`) so `apps/web` and `apps/mcp` share
+  the exact schema `getSchema()` needs. Confirm the team accepts shipping v1 without it.
+- **Key expiry (`expiresAt`) — optional follow-up.** The model has no `expiresAt`; `revokedAt`
+  is the only kill switch, so a leaked key is valid until manually revoked. Out of scope per
+  design YAGNI, but a time-boxed agent key is a small additive change (optional `expiresAt` +
+  an auth-path check) if wanted.
 
 ---
 
