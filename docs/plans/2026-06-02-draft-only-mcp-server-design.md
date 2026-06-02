@@ -14,10 +14,11 @@
 >    allowlist, and still 403s publish/delete within it.
 > 2. **Publish check is body/method-driven** and derived from `publishStatusSchema.safeParse`
 >    (guards run before the validation pipe), not a raw string compare.
-> 3. **`validate_content` is dropped from v1** (deferred to v2) — the editor's custom nodes
->    import `@tiptap/react`, so a Node-side schema can't reuse them; a hand-copied replica
->    would give false confidence. v1 relies on corrected vocabulary + `get_page` echo +
->    verbatim API-error pass-through.
+> 3. **`validate_content` ships in v1** via a new React-free `@blockpress/editor-schema`
+>    package (a later verification reversed the initial deferral). Tiptap v3 + ProseMirror
+>    ship dual ESM/CJS and `getSchema` runs headless, so `apps/mcp` imports the *same* schema
+>    `apps/web` uses — no hand-copy. Backs the vocabulary + `get_page` echo with an automated
+>    content-drop + invalid-attr check. Residual: `callout.icon` name validity unchecked.
 > 4. **The documented content vocabulary below is wrong** — `blockquote`/`codeBlock` are
 >    disabled in the editor; real nodes are `quote`, `callout`, `captionedImage`, `divider`,
 >    `table`. See the plan for the corrected set.

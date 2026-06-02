@@ -32,11 +32,27 @@ Record authType ('jwt' | 'apikey') on the request in the auth guard, and assert 
 
 > **Why:** HARDEN blocker #1 + NestJS high #3: default-deny already blocks ApiKey from these routes (no content annotation), but an explicit authType assertion makes the JWT-only contract legible and gives the escalation e2e test a concrete thing to assert. Scope-enum validation prevents a future code path from minting a ['*'] or ['works:publish'] key.
 
-### 4. Defer validate_content to v2; drop it from the v1 tool table
+### 4. Ship validate_content IN v1 via a React-free `@blockpress/editor-schema` package — REVERSED 2026-06-02
 
-Defer validate_content to a v2 iteration and DROP it from the v1 MCP tool table. v1 ships with three working safety nets instead: (a) a CORRECTED documented vocabulary in update_page's tool description, (b) get_page echo for read-modify-write, (c) verbatim NestJS error-message pass-through in the MCP HTTP client. Do NOT hardcode a parallel ProseMirror schema in apps/mcp.
+**Decision reversed.** `validate_content` ships in v1. A second verification workflow confirmed the
+blocker that justified deferral is solvable: all Tiptap v3 + ProseMirror packages publish **dual ESM/CJS**
+exports, and `getSchema()` + `nodeFromJSON` + `check` + `toJSON` run **headless (no DOM/jsdom)**. The fix is to
+extract a new React-free package **`packages/editor-schema`** holding the canonical node specs +
+`schemaExtensions`, consumed by **both** `apps/web` (re-wrapping the React NodeViews) and `apps/mcp`
+(`getSchema(schemaExtensions)`). The design's caution "do NOT hand-copy a parallel schema" is **honored** —
+the schema is *imported*, never duplicated. v1's three safety nets (corrected vocabulary, `get_page` echo,
+verbatim API errors) remain, now backed by an automated content-drop + invalid-attr check. See new steps
+16–18.
 
-> **Why:** HARDEN blocker #3 + high #8 (MCP-UX): verified all 5 custom nodes import @tiptap/react at module top and CaptionedImage.tsx imports uploadsApi from '../../lib/api' (web-runtime code), so direct reuse of blockExtensions in a Node server is impossible. The MAP's fallback (hardcode a replica in apps/mcp/src/schema.ts) is 'confidently wrong' — a hand-copied schema drifts from the editor and either passes content the editor drops or flags content it accepts. Design lines 215-217 already sanction deferral. A correct extraction (@blockpress/editor-schema, React-free node specs) is the v2 path.
+> **Why the reversal is safe (verified):** `@tiptap/core@3.23.6` / `@tiptap/starter-kit` / `@tiptap/extension-table` /
+> `prosemirror-model@1.25.7` and `@modelcontextprotocol/sdk@^1.29` all ship `require:` CJS entries beside `import:` ESM,
+> so the CJS `apps/mcp` consumes them via the same interop `apps/api` already uses. `getSchema` takes no DOM;
+> `parseHTML`/`renderHTML` only run on HTML paste/copy, never during schema build or JSON round-trip. The 4 custom
+> nodes split cleanly: only `addNodeView` + the React View import `@tiptap/react`; the spec (name/group/content/attrs/
+> parse/render) moves verbatim. **Residual:** the round-trip diff catches unknown node/mark types + dropped content +
+> content-model violations, but not invalid-but-typed attr *values* — enum attrs (callout.tone, divider.variant,
+> captionedImage.align) get a Zod overlay; `callout.icon` name validity stays unchecked (icon registry lives in
+> `apps/web`).
 
 ### 5. Correct the page-content vocabulary advertised to the agent
 
@@ -192,7 +208,7 @@ Full detail (file:line evidence) is in the workflow transcript; summarized:
 
 **Verify:** `pnpm --filter @blockpress/api test` runs green. The wildcard-regression and schema-drift tests are present and passing (these are the load-bearing backward-compat guarantees the design's test list at lines 142-148 omits).
 
-### Step 14 — Scaffold apps/mcp package (HTTP client + tools, no validate_content)
+### Step 14 — Scaffold apps/mcp package (HTTP client + tools; validate_content wired in #18)
 `mcp`  ·  **deps:** #9
 
 **Files:** `apps/mcp/package.json`, `apps/mcp/tsconfig.json`, `apps/mcp/src/server.ts`, `apps/mcp/src/api-client.ts`, `apps/mcp/src/tools.ts`, `apps/mcp/.env.example`
@@ -206,9 +222,54 @@ Full detail (file:line evidence) is in the workflow transcript; summarized:
 
 **Files:** `apps/mcp/README.md`, `docs/plans/2026-06-02-draft-only-mcp-server-design.md`
 
-**Change:** apps/mcp/README.md: env setup (BLOCKPRESS_API_URL/BLOCKPRESS_API_KEY), how to mint a key (web UI or `curl -H 'Authorization: Bearer <jwt>' POST /api-keys`), registering the server with Claude Desktop/Claude Code (stdio), the tool list + the CORRECTED content vocabulary with a worked example, and explicit statements that (a) there is intentionally NO publish/delete/validate_content tool in v1, (b) list_works status is read-only filtering not a publish affordance, (c) captionedImage needs an external URL. Update the design doc: append a 'v1 amendments' note recording the design_changes (default-deny inversion, validate_content deferred to v2 + dropped from v1 table, corrected vocabulary, authType/JwtOnly, scope-enum validation) so the doc and code don't diverge.
+**Change:** apps/mcp/README.md: env setup (BLOCKPRESS_API_URL/BLOCKPRESS_API_KEY), how to mint a key (web UI or `curl -H 'Authorization: Bearer <jwt>' POST /api-keys`), registering the server with Claude Desktop/Claude Code (stdio), the tool list + the CORRECTED content vocabulary with a worked example, and explicit statements that (a) there is intentionally NO publish/delete tool in v1 (validate_content IS included — see step 18), (b) list_works status is read-only filtering not a publish affordance, (c) captionedImage needs an external URL, (d) validate_content's known residual (icon-name validity unchecked). Update the design doc: append a 'v1 amendments' note recording the design_changes (default-deny inversion, validate_content shipped in v1 via @blockpress/editor-schema, corrected vocabulary, authType/JwtOnly, scope-enum validation, published-row block, expiresAt) so the doc and code don't diverge.
 
 **Verify:** README renders; a fresh reader can mint a key and connect an agent host end-to-end following only the README. The design doc's tool table and vocabulary match what apps/mcp actually ships.
+
+---
+
+## v1 additions — `validate_content` + shared schema (new steps 16–18)
+
+Added after a verification workflow confirmed feasibility (dual ESM/CJS, headless `getSchema`). These slot into the existing waves: **#16** runs in Wave A (no deps); **#17** after #16 (web refactor); **#18** after #16 and #14 (the MCP tool).
+
+### Step 16 — Create React-free `@blockpress/editor-schema` package (canonical Tiptap schema)
+`editor-schema`  ·  **deps:** — (new package; Wave A, alongside #1/#3/#4)
+
+**Files:** `packages/editor-schema/{package.json,tsup.config.ts,tsconfig.json,README.md}`, `packages/editor-schema/src/{index,Callout,Quote,CaptionedImage,Divider}.ts`
+
+**Change:** New workspace package mirroring `packages/shared`'s **proven dual-format template verbatim** (tsconfig `module:CommonJS`/`moduleResolution:Node`, extends `../../tsconfig.base.json`; `tsup` format `['esm','cjs']`, `dts`, `clean`, `sourcemap`). Deps: `@tiptap/core ^3.23.6`, `@tiptap/starter-kit ^3.23.6`, `@tiptap/extension-table ^3.23.6`, `@blockpress/shared workspace:*`; devDep `tsup`. Copy each spec from `apps/web/src/editor/extensions/*.tsx` **minus** the `@tiptap/react` import, the React View, and `addNodeView` (omit it entirely — do not `return undefined`); keep `Node.create({name,group,content/atom/draggable/selectable,defining,addAttributes,parseHTML,renderHTML})` byte-identical. Keep the bare string-union exports `CalloutTone`/`DividerVariant`/`ImageAlign` (zero web imports); `callout.icon` stays a plain `string` default — **do NOT** import `IconName` and **do NOT** move `CALLOUT_ICONS` (that would invert package→app layering and create a cycle). `src/index.ts` exports the 4 specs + 3 unions + `schemaExtensions = [StarterKit.configure({heading:{levels:[1,2,3]}, blockquote:false, horizontalRule:false, codeBlock:false, link:{openOnClick:false, autolink:true}}), TableKit, Callout, Quote, CaptionedImage, Divider]` (SlashCommand **excluded** — adds no schema). This is the **single source of truth** for the editor schema.
+
+**Verify:** `pnpm --filter @blockpress/editor-schema build` emits `dist/{index.js,index.mjs,index.d.ts}`. Scratch: `const {getSchema}=require('@tiptap/core'); const {schemaExtensions}=require('@blockpress/editor-schema'); getSchema(schemaExtensions)` returns a Schema with `callout/quote/captionedImage/divider/paragraph/heading/table*` and **no** `blockquote/codeBlock/horizontalRule` — proving headless + disables applied. `grep -r '@tiptap/react' packages/editor-schema/src` is empty.
+
+### Step 17 — Refactor `apps/web` custom nodes to consume `editor-schema` (NodeViews stay)
+`web`  ·  **deps:** #16
+
+**Files:** `apps/web/package.json`, `apps/web/src/editor/extensions/{Callout,Quote,CaptionedImage,Divider}.tsx`, `apps/web/src/editor/BlockSettings.tsx`, `apps/web/src/editor/useBlockEditor.ts`
+
+**Change:** Add `@blockpress/editor-schema: workspace:*` to web deps. Each custom node file becomes `import { Callout as CalloutBase } from '@blockpress/editor-schema'` + `export const Callout = CalloutBase.extend({ addNodeView: () => ReactNodeViewRenderer(CalloutView) })`; the React View, `@tiptap/react`, and (CaptionedImage) `uploadsApi` + `@blockpress/shared` upload-validation imports **stay inline**. `Callout.tsx` keeps exporting `CALLOUT_ICONS`. `BlockSettings.tsx` imports `type CalloutTone` from `@blockpress/editor-schema` but keeps `CALLOUT_ICONS` from `./extensions/Callout`. `useBlockEditor.ts` imports of the 4 nodes are unchanged (now resolve to the `.extend()`-wrapped versions); reuse the StarterKit options from `editor-schema` (or keep identical). `.extend()` preserves name/attrs/parse/render identity, so serialization is unchanged.
+
+**Verify:** `pnpm --filter @blockpress/editor-schema build && pnpm --filter @blockpress/web typecheck` passes (build the package first — workspace symlink needs `dist`). `grep -rn "from.*extensions/(Callout|Quote|CaptionedImage|Divider)" apps/web/src` confirms only `useBlockEditor` + `BlockSettings` import sites (others use node-name string literals). Dev run: callout tone/icon, image upload, divider, quote all render and round-trip identically; a pre-refactor doc deserializes byte-identically.
+
+### Step 18 — Build `validate_content` MCP tool (getSchema → nodeFromJSON → check → drop-diff + Zod enum overlay)
+`mcp`  ·  **deps:** #16, #14
+
+**Files:** `apps/mcp/src/validate-content.ts`, `apps/mcp/src/tools.ts`, `apps/mcp/package.json`
+
+**Change:** Add `@blockpress/editor-schema: workspace:*` to mcp deps. `validate-content.ts` exports `validateContent(doc)`: (1) `const schema = getSchema(schemaExtensions)` (no DOM). (2) `schema.nodeFromJSON(doc)` in try/catch → unknown node/mark types reported by name (primary detector). (3) `node.check()` → content-model violations. (4) Round-trip drop-diff comparing `nodeFromJSON(doc).toJSON()` vs input by walking node/mark **`type` presence/order, NOT deep-equal** (defaults fill on round-trip → deep-equal false-positives). (5) **Zod enum overlay** walking the tree: `callout.tone ∈ {info,neutral,warn,success}`, `divider.variant ∈ {line,dots}`, `captionedImage.align ∈ {full,left}` — reports out-of-enum values the round-trip can't catch. Return `{ok, errors:[{path, kind:'unknown-node'|'unknown-mark'|'content-violation'|'dropped'|'invalid-attr-value', detail}]}`. Register `validate_content` back into the v1 tool table; handler never throws. **Residual:** `callout.icon` name validity not checked (registry lives in `apps/web`).
+
+**Verify:** `pnpm --filter @blockpress/mcp build` succeeds (needs `editor-schema` dist first). valid doc → `{ok:true}`; `{type:'blockquote'}`/`{type:'codeBlock'}` → unknown-node; `callout` `tone:'danger'` → invalid-attr-value (proves the overlay covers the round-trip blind spot); stray top-level text node → dropped; `icon:'FakeIcon'` NOT flagged (documented residual). Runs with no jsdom present.
+
+## `expiresAt` — amendments threaded through existing steps
+
+Optional key time-box (`revokedAt` stays the primary kill switch). Delivered as edits to existing steps, not a new step:
+
+- **Step 1 (Prisma):** add `expiresAt DateTime?` to `ApiKey` (null = never expires). No index needed.
+- **Step 2 (migration):** generated `CREATE TABLE` includes nullable `expiresAt TIMESTAMP(3)` — additive, no backfill.
+- **Step 5 (auth guard):** after the revoked check, add `if (key.expiresAt && key.expiresAt.getTime() <= Date.now()) throw new UnauthorizedException('expired API key')` (distinct message from revoked's `'Invalid API key'`), inside the try/catch.
+- **Step 9 (/api-keys):** `createApiKeySchema` gets optional `expiresAt` (`z.coerce.date().optional().refine(future)`); `apiKeySummarySchema` includes `expiresAt`; service stores `input.expiresAt ?? null`; list projection includes it (never the hash).
+- **Step 11 (web UI):** create form adds an optional expiry picker (empty = never; must emit **UTC/ISO-with-offset** to avoid clock-skew); list shows an expiry column + an **Expired** badge.
+- **Step 13 (tests):** expired key → 401 `'expired API key'`; minting with a past `expiresAt` → 400.
+- **Step 14 (apps/mcp module format — RESOLVED):** keep `module:commonjs, moduleResolution:node`; **add** `esModuleInterop:true` + `allowSyntheticDefaultImports:true`; do **NOT** extend `tsconfig.base.json` (base is ESNext/Bundler — incompatible; `apps/api` is standalone). The SDK + Tiptap ship CJS entries, so `require()` interop works. `validate_content` is back in the registered tool table (impl is step 18).
 
 ---
 
@@ -225,26 +286,46 @@ Full detail (file:line evidence) is in the workflow transcript; summarized:
   routes annotated `@ContentRoute` in **Step 8**). Needed for read-modify-write and the
   `get_page` echo safety net.
 
-## Open questions (still need a decision)
+- **✅ `validate_content` — BUILT IN v1.** Via the React-free `@blockpress/editor-schema` package
+  (steps 16–18). Dual ESM/CJS + headless `getSchema` verified, so no DOM/jsdom and no schema
+  hand-copy. Backs the three safety nets with an automated content-drop + invalid-attr check.
+- **✅ Key expiry (`expiresAt`) — IN v1.** Optional, additive, threaded through steps 1/2/5/9/11/13.
+  `revokedAt` remains the primary kill switch; `expiresAt` is an optional time-box.
 
-- **`validate_content` deferred to v2 — confirm acceptance.** v1 ships without an automated
-  content-drop check, relying on corrected vocabulary + `get_page` echo + verbatim API-error
-  pass-through. The v2 path is a React-free `@blockpress/editor-schema` package (node
-  name/group/content/attrs; NodeViews stay in `apps/web`) so `apps/web` and `apps/mcp` share
-  the exact schema `getSchema()` needs. Confirm the team accepts shipping v1 without it.
-- **Key expiry (`expiresAt`) — optional follow-up.** The model has no `expiresAt`; `revokedAt`
-  is the only kill switch, so a leaked key is valid until manually revoked. Out of scope per
-  design YAGNI, but a time-boxed agent key is a small additive change (optional `expiresAt` +
-  an auth-path check) if wanted.
+## Known residuals & risks (accepted for v1)
+
+- **`callout.icon` name validity is unchecked.** The icon registry lives in `apps/web`; the React-free
+  schema can't see it. An agent emitting `icon:'FakeIcon'` persists it — the web NodeView must degrade
+  gracefully (fallback icon). Documented, not a blocker.
+- **Round-trip diff is heuristic.** It catches dropped/added node & mark *types*, but a normalization that
+  *reorders or merges* same-type content may not be flagged. Agents should still `get_page` to read the
+  canonical persisted form.
+- **Chapter structural edits under a published work are not blocked** (Chapter has no `status`) — see Step 7.
+- **Schema-drift guard is documentation-only.** `editor-schema` is the single owner of node/attr/StarterKit
+  options; there's no automated test asserting `useBlockEditor`'s effective schema === `schemaExtensions`.
+  Consider a future diff test.
+- **`expiresAt` clock-skew.** The web picker must emit a UTC/ISO-with-offset instant; the shared schema
+  must reject naive local strings, or a key can read expired/valid off by the client's offset.
+- **Build-order coupling.** `editor-schema` must build before `apps/web` typecheck and `apps/mcp` build
+  (both consume its `dist` via `workspace:*`). `turbo dependsOn:[^build]` handles CI; document "build
+  editor-schema first" for isolated `pnpm --filter` runs.
+
+## Package layering (record so it doesn't re-drift)
+
+`packages/shared` = wire/zod validation only · `packages/editor-schema` = React-free Tiptap specs + the
+canonical `schemaExtensions` (single source of truth) · `apps/web` = specs re-wrapped with React NodeViews +
+`IconName`/`CALLOUT_ICONS`/`uploadsApi` · `apps/mcp` = `getSchema(schemaExtensions)` for validation only.
+**Anti-drift rule:** any new node/attr/StarterKit option is added **once** in `editor-schema`, never
+duplicated in `useBlockEditor` or `apps/mcp`.
 
 ---
 
 ## Suggested build waves (what can parallelize)
 
-- **Wave A** (parallel, no deps): #1 Prisma model, #3 request types, #4 crypto helpers, #6 marker decorators, #10 get_page fallback.
-- **Wave B**: #2 migration (←#1), #5 generalized auth guard (←#2,#3,#4), #7 ScopeGuard (←#3,#6), #12 docker generate (←#2).
+- **Wave A** (parallel, no deps): #1 Prisma model, #3 request types, #4 crypto helpers, #6 marker decorators, #10 get_page fallback, **#16 editor-schema package**.
+- **Wave B**: #2 migration (←#1), #5 generalized auth guard (←#2,#3,#4), #7 ScopeGuard (←#3,#6), #12 docker generate (←#2), **#17 web node refactor (←#16)**.
 - **Wave C**: #8 register+annotate (←#5,#7) → #9 /api-keys (←#4,#6,#8) → #13 tests (←#5,#7,#9).
-- **Wave D** (parallel): #11 web UI (←#9), #14 apps/mcp (←#9).
-- **Wave E**: #15 docs (←#11,#14).
+- **Wave D** (parallel): #11 web UI (←#9), #14 apps/mcp (←#9) → **#18 validate_content (←#16,#14)**.
+- **Wave E**: #15 docs (←#11,#14,#18).
 
-Steps #5/#7/#8 all touch the guards + `app.module.ts`, so sequence them rather than running parallel worktrees.
+Steps #5/#7/#8 all touch the guards + `app.module.ts`, so sequence them rather than running parallel worktrees. Build #16 before #17/#18 (workspace symlink needs its `dist`).
