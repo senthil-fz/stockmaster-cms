@@ -190,9 +190,14 @@
       "title": "Chapter 1: Emotions and Financial Decisions",
       "sections": [
         {
-          "title": "The Neurological Basis of Emotional Decision-Making",
+          "title": "Emotions and Financial Decisions",
           "status": "published",
           "blocks": [
+            {
+              "type": "heading",
+              "level": 3,
+              "text": "The Neurological Basis of Emotional Decision-Making"
+            },
             {
               "type": "paragraph",
               "text": "On October 19, 1987, Black Monday, the Dow Jones Industrial Average dropped 22.6% on a single trading day. Panic hit markets worldwide. At Merrill Lynch's Manhattan headquarters, seasoned broker Richard Tanaka saw usually rational clients make decisions that went against their own meticulously drawn-up financial plans."
@@ -590,12 +595,17 @@
       "title": "Chapter 2: Cognitive Biases in Finance",
       "sections": [
         {
-          "title": "Loss Aversion: Why Losses Hurt More Than Gains Feel Good",
+          "title": "Cognitive Biases in Finance",
           "status": "published",
           "blocks": [
             {
+              "type": "heading",
+              "level": 3,
+              "text": "Loss Aversion: Why Losses Hurt More Than Gains Feel Good"
+            },
+            {
               "type": "paragraph",
-              "text": "Rahul Sharma, a 42-year-old Bangalore-based IT specialist, had to make a choice on a cold morning in January 2022 that aptly highlights one of the most potent cognitive biases in finance. From its November high, his portfolio of growth stocks had dropped about thirty percent as markets responded to expected interest rate increases. One particularly interesting position, an Indian electric car start-up he had invested in for 21,200 per share was currently trading at 2650."
+              "text": "Rahul Sharma, a 42-year-old Bangalore-based IT specialist, had to make a choice on a cold morning in January 2022 that aptly highlights one of the most potent cognitive biases in finance. From its November high, his portfolio of growth stocks had dropped about thirty percent as markets responded to expected interest rate increases. One particularly interesting position, an Indian electric car start-up he had invested in for ₹1,200 per share was currently trading at ₹650."
             },
             {
               "type": "paragraph",
@@ -603,11 +613,11 @@
             },
             {
               "type": "paragraph",
-              "text": "However, Rahul could not sell. \"The thought of validating that 7550 per share loss was literally painful. I actually got a constriction in my chest when I envisioned pressing the 'sell' button. So I kept holding on, thinking things would somehow get better.\""
+              "text": "However, Rahul could not sell. \"The thought of validating that ₹550 per share loss was literally painful. I actually got a constriction in my chest when I envisioned pressing the 'sell' button. So I kept holding on, thinking things would somehow get better.\""
             },
             {
               "type": "paragraph",
-              "text": "The share had dropped to 7280 as of July 2022, and the firm then filed for bankruptcy protection, thus down valuing the shares nearly entirely."
+              "text": "The share had dropped to ₹280 as of July 2022, and the firm then filed for bankruptcy protection, thus down valuing the shares nearly entirely."
             },
             {
               "type": "paragraph",
@@ -615,7 +625,7 @@
             },
             {
               "type": "paragraph",
-              "text": "that losses have emotional impact about twice the magnitude of gains. In terms of what really happens, losing 10,000 feels roughly twice as awful as receiving 710,000 feels good."
+              "text": "that losses have emotional impact about twice the magnitude of gains. In terms of what really happens, losing ₹10,000 feels roughly twice as awful as receiving ₹10,000 feels good."
             },
             {
               "type": "paragraph",
@@ -631,11 +641,11 @@
             },
             {
               "type": "paragraph",
-              "text": "The biological basis of loss aversion appears to be the asymmetric response of our brain to good and bad things. Neuroscientists have discovered through the use of functional magnetic resonance imaging (MRI) that money losses activate pain and bad feelings more strongly than equivalent profits excite reward centers."
+              "text": "The biological basis of loss aversion appears to be the asymmetric response of our brain to good and bad things. Neuroscientists have discovered through the use of functional magnetic resonance imaging (fMRI) that money losses activate pain and bad feelings more strongly than equivalent profits excite reward centers."
             },
             {
               "type": "paragraph",
-              "text": "Loss aversion also influences overall market behaviour. The long-term trend of \"climbing the stairs up and riding the elevator down\"—slow ascents accompanied by precipitous drops-\"mirrors how collective loss aversion causes quick, panic selling in downturns while gains accumulate more slowly.\""
+              "text": "Loss aversion also influences overall market behaviour. The long-term trend of \"climbing the stairs up and riding the elevator down\"—slow ascents accompanied by precipitous drops—\"mirrors how collective loss aversion causes quick, panic selling in downturns while gains accumulate more slowly.\""
             },
             {
               "type": "paragraph",
@@ -644,8 +654,13 @@
             {
               "type": "orderedList",
               "items": [
-                "Reversing decisions to focus on opportunity costs rather than direct losses."
-              ]
+                "Reversing decisions to focus on opportunity costs rather"
+              ],
+              "start": 1
+            },
+            {
+              "type": "paragraph",
+              "text": "than direct losses."
             },
             {
               "type": "orderedList",
@@ -671,11 +686,11 @@
           "blocks": [
             {
               "type": "paragraph",
-              "text": "Deepak Malhotra, a software engineer aged 36, purchased shares in one of India's best-known e-commerce firms in July 2021 at 24,200 per share, the all-time high. As the company faced intensifying competition and margin squeeze during the subsequent months, the share price fell incrementally until it eventually fell R2,800."
+              "text": "Deepak Malhotra, a software engineer aged 36, purchased shares in one of India's best-known e-commerce firms in July 2021 at ₹4,200 per share, the all-time high. As the company faced intensifying competition and margin squeeze during the subsequent months, the share price fell incrementally until it eventually fell ₹2,800."
             },
             {
               "type": "paragraph",
-              "text": "Deepak's regular review cycle for investment notwithstanding, he just could not shake the feeling that 74,200 was too \"real\" a value for the stock. \"I kept visualizing 72,800 as a discounted price for the time being from what I knew the business was actually worth,\" he explains. \"Each study I undertook unconsciously began with that 74,200 reference point, which tainted my entire outlook.\""
+              "text": "Deepak's regular review cycle for investment notwithstanding, he just could not shake the feeling that ₹4,200 was too \"real\" a value for the stock. \"I kept visualizing ₹2,800 as a discounted price for the time being from what I knew the business was actually worth,\" he explains. \"Each study I undertook unconsciously began with that ₹4,200 reference point, which tainted my entire outlook.\""
             },
             {
               "type": "paragraph",
@@ -796,7 +811,7 @@
             },
             {
               "type": "paragraph",
-              "text": "Rohan invested 72 lakh in GameStop near the peak. The share fell 90% in a matter of weeks, leading to huge losses and immense regret."
+              "text": "Rohan invested ₹2 lakh in GameStop near the peak. The share fell 90% in a matter of weeks, leading to huge losses and immense regret."
             },
             {
               "type": "paragraph",
@@ -816,7 +831,8 @@
                 "Information Cascades occurs when individuals make decisions primarily based on observing others' behaviours instead of on their own personal knowledge.",
                 "Desire Falsification is publicly embracing prevailing views while in private doubting them.",
                 "Social validation makes us perceive actions more appropriate as others do them."
-              ]
+              ],
+              "start": 1
             },
             {
               "type": "paragraph",
@@ -831,8 +847,13 @@
               "items": [
                 "Have the ideas on investing during tranquil periods retained.",
                 "Have formalized opposing ideas through implementation of devil's advocate practices.",
-                "Limit your exposure to potentially triggering material at market extremes."
-              ]
+                "Limit your exposure to potentially triggering material at"
+              ],
+              "start": 1
+            },
+            {
+              "type": "paragraph",
+              "text": "market extremes."
             },
             {
               "type": "orderedList",
@@ -870,7 +891,8 @@
                 "Return expectations tend to cling primarily in recent performance.",
                 "Recent experience alters risk perception radically.",
                 "More often than not, instead of forward-looking analysis, asset allocation is based on recent performance."
-              ]
+              ],
+              "start": 1
             },
             {
               "type": "paragraph",
@@ -888,7 +910,8 @@
                 "Implement rules-based rebalancing that is intended to offset recency bias.",
                 "Record market and economic projections under a variety of scenarios.",
                 "Expose yourself to other perspectives that challenge stories based on present experience."
-              ]
+              ],
+              "start": 1
             }
           ]
         },
@@ -903,7 +926,7 @@
             },
             {
               "type": "paragraph",
-              "text": "48-year-old engineer with significant investment experience Rajiv Mehta noticed what appeared to be an interesting opportunity in 2018. Once one of India's most promising private sector banks, Yes Bank had fallen from R400 to around 7200 per share after changes in management and issues of governance."
+              "text": "48-year-old engineer with significant investment experience Rajiv Mehta noticed what appeared to be an interesting opportunity in 2018. Once one of India's most promising private sector banks, Yes Bank had fallen from ₹400 to around ₹200 per share after changes in management and issues of governance."
             },
             {
               "type": "paragraph",
@@ -911,15 +934,15 @@
             },
             {
               "type": "paragraph",
-              "text": "Rajiv made significant capital investments at 7190, seeing this as a 50% discount to the bank's \"real value\"; a classic example of anchoring bias, where the prior 7400 price acted as a strong reference point implying the new price reflected a bargain."
+              "text": "Rajiv made significant capital investments at ₹190, seeing this as a 50% discount to the bank's \"real value\"; a classic example of anchoring bias, where the prior ₹400 price acted as a strong reference point implying the new price reflected a bargain."
             },
             {
               "type": "paragraph",
-              "text": "Yes Bank shares continued to decline as shocking information on the loan book and management guidelines began to emerge. Rajiv purchased more at 7150, $100, and then 750, each time witnessing an even greater \"discount\" to his anchored reference point, rather than questioning his investing hypothesis."
+              "text": "Yes Bank shares continued to decline as shocking information on the loan book and management guidelines began to emerge. Rajiv purchased more at ₹150, ₹100, and then ₹50, each time witnessing an even greater \"discount\" to his anchored reference point, rather than questioning his investing hypothesis."
             },
             {
               "type": "paragraph",
-              "text": "By the point the Reserve Bank of India placed Yes Bank in moratorium in March 2020, when the shares were selling at less than 220, Rajiv had lost over 90% on his investment."
+              "text": "By the point the Reserve Bank of India placed Yes Bank in moratorium in March 2020, when the shares were selling at less than ₹20, Rajiv had lost over 90% on his investment."
             },
             {
               "type": "paragraph",
@@ -936,11 +959,11 @@
             },
             {
               "type": "paragraph",
-              "text": "Meanwhile, Vikram also had emotional scars from the 2008 financial meltdown from selling shares near market bottom. \"I was fearful of repeating the 2008 mistake, ,\" he says. \"I couldn't bear to sell at another bottom because the regret of that decision still lingered so strongly. But because my existing positions were incurring such huge losses, I couldn't bring myself to make further investments either.\""
+              "text": "Meanwhile, Vikram also had emotional scars from the 2008 financial meltdown from selling shares near market bottom. \"I was fearful of repeating the 2008 mistake,\" he says. \"I couldn't bear to sell at another bottom because the regret of that decision still lingered so strongly. But because my existing positions were incurring such huge losses, I couldn't bring myself to make further investments either.\""
             },
             {
               "type": "paragraph",
-              "text": "This psychological stalemate led to indecision. Although Vikram had more than 730 lakh in cash equivalents in reserve for long-term investment, he neither sold nor purchased stocks throughout the entire market decline and subsequent recovery."
+              "text": "This psychological stalemate led to indecision. Although Vikram had more than ₹30 lakh in cash equivalents in reserve for long-term investment, he neither sold nor purchased stocks throughout the entire market decline and subsequent recovery."
             },
             {
               "type": "paragraph",
@@ -1023,7 +1046,7 @@
             },
             {
               "type": "paragraph",
-              "text": "\"I lost over 21.5 crore that could have been hedged using simple hedging techniques,\" Rahul states. \"In predicting how markets would perform during a crisis like no other, my experience in the industry proved much less useful than I imagined.\""
+              "text": "\"I lost over ₹1.5 crore that could have been hedged using simple hedging techniques,\" Rahul states. \"In predicting how markets would perform during a crisis like no other, my experience in the industry proved much less useful than I imagined.\""
             },
             {
               "type": "paragraph",
@@ -1071,9 +1094,14 @@
       "title": "Chapter 3: Heuristics and Mental Shortcuts",
       "sections": [
         {
-          "title": "The Availability Heuristic: Overstretching the Value of Easily Recalled Data",
+          "title": "Heuristics and mental shortcuts",
           "status": "published",
           "blocks": [
+            {
+              "type": "heading",
+              "level": 3,
+              "text": "The Availability Heuristic: Overstretching the Value of Easily Recalled Data"
+            },
             {
               "type": "paragraph",
               "text": "When 43-year-old marketing executive Nikhil Taneja decided to reevaluate his investment portfolio in early 2020, he shocked his financial adviser. \"He sold all of his airline and hotel stocks right away,\" says Meera Shah, his advisor. \"When I questioned his thinking, Nikhil said that travel stocks were clearly too risky because of how badly they performed during the COVID-19 epidemic.\""
@@ -1088,16 +1116,18 @@
             },
             {
               "type": "paragraph",
-              "text": "\"Because vivid, current, or emotionally charged material is more readily available in memory, our brains give such material disproportionately weight. In financial decisionmaking, this causes methodical distortions in risk assessment"
+              "text": "\"Because vivid, current, or emotionally charged material is more readily available in memory, our brains give such material disproportionately weight. In financial decision-making, this causes methodical distortions in risk assessment"
             },
             {
               "type": "paragraph",
               "text": "and investment decisions,\" psychologist Dr. Priya Mehta adds."
-            },
-            {
-              "type": "paragraph",
-              "text": "Financial markets reveal several significant manifestations of the availability heuristic:"
-            },
+            }
+          ]
+        },
+        {
+          "title": "Financial markets reveal several significant manifestations of the availability heuristic:",
+          "status": "published",
+          "blocks": [
             {
               "type": "paragraph",
               "text": "Recency effects ensue when investors give recent events more weight in their decisions. Many investors, for example, retained inappropriately high cash levels for years following the financial crisis of 2008, missing most of the ensuing bull market since memories of the crisis remained relatively accessible while historical recovery patterns seemed abstract."
@@ -1185,7 +1215,8 @@
               "text": "\"The representations heuristic is essentially pattern-matching,\" cognitive psychologist Dr. Rahul Mehta adds. Often neglecting important statistical elements as base rates, sample sizes, and regression to the mean, \"our brains automatically search for familiar patterns and use those perceived similarities to make predictions.\""
             },
             {
-              "type": "paragraph",
+              "type": "heading",
+              "level": 3,
               "text": "The representativeness heuristic exhibits in several expected patterns in financial markets:"
             },
             {
@@ -1264,7 +1295,7 @@
           "blocks": [
             {
               "type": "paragraph",
-              "text": "Well-known neurosurgeon Dr. Vikram Kapoor, whose operational correctness in the operating room is well-known, found he was acting unusually impulsively late 2022. Having seen a study on creative cancer cures, he immediately invested 730 lakh in a small biotechnology company developing experimental treatments while knowing very little about the company's financial viability or statistical likelihood of regulatory clearance."
+              "text": "Well-known neurosurgeon Dr. Vikram Kapoor, whose operational correctness in the operating room is well-known, found he was acting unusually impulsively late 2022. Having seen a study on creative cancer cures, he immediately invested ₹30 lakh in a small biotechnology company developing experimental treatments while knowing very little about the company's financial viability or statistical likelihood of regulatory clearance."
             },
             {
               "type": "paragraph",
@@ -1287,7 +1318,8 @@
               "text": "Studies of neuroscience help to explain the remarkable power of this shortcut. Brain imaging studies suggest that emotional regions activate milliseconds before analytical areas when we face decision-related tasks. Usually unconscious, this quick emotional tagging happens naturally and significantly influences later analytical processing."
             },
             {
-              "type": "paragraph",
+              "type": "heading",
+              "level": 3,
               "text": "The affect heuristic appears in several obvious trends in financial markets:"
             },
             {
@@ -1332,7 +1364,7 @@
             },
             {
               "type": "paragraph",
-              "text": "\"I've seen sophisticated investors abandon risk management ideas they have followed for decades during market bubbles, says portfolio manager Aryan Chandra. \"The immediate emotional discomfort of seeing others profit generates such strong affect that long-term consequences become practically invisible in their decision calculus.\""
+              "text": "\"I've seen sophisticated investors abandon risk management ideas they have followed for decades during market bubbles,\" says portfolio manager Aryan Chandra. \"The immediate emotional discomfort of seeing others profit generates such strong affect that long-term consequences become practically invisible in their decision calculus.\""
             },
             {
               "type": "paragraph",
@@ -1345,8 +1377,13 @@
                 "Use Quantitative Frameworks demanding explicit numerical assessments of significant variables. \"We make clients assign specific probability estimates and potential return figures to investment scenarios,\" wealth manager Vikram Malhotra adds. \"This ordered approach helps prevent affective responses from implicitly determining these critical variables.\"",
                 "Conduct Pre-Mortems by considering likely negative outcomes prior to decision-making. \"For major investments, I have clients write a detailed scenario describing how and why the investment might fail,\" says financial advisor Ananya Desai. \"This exercises helps balance the optimistic bias that positive affect usually generates.\"",
                 "Use Process-Based Evaluation with an eye toward decision quality over outcomes. \"We evaluate our investment decisions not just on results but also on whether they followed our defined process,\" institutional investor Sanjay Kumar notes. \"This depresses the emotional reinforcement that results from lucky positive outcomes but might encourage bad decision-making.\"",
-                "Keep Decision Journals recording emotional reactions to financial decisions. \"By tracking my feelings about investment decisions, I have found particular emotional trends that often precede bad decisions,\" notes individual investor Rajiv Shah. \"This self-awareness helps me to see when affect might be unduly influencing my analysis.\""
-              ]
+                "Keep Decision Journals recording emotional reactions to"
+              ],
+              "start": 1
+            },
+            {
+              "type": "paragraph",
+              "text": "financial decisions. \"By tracking my feelings about investment decisions, I have found particular emotional trends that often precede bad decisions,\" notes individual investor Rajiv Shah. \"This self-awareness helps me to see when affect might be unduly influencing my analysis.\""
             },
             {
               "type": "paragraph",
@@ -1506,7 +1543,8 @@
               "text": "decision scientist Dr. Priya Mehta. \"The key is discriminating which situation favour which approach; mental shortcuts sometimes outperform complex analysis; in others, they cause systematic errors.\""
             },
             {
-              "type": "paragraph",
+              "type": "heading",
+              "level": 3,
               "text": "Several crucial factors determine whether heuristics either assist or contradict financial decision-making:"
             },
             {
@@ -1615,7 +1653,7 @@
             },
             {
               "type": "paragraph",
-              "text": "had served them well for decades like 'AAA-rated securities are safe' or 'major financial institutions understand their risk exposures,\" he added. \"These once dependable short cuts failed catastrophically when facing the unprecedented complexity of mortgage-backed derivatives.\""
+              "text": "had served them well for decades like 'AAA-rated securities are safe' or 'major financial institutions understand their risk exposures,'\" he added. \"These once dependable short cuts failed catastrophically when facing the unprecedented complexity of mortgage-backed derivatives.\""
             },
             {
               "type": "paragraph",
@@ -1631,8 +1669,13 @@
                 "Should carefully assess stability, complexity, and feedback quality to meet environmental conditions before deciding whether to depend on mental shortcuts or exhaustive study. Investment expert Neha Kumar advises, \"For each decision domain, clearly ask: 'Is this an environment where basic rules are likely to perform well, or one that necessitates more complete analysis?' This metacognitive phase enables the strategic rather than the habitual application of heuristics.\"",
                 "Build Domain-Specific Decision Rules suited to certain investing environments instead of applying general heuristics all around financial decisions. \"Different heuristic approaches benefit different market sectors and security types,\" notes industry expert Sanjay Desai. \"The shortcuts that work well for evaluating dividend stocks may fail totally when evaluating early-stage development companies.\"",
                 "Build Escape Hatches from acquired heuristics confronting novel problems. \"We've instituted a formal 'new paradigm protocol' that triggers deeper analysis whenever team members find themselves saying 'this time is different,'\" institutional investor Ananya Reddy adds. \"This offers a disciplined path to suspend our usual heuristics when facing perhaps unprecedented conditions.\"",
-                "Combine numerous separate heuristics rather than depending solely on personal shortcuts. \"We use many different heuristic filters representing different risk factors when screening investment opportunities,\" notes portfolio manager Rahul Sharma. \"This keeps decision efficiency while overcoming the restrictions of any one mental shortcut.\""
-              ]
+                "Combine numerous separate heuristics rather than"
+              ],
+              "start": 1
+            },
+            {
+              "type": "paragraph",
+              "text": "depending solely on personal shortcuts. \"We use many different heuristic filters representing different risk factors when screening investment opportunities,\" notes portfolio manager Rahul Sharma. \"This keeps decision efficiency while overcoming the restrictions of any one mental shortcut.\""
             },
             {
               "type": "orderedList",
@@ -1812,8 +1855,13 @@
             {
               "type": "orderedList",
               "items": [
-                "Create environmental triggers that, at pivotal decision points, automatically engage heuristic-detection systems. \"I have a laminated decision checklist beside my computer,\" says individual investor Priya Nair. \"This visual cue reminds me to run through the heuristic-detection questions before proceeding anytime I open my brokerage account to make a trade.\""
-              ]
+                "Create environmental triggers that, at pivotal decision points, automatically engage heuristic-detection systems. \"I have a laminated decision checklist beside my computer,\" says individual investor Priya Nair. \"This visual cue reminds me to run through the heuristic-detection questions before"
+              ],
+              "start": 1
+            },
+            {
+              "type": "paragraph",
+              "text": "proceeding anytime I open my brokerage account to make a trade.\""
             },
             {
               "type": "orderedList",
@@ -1831,11 +1879,11 @@
             },
             {
               "type": "paragraph",
-              "text": "Behavioural economist Dr. Rahul Mehta notes that \"the goal isn't to eradicate heuristics from your financial decision-making.\""
+              "text": "Behavioural economist Dr. Rahul Mehta notes that \"the goal isn't to eradicate heuristics from your financial decision-"
             },
             {
               "type": "paragraph",
-              "text": "\"These frameworks help create that necessary visibility, so transforming them from invisible, automatic processes into visible tools that you consciously choose to use or set aside based on the particular decision context.\""
+              "text": "making.\" \"These frameworks help create that necessary visibility, so transforming them from invisible, automatic processes into visible tools that you consciously choose to use or set aside based on the particular decision context.\""
             }
           ]
         },
@@ -2017,8 +2065,7 @@
               "text": "These constraints help explain why some anomalies remain even with general knowledge of their existence and why bubbles can linger even among experienced investors. Arbitrage's theoretical potential does not imply its actual application."
             },
             {
-              "type": "heading",
-              "level": 3,
+              "type": "paragraph",
               "text": "Knowing these important variations helps investors to evaluate market activity and make reasonable financial decisions by means of a more realistic framework:"
             },
             {
@@ -2126,7 +2173,7 @@
             },
             {
               "type": "paragraph",
-              "text": "One of the most important realizations from behavioural finance is shown by this experience: people experience losses and gains asymmetrically. A psychological concept that greatly influences financial decisions: the agony of losing $10,000 usually feels more intense than the pleasure of obtaining the same amount."
+              "text": "One of the most important realizations from behavioural finance is shown by this experience: people experience losses and gains asymmetrically. A psychological concept that greatly influences financial decisions: the agony of losing ₹10,000 usually feels more intense than the pleasure of obtaining the same amount."
             },
             {
               "type": "paragraph",
@@ -2150,7 +2197,11 @@
             },
             {
               "type": "paragraph",
-              "text": "market events that conventional models struggle with. Investors who need more compensation for the psychological discomfort of volatility resulting from loss aversion make sense in the equity premium puzzle the historical outperformance of stocks over bonds beyond what risk models predict. Analogous asymmetric reactions to gains and losses are seen in the disposition effect, the inclination to sell winners too early while holding losers too long."
+              "text": "market events that conventional models struggle with."
+            },
+            {
+              "type": "paragraph",
+              "text": "Investors who need more compensation for the psychological discomfort of volatility resulting from loss aversion make sense in the equity premium puzzle the historical outperformance of stocks over bonds beyond what risk models predict. Analogous asymmetric reactions to gains and losses are seen in the disposition effect, the inclination to sell winners too early while holding losers too long."
             },
             {
               "type": "paragraph",
@@ -2187,12 +2238,13 @@
               "text": "Behavioural economist Dr. Aryan Patel says \"reference points serve as psychological anchors that turn objective financial outcomes into subjective experiences of success or failure.\" \"This principle clarifies why identical financial positions can produce quite different emotional responses depending on the comparison standard being used.\""
             },
             {
-              "type": "paragraph",
+              "type": "heading",
+              "level": 3,
               "text": "In financial markets, several reference points concurrently affect investor psychology:"
             },
             {
               "type": "paragraph",
-              "text": "Perhaps the most effective reference point is purchase price, which turns identical current rates into apparent \"gains\" or \"losses\" depending just on original cost foundation. \"Clients start to get quite attached to breaking even on individual positions, ,\" adds wealth manager Rahul Sharma. \"I have seen investors turn down appealing selling prospects just because the reference point of their purchase price feels disproportionately painful that small loss.\""
+              "text": "Perhaps the most effective reference point is purchase price, which turns identical current rates into apparent \"gains\" or \"losses\" depending just on original cost foundation. \"Clients start to get quite attached to breaking even on individual positions,\" adds wealth manager Rahul Sharma. \"I have seen investors turn down appealing selling prospects just because the reference point of their purchase price feels disproportionately painful that small loss.\""
             },
             {
               "type": "paragraph",
@@ -2223,16 +2275,17 @@
               "text": "The dynamic, arbitrary character of reference points makes them especially difficult. Reference points change depending on experience, social environment, and attentiveness unlike absolute income levels, which can be objectively assessed. This volatility presents chances for both strategic interventions and bad financial habits."
             },
             {
-              "type": "paragraph",
+              "type": "heading",
+              "level": 3,
               "text": "Investors can control reference point effects with several useful techniques:"
             },
             {
               "type": "paragraph",
-              "text": "Choose suitable benchmarks deliberately instead of letting arbitrary reference points develop. \"We assist clients in creating reasonable, customized benchmarks fit for their financial objectives, ,\" says financial planner Anjali Mehta. \"This generates more relevant reference points than contrasting performance with whatever index headlines the financial news uses.\""
+              "text": "Choose suitable benchmarks deliberately instead of letting arbitrary reference points develop. \"We assist clients in creating reasonable, customized benchmarks fit for their financial objectives,\" says financial planner Anjali Mehta. \"This generates more relevant reference points than contrasting performance with whatever index headlines the financial news uses.\""
             },
             {
               "type": "paragraph",
-              "text": "See price swings as transient quotes instead than permanent value shifts. \"I encourage clients to think of market declines as changing price tags, not actual wealth destruction, ,\" observes investment coach Arjun Reddy. \"This cognitive reframing enables a change in the reference point from daily market prices to long-term investment goals.\""
+              "text": "See price swings as transient quotes instead than permanent value shifts. \"I encourage clients to think of market declines as changing price tags, not actual wealth destruction,\" observes investment coach Arjun Reddy. \"This cognitive reframing enables a change in the reference point from daily market prices to long-term investment goals.\""
             },
             {
               "type": "paragraph",
@@ -2269,7 +2322,8 @@
               "text": "\"Loss aversion shows most severely when people must actively choose to experience a loss,\" says financial therapist Dr. Kavita Menon. \"The emotional discomfort of deliberately selecting an option that feels like 'giving up' something can overwhelm reasonable calculation of net benefits.\""
             },
             {
-              "type": "paragraph",
+              "type": "heading",
+              "level": 3,
               "text": "Many frequent financial activities reflect this psychological inclination:"
             },
             {
@@ -2478,9 +2532,14 @@
       "title": "Chapter 6: Mental Accounting and Framing Effects",
       "sections": [
         {
-          "title": "How Mental Categorization of Money Affects Spending and Saving Behaviours",
+          "title": "Mental Accounting and Framing Effects",
           "status": "published",
           "blocks": [
+            {
+              "type": "heading",
+              "level": 3,
+              "text": "How Mental Categorization of Money Affects Spending and Saving Behaviours"
+            },
             {
               "type": "paragraph",
               "text": "42-year-old IT expert Rajan Desai kept three separate bank accounts with somewhat varied withdrawal patterns. Except for some big outlays, his \"salary account\" stayed mostly unaltered. His \"freelance income account\" paid for luxury goods and travel. His \"dividend and interest account\" was set up just for upcoming purchases."
@@ -2495,7 +2554,7 @@
             },
             {
               "type": "paragraph",
-              "text": "\"Mental accounting shows how psychological elements distort the mathematical reality that money is interchangeable, ,\" says behavioural economist Dr. Priya Malhotra. \"People construct subjective categories that essentially change how they handle objectively identical rupees depending on arbitrary mental labels.\""
+              "text": "\"Mental accounting shows how psychological elements distort the mathematical reality that money is interchangeable,\" says behavioural economist Dr. Priya Malhotra. \"People construct subjective categories that essentially change how they handle objectively identical rupees depending on arbitrary mental labels.\""
             },
             {
               "type": "paragraph",
@@ -2515,7 +2574,7 @@
             },
             {
               "type": "paragraph",
-              "text": "\"l've seen clients maintain education funds in ultra- conservative investments earning minimal returns while simultaneously carrying high-interest consumer debt,\" observes wealth manager Anjali Reddy. \"Despite the negative spread of sometimes 10-15%, they resist using the education funds for debt reduction because they've mentally assigned these resources to a specific purpose.\""
+              "text": "\"I've seen clients maintain education funds in ultra-conservative investments earning minimal returns while simultaneously carrying high-interest consumer debt,\" observes wealth manager Anjali Reddy. \"Despite the negative spread of sometimes 10-15%, they resist using the education funds for debt reduction because they've mentally assigned these resources to a specific purpose.\""
             },
             {
               "type": "paragraph",
@@ -2546,8 +2605,9 @@
               "items": [
                 "Strategic Mental Labeling makes use of this cognitive inclination towards good results. \"We specifically assist clients in creating mental accounts that support good financial practices,\" says financial coach Neha Kumar. \"Labelling automatic transfers as 'paying your future self' frames saving as an obligation rather than an optional activity.\"",
                 "Integrative Financial Review points up discrepancies between mental accounts. Financial planner Sanjay Malhotra says \"We routinely conduct holistic portfolio and liability reviews that explicitly compare interest rates and returns across all client accounts.\" \"This process breaks through the tunnel vision produced by mental accounting.\"",
-                "Source Neutrality Techniques challenge the inclination to spend windfalls anyway one wants. \"I advise clients to immediately divide unexpected income among current financial priorities before the mental accounting tendency starts,\" says wealth manager Rahul Singh. \"This helps preserve constant spending and saving behavior regardless of income source.\""
-              ]
+                "Source Neutrality Techniques challenge the inclination to spend windfalls anyway one wants. \"I advise clients to immediately divide unexpected income among current financial priorities before the mental accounting tendency starts,\" says wealth manager Rahul Singh. \"This helps preserve constant"
+              ],
+              "start": 1
             },
             {
               "type": "orderedList",
@@ -2630,7 +2690,7 @@
             {
               "type": "orderedList",
               "items": [
-                "Knowing the house money effect does not ensure insulation from its impact since the psychological forces run deep in our cognitive architecture. Butknowledge of this mental accounting phenomenon helps investors create systems and procedures shielding long-term financial interests from perhaps negative consequences."
+                "Knowing the house money effect does not ensure insulation from its impact since the psychological forces run deep in our cognitive architecture. But knowledge of this mental accounting phenomenon helps investors create systems and procedures shielding long-term financial interests from perhaps negative consequences."
               ],
               "start": 5
             }
@@ -2650,7 +2710,7 @@
             },
             {
               "type": "paragraph",
-              "text": "This situation shows framing effects thatis, how the presentation of objectively identical information greatly influences financial decisions. First reported by Kahneman and Tversky, framing influences decisions not only on objective facts but also on how those facts are presented, labeled, and explained."
+              "text": "This situation shows framing effects that is, how the presentation of objectively identical information greatly influences financial decisions. First reported by Kahneman and Tversky, framing influences decisions not only on objective facts but also on how those facts are presented, labeled, and explained."
             },
             {
               "type": "paragraph",
@@ -2682,7 +2742,7 @@
             },
             {
               "type": "paragraph",
-              "text": "\"Showing clients they need to save '7500 daily' rather than '$15,000 monthly' often improves commitment. Though"
+              "text": "\"Showing clients they need to save '₹500 daily' rather than '₹15,000 monthly' often improves commitment. Though"
             },
             {
               "type": "paragraph",
@@ -2708,13 +2768,18 @@
               "type": "orderedList",
               "items": [
                 "Before making important decisions, reframe information multiple ways. \"I urge clients to consciously restate financial decisions using different frames,\" says financial coach Sanjay Kumar. \"Converting percentages to absolute figures, switching between gain and loss descriptions, and changing time horizons helps reveal whether decisions remain consistent across frames.\"",
-                "Instead of contextual presentation pay more attention to underlying objectives. \"Establishing clear investment goals creates an anchor that helps resist framing manipulation,\" counsels portfolio consultant Priya Shah. \"Regularly reconnecting decisions to these fundamental objectives counters the power of transient framing.\""
-              ]
+                "Instead of contextual presentation pay more attention to underlying objectives. \"Establishing clear investment goals creates an anchor that helps resist framing manipulation,\""
+              ],
+              "start": 1
+            },
+            {
+              "type": "paragraph",
+              "text": "counsels portfolio consultant Priya Shah. “Regularly reconnecting decisions to these fundamental objectives counters the power of transient framing.”"
             },
             {
               "type": "orderedList",
               "items": [
-                "Build Consistent Evaluation Measures to lower susceptibility to changing frames. \"We use standardized reporting templates across all market conditions,\" investment adviser Vikram Mehta says. \"This consistency helps prevent selective framing from distortion of performance perception based on market direction.\"",
+                "Build Consistent Evaluation Measures to lower susceptibility to changing frames. “We use standardized reporting templates across all market conditions,” investment adviser Vikram Mehta says. “This consistency helps prevent selective framing from distortion of performance perception based on market direction.”",
                 "While awareness offers decision-making room to help resist their unconscious power empowering more consistent choices associated with long-term financial objectives understanding framing effects does not erase their influence."
               ],
               "start": 3
@@ -3205,7 +3270,11 @@
             },
             {
               "type": "paragraph",
-              "text": "Individualism-collectivism orientation generates baseline differences in social influence susceptibility. \"Societies that value group harmony and collective wisdom generally exhibit more pronounced herding effects in financial markets,\" writes cultural economist Dr. Vikram Shah. Studies comparing market behaviour in twenty-three nations found much stronger clustering of returns and momentum effects in collectivist societies than individualist societies."
+              "text": "Individualism-collectivism orientation generates baseline differences in social influence susceptibility. \"Societies that value group harmony and collective wisdom generally exhibit more pronounced herding effects in financial markets,\" writes cultural economist Dr. Vikram Shah."
+            },
+            {
+              "type": "paragraph",
+              "text": "Studies comparing market behaviour in twenty-three nations found much stronger clustering of returns and momentum effects in collectivist societies than individualist societies."
             },
             {
               "type": "paragraph",
@@ -3820,7 +3889,7 @@
             },
             {
               "type": "paragraph",
-              "text": "\"Every additional decision is another source of potential regret,\" neuropsychologist Dr. Aryan Kapoor says. \"Brain imaging scans show that anticipating regret activates the same brain systems as physical pain, so causing growing psychological discomfort with every increasing choice."
+              "text": "\"Every additional decision is another source of potential regret,\" neuropsychologist Dr. Aryan Kapoor says. \"Brain imaging scans show that anticipating regret activates the same brain systems as physical pain, so causing growing psychological discomfort with every increasing choice.\""
             },
             {
               "type": "paragraph",
@@ -3919,12 +3988,13 @@
             {
               "type": "paragraph",
               "text": "Often faced by investment instructor Meera Patel is this: \"Unable to properly evaluate source credibility in a digital world, clients often give equal weight to opinions offered by credentialed financial analysts and pseudo-anonymous social media commentators.\""
-            },
-            {
-              "type": "heading",
-              "level": 3,
-              "text": "Algorithmic Curating"
-            },
+            }
+          ]
+        },
+        {
+          "title": "Algorithmic Curating",
+          "status": "published",
+          "blocks": [
             {
               "type": "paragraph",
               "text": "\"Recommendation algorithms generally optimize for engagement, not decision quality,\" notes researcher in artificial intelligence ethics Dr. Anjali Shah. \"This generates customized information environments that often support current opinions rather than offering balanced viewpoints.\""
@@ -3938,8 +4008,7 @@
               "text": "The terrain of digital information presents numerous special cognitive difficulties:"
             },
             {
-              "type": "heading",
-              "level": 3,
+              "type": "paragraph",
               "text": "Recency Bias Amplification:"
             },
             {
@@ -3947,8 +4016,7 @@
               "text": "\"Continuous financial updates cause recency bias on steroids,\" behavioral finance researcher Dr. Aryan Kapoor notes. \"Recent information naturally dominates attention, but real-time data feeds cause 'recent' to mean 'minutes ago,' rather than 'years ago,' radically compresses time horizons.\""
             },
             {
-              "type": "heading",
-              "level": 3,
+              "type": "paragraph",
               "text": "Filter Fail-through"
             },
             {
@@ -4101,10 +4169,20 @@
               ]
             },
             {
+              "type": "paragraph",
+              "text": "Productivity expert Dr. Vikram Sharma says, \"establishing non-negotiable deadlines for financial implementation avoids interminable deliberation.\" \"These time constraints regularly ensure forced right prior-cuing of truly important factors, thus enhancing decisions.\""
+            },
+            {
+              "type": "paragraph",
+              "text": "\"Decision frameworks predetermined to discern the few genuinely pivotal factors considerably minimize analysis paralysis,\" explains decision systems designer Dr. Arjun Kumar."
+            },
+            {
+              "type": "paragraph",
+              "text": "\"These models prevent endless proliferation of comparison criteria that tend to impede decisions.\""
+            },
+            {
               "type": "bulletList",
               "items": [
-                "Productivity expert Dr. Vikram Sharma says, \"establishing non-negotiable deadlines for financial implementation avoids interminable deliberation.\" \"These time constraints regularly ensure forced right prior-cuing of truly important factors, thus enhancing decisions.\"",
-                "\"Decision frameworks predetermined to discern the few genuinely pivotal factors considerably minimize analysis paralysis,\" explains decision systems designer Dr. Arjun Kumar. \"These models prevent endless proliferation of comparison criteria that tend to impede decisions.\"",
                 "Automation: \"Automating repeating financial decisions prevents the repeated analysis paralysis that discretionary choices tend to trigger,\" advises behavioural economist Dr. Sanjay Desai. \"This approach guarantees implementation while maintaining override options if circumstances materially change.\""
               ]
             }
@@ -4128,11 +4206,15 @@
             },
             {
               "type": "paragraph",
-              "text": "the most pervasive form of this conflict is technical analysis (with a focus on price action and mood in the market) and fundamental analysis (with a focus on financial ratios and company quality."
+              "text": "the most pervasive form of this conflict is technical analysis (with a focus on price action and mood in the market) and fundamental analysis (with a focus on financial ratios and company quality)."
             },
             {
               "type": "paragraph",
-              "text": "\"For most investors, the technical versus fundamental analysis divide creates enormous cognitive dissonance,\" comments finance expert Dr. Anjali Reddy. \"Both approaches have theoretical bases and empirical support in some circumstances, so intellectual challenge between them is a result of their interplay.\""
+              "text": "\"For most investors, the technical versus fundamental analysis divide creates enormous cognitive dissonance,\" comments finance expert Dr. Anjali Reddy."
+            },
+            {
+              "type": "paragraph",
+              "text": "\"Both approaches have theoretical bases and empirical support in some circumstances, so intellectual challenge between them is a result of their interplay.\""
             },
             {
               "type": "paragraph",
@@ -4224,9 +4306,16 @@
               "type": "bulletList",
               "items": [
                 "Domain Appropriateness: \"Rather than considering analytical techniques as universally applicable, experienced investors understand their contextuality,\" suggests investment expert Dr. Vikram Joshi. \"While long-term investment is more suitable for fundamental analysis, technical analysis can be more appropriate for short-term trading decisions.\"",
-                "Hierarchical Integration: \"Formulating overt hierarchies of analysis methodologies reduces dissonance,\" opines decision analyst Dr. Neha Kumar. \"It may mean utilizing technical analysis in timing of entries and primary analysis in selecting security.\"",
-                "\"Clearly compartmentalizing analyses into relevant periods minimizes seeming conflicts,\" offers market analyst Dr. Sanjay Reddy. \"Technical data might hold weeks' or months' value; fundamentals generally have a duration over years.\""
+                "Hierarchical Integration: \"Formulating overt hierarchies of analysis methodologies reduces dissonance,\" opines decision analyst Dr. Neha Kumar. \"It may mean utilizing technical analysis in timing of entries and primary analysis in selecting security.\""
               ]
+            },
+            {
+              "type": "paragraph",
+              "text": "\"Clearly compartmentalizing analyses into relevant periods minimizes seeming conflicts,\" offers market analyst Dr. Sanjay Reddy."
+            },
+            {
+              "type": "paragraph",
+              "text": "\"Technical data might hold weeks' or months' value; fundamentals generally have a duration over years.\""
             }
           ]
         },
@@ -4236,7 +4325,15 @@
           "blocks": [
             {
               "type": "paragraph",
-              "text": "Having received ₹50 lakh as inheritance from her grandmother, 35-year-old researcher Priya Kapoor spent months considering investment opportunities. She created elaborate spreadsheets, watched financial news devoutly, read numerous books, and sought counsel from different consultants. She became more anxious and perplexed, however, the more she read."
+              "text": "Having received ₹50 lakh as inheritance from her grandmother, 35-year-old researcher Priya Kapoor spent months considering investment opportunities."
+            },
+            {
+              "type": "paragraph",
+              "text": "She created elaborate spreadsheets, watched financial news devoutly, read numerous books, and sought counsel from different consultants."
+            },
+            {
+              "type": "paragraph",
+              "text": "She became more anxious and perplexed, however, the more she read."
             },
             {
               "type": "paragraph",
@@ -4304,7 +4401,11 @@
             },
             {
               "type": "paragraph",
-              "text": "\"Even though there is evidence that more thinking is producing confusion instead of clarity, overthinkers typically think more thinking will eventually lead to clarity,\" according to metacognition specialist Dr. Vikram Patel. \"This meticognitive mistake; believing that more thinking will solve it, reinsures the overthinking cycle.\""
+              "text": "\"Even though there is evidence that more thinking is producing confusion instead of clarity, overthinkers typically think more thinking will eventually lead to clarity,\" according to metacognition specialist Dr. Vikram Patel."
+            },
+            {
+              "type": "paragraph",
+              "text": "\"This meticognitive mistake; believing that more thinking will solve it, reinsures the overthinking cycle.\""
             },
             {
               "type": "paragraph",
@@ -4533,9 +4634,14 @@
       "title": "Chapter 11: The Effect of Cognitive Overload Bias",
       "sections": [
         {
-          "title": "Initial Research on Decision Quality When Constrained by Information",
+          "title": "The Effect of Cognitive Overload Bias",
           "status": "published",
           "blocks": [
+            {
+              "type": "heading",
+              "level": 3,
+              "text": "Initial Research on Decision Quality When Constrained by Information"
+            },
             {
               "type": "paragraph",
               "text": "Researchers at the National Institute of Financial Decision Making undertook a compelling experiment in 2019 that defies mainstream assumptions regarding information and decision making. They placed 240 volunteers with similar investment experience into three groups. The first group was given 5 pages of related information regarding a potential investment, the second 30 pages, and the third 100 pages. Everyone had an equal amount of time in which to make their investment decision."
@@ -4582,7 +4688,7 @@
             },
             {
               "type": "paragraph",
-              "text": "processes need to include cognitive constraints by intentionally limiting information inputs to those established to be relevant to results."
+              "text": "making processes need to include cognitive constraints by intentionally limiting information inputs to those established to be relevant to results."
             },
             {
               "type": "paragraph",
@@ -4856,7 +4962,7 @@
             },
             {
               "type": "paragraph",
-              "text": "a factor often overlooked in financial literacy and communication. Cross-cultural studies establish that cognitive overload manifests differently across cultures based on distinct information processing tendencies and decision styles."
+              "text": "making, a factor often overlooked in financial literacy and communication. Cross-cultural studies establish that cognitive overload manifests differently across cultures based on distinct information processing tendencies and decision styles."
             },
             {
               "type": "paragraph",
@@ -4890,9 +4996,14 @@
       "title": "Chapter 12: Strategies to Mitigate Cognitive Overload Bias",
       "sections": [
         {
-          "title": "Creating Personal Investment Guidelines and Decision Models",
+          "title": "Strategies to Reduce Cognitive Overload Bias",
           "status": "published",
           "blocks": [
+            {
+              "type": "heading",
+              "level": 3,
+              "text": "Creating Personal Investment Guidelines and Decision Models"
+            },
             {
               "type": "paragraph",
               "text": "When software developer Arjun Mehta, 32, realized he had spent dozens of hours reading about small money decisions while putting off significant ones, he took a conscious approach to counter cognitive overload. He established concrete personal investment guidelines that defined his risk tolerance, time horizon, and most important decision criteria."
@@ -5043,7 +5154,7 @@
             },
             {
               "type": "paragraph",
-              "text": "Begin by identifying processes suitable for automation. \"Look tor decisions that require consistency, involve clear rules, and occur repeatedly,\" recommends systems engineer Dr. Sanjay Kumar. \"These characteristics typically indicate high automation potential with minimal downside risk.\""
+              "text": "Begin by identifying processes suitable for automation. \"Look for decisions that require consistency, involve clear rules, and occur repeatedly,\" recommends systems engineer Dr. Sanjay Kumar. \"These characteristics typically indicate high automation potential with minimal downside risk.\""
             },
             {
               "type": "paragraph",
@@ -5093,7 +5204,7 @@
             },
             {
               "type": "paragraph",
-              "text": "Establishing a satisficing strategy often takes a step-by-step process."
+              "text": "Establishing a satisficing strategy often takes a step-by-step process:"
             },
             {
               "type": "paragraph",
@@ -5459,8 +5570,9 @@
               "text": "Skill-Condition Interaction adds still further complexity. \"Investment strategies interact with market conditions in ways that create situational rather than absolute skill advantages,\" says investment researcher Dr. Aryan Patel. \"This context dependence means that genuine skill often appears and disappears as conditions change.\""
             },
             {
-              "type": "paragraph",
-              "text": "A number of methods can enhance randomness-skill evaluation:"
+              "type": "heading",
+              "level": 3,
+              "text": "A number of methods can enhance randomness-skill evaluation"
             },
             {
               "type": "paragraph",
@@ -5807,7 +5919,7 @@
       "title": "Conclusion: Mastering Financial Decisions",
       "sections": [
         {
-          "title": "Mastering Financial Decisions",
+          "title": "Conclusion: Mastering Financial Decisions",
           "status": "published",
           "blocks": [
             {
