@@ -1,7 +1,26 @@
 # Draft-only MCP server — design
 
 **Date:** 2026-06-02
-**Status:** Approved, ready for implementation planning
+**Status:** Approved — but **superseded in part** by the verified implementation plan.
+
+> **⚠️ v1 amendments (2026-06-02).** A multi-agent adversarial review of this design found
+> the enforcement model was *fail-open* and several documented details were wrong. Before
+> implementing, read [2026-06-02-draft-only-mcp-server-implementation-plan.md](./2026-06-02-draft-only-mcp-server-implementation-plan.md),
+> which overrides this doc on these points:
+> 1. **Enforcement is default-deny, not opt-in.** Generalizing the global guard makes every
+>    authenticated route ApiKey-reachable; opt-in `@RequireScope` would have let a draft-only
+>    key hit `POST /auth/users` and `POST /api-keys` (create users, mint a full-scope key).
+>    The `ScopeGuard` now denies ApiKey principals everywhere except an explicit content
+>    allowlist, and still 403s publish/delete within it.
+> 2. **Publish check is body/method-driven** and derived from `publishStatusSchema.safeParse`
+>    (guards run before the validation pipe), not a raw string compare.
+> 3. **`validate_content` is dropped from v1** (deferred to v2) — the editor's custom nodes
+>    import `@tiptap/react`, so a Node-side schema can't reuse them; a hand-copied replica
+>    would give false confidence. v1 relies on corrected vocabulary + `get_page` echo +
+>    verbatim API-error pass-through.
+> 4. **The documented content vocabulary below is wrong** — `blockquote`/`codeBlock` are
+>    disabled in the editor; real nodes are `quote`, `callout`, `captionedImage`, `divider`,
+>    `table`. See the plan for the corrected set.
 
 ## Goal
 
