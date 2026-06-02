@@ -6,8 +6,10 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import { validateEnv } from './config/env.validation';
 import { PrismaModule } from './prisma/prisma.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { ScopeGuard } from './common/guards/scope.guard';
 import { ReadTrackingInterceptor } from './common/interceptors/read-tracking.interceptor';
 import { AuthModule } from './auth/auth.module';
+import { ApiKeysModule } from './api-keys/api-keys.module';
 import { WorksModule } from './works/works.module';
 import { PagesModule } from './pages/pages.module';
 import { UploadsModule } from './uploads/uploads.module';
@@ -24,6 +26,7 @@ import { ReaderModule } from './reader/reader.module';
     JwtModule.register({ global: true }),
     PrismaModule,
     AuthModule,
+    ApiKeysModule,
     WorksModule,
     PagesModule,
     UploadsModule,
@@ -33,6 +36,9 @@ import { ReaderModule } from './reader/reader.module';
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    // Registration order matters: multiple APP_GUARDs run in the order declared.
+    // JwtAuthGuard populates req.scopes/req.authType BEFORE ScopeGuard reads them.
+    { provide: APP_GUARD, useClass: ScopeGuard },
     { provide: APP_INTERCEPTOR, useClass: ReadTrackingInterceptor },
   ],
 })

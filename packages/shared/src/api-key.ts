@@ -1,0 +1,53 @@
+import { z } from 'zod';
+
+/**
+ * The scopes an API key may hold. Pinned to a fixed enum so a caller can never mint a
+ * key broader than this set (e.g. a `['*']` or `['admin']` key): ScopeGuard's per-scope
+ * checks read exactly these strings.
+ * - `works:write`   → create + edit DRAFT works/pages/chapters (the default).
+ * - `works:publish` → transition content to `published` AND edit already-published rows.
+ * - `works:delete`  → delete works/pages/chapters.
+ */
+export const apiKeyScopeSchema = z.enum(['works:write', 'works:publish', 'works:delete']);
+export type ApiKeyScope = z.infer<typeof apiKeyScopeSchema>;
+
+// ─── Write model (request DTO) ────────────────────────────────────────────────
+
+export const createApiKeySchema = z.object({
+  name: z.string().min(1).max(120),
+  scopes: z.array(apiKeyScopeSchema).min(1).default(['works:write']),
+  /**
+   * Optional time-box. `revokedAt` remains the primary kill switch; `expiresAt` lets a
+   * key auto-expire. Coerced from an ISO instant and refined to be in the future, so a
+   * past date is rejected (400) before it can mint an already-dead key. Absent = never expires.
+   */
+  expiresAt: z.coerce
+    .date()
+    .refine((d) => d.getTime() > Date.now(), 'expiresAt must be in the future')
+    .optional(),
+});
+export type CreateApiKeyInput = z.infer<typeof createApiKeySchema>;
+
+// ─── Read models ──────────────────────────────────────────────────────────────
+
+/** Non-sensitive view of a key. NEVER carries the hashedKey or the raw secret. */
+export const apiKeySummarySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  prefix: z.string(),
+  scopes: z.array(apiKeyScopeSchema),
+  lastUsedAt: z.date().nullable(),
+  revokedAt: z.date().nullable(),
+  expiresAt: z.date().nullable(),
+  createdAt: z.date(),
+});
+export type ApiKeySummary = z.infer<typeof apiKeySummarySchema>;
+
+/**
+ * Response from POST /api-keys. Carries the raw secret EXACTLY ONCE — it is never
+ * persisted in plaintext and never returned again (only the sha256 hash is stored).
+ */
+export const createApiKeyResponseSchema = apiKeySummarySchema.extend({
+  rawKey: z.string(),
+});
+export type CreateApiKeyResponse = z.infer<typeof createApiKeyResponseSchema>;

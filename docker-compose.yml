@@ -37,7 +37,7 @@ services:
     environment:
       DATABASE_URL: "postgresql://blockpress:blockpress@postgres:5432/blockpress?schema=public"
     command: >
-      sh -c "pnpm exec prisma migrate deploy && pnpm exec ts-node prisma/seed.ts"
+      sh -c "pnpm exec prisma generate && pnpm exec prisma migrate deploy && pnpm exec ts-node prisma/seed.ts"
     volumes:
       - .:/app
       - /app/node_modules

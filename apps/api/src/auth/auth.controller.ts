@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { Public } from '../common/decorators/public.decorator';
+import { JwtOnly } from '../common/decorators/scopes.decorator';
 import { CurrentUser, type AuthUser } from '../common/decorators/current-user.decorator';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginDto } from './dto';
@@ -32,7 +33,10 @@ export class AuthController {
 
   // No public self-signup. New accounts are created by an already-authenticated user
   // (the global JwtAuthGuard protects this route — there is no @Public() here).
+  // @JwtOnly() makes the JWT-only contract explicit: ApiKey principals are rejected
+  // (403) by ScopeGuard so a draft-only key can never mint user accounts.
   @Post('users')
+  @JwtOnly()
   async createUser(@Body() dto: CreateUserDto) {
     return this.auth.createUser(dto);
   }
