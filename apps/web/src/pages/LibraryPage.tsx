@@ -20,12 +20,14 @@ function LibrarySidebar({
   tab,
   onTab,
   onOpenWork,
+  onOpenSettings,
 }: {
   user: User;
   works: WorkSummary[];
   tab: string;
   onTab: (t: string) => void;
   onOpenWork: (w: WorkSummary) => void;
+  onOpenSettings: () => void;
 }) {
   const drafts = works.filter((w) => w.status === 'draft').length;
   return (
@@ -46,9 +48,9 @@ function LibrarySidebar({
         <Sidebar.SectionLabel>General</Sidebar.SectionLabel>
         <Sidebar.NavItem icon="Chart" label="Reporting" active={tab === 'reporting'} onClick={() => onTab('reporting')} />
         <Sidebar.NavItem icon="Users" label="Authors" active={tab === 'authors'} onClick={() => onTab('authors')} />
-        <Sidebar.NavItem icon="Settings" label="Settings" onClick={() => undefined} />
+        <Sidebar.NavItem icon="Settings" label="API keys" onClick={onOpenSettings} />
       </Sidebar.Scroll>
-      <Sidebar.User user={user} />
+      <Sidebar.User user={user} onClick={onOpenSettings} />
     </Sidebar>
   );
 }
@@ -118,7 +120,14 @@ export function LibraryPage() {
     <>
     <AppShell
       sidebar={() => (
-        <LibrarySidebar user={auth.user!} works={works} tab={tab} onTab={setTab} onOpenWork={openWork} />
+        <LibrarySidebar
+          user={auth.user!}
+          works={works}
+          tab={tab}
+          onTab={setTab}
+          onOpenWork={openWork}
+          onOpenSettings={() => void navigate({ to: '/api-keys' })}
+        />
       )}
     >
       <Topbar>

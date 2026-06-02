@@ -145,6 +145,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@blockpress/editor-schema':
+        specifier: workspace:*
+        version: link:../../packages/editor-schema
       '@blockpress/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -239,6 +242,28 @@ importers:
       vite:
         specifier: ^6.0.0
         version: 6.4.2(@types/node@22.19.19)(jiti@2.7.0)(terser@5.48.0)
+
+  packages/editor-schema:
+    dependencies:
+      '@blockpress/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@tiptap/core':
+        specifier: ^3.23.6
+        version: 3.23.6(@tiptap/pm@3.23.6)
+      '@tiptap/extension-table':
+        specifier: ^3.23.6
+        version: 3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6)
+      '@tiptap/starter-kit':
+        specifier: ^3.23.6
+        version: 3.23.6
+    devDependencies:
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
 
   packages/shared:
     dependencies:

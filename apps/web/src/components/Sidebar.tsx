@@ -61,9 +61,11 @@ function NavItem({
   );
 }
 
-function UserCard({ user }: { user: User }) {
-  return (
-    <div className="sb-user">
+function UserCard({ user, onClick }: { user: User; onClick?: () => void }) {
+  // The card doubles as the entry point to account settings (API keys) when given an
+  // onClick — the ChevUpDown affordance already signals it's interactive.
+  const content = (
+    <>
       <Avatar name={user.name} color={user.avatarColor} />
       <div className="meta">
         <div className="name">{user.name}</div>
@@ -72,8 +74,23 @@ function UserCard({ user }: { user: User }) {
       <span className="chev">
         <Icons.ChevUpDown />
       </span>
-    </div>
+    </>
   );
+  if (onClick) {
+    // Render as a button for keyboard/click semantics; the inline overrides keep it visually
+    // identical to the static card (the .sb-user margin/border styling is shared).
+    return (
+      <button
+        className="sb-user"
+        onClick={onClick}
+        title="API keys & settings"
+        style={{ width: 'calc(100% - 24px)', textAlign: 'left', cursor: 'pointer' }}
+      >
+        {content}
+      </button>
+    );
+  }
+  return <div className="sb-user">{content}</div>;
 }
 
 function BookHead({

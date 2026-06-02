@@ -1,14 +1,17 @@
 import { z } from 'zod';
 import {
+  apiKeySummarySchema,
   authResponseSchema,
   bookStatDetailSchema,
   bookStatsResponseSchema,
   chapterSchema,
+  createApiKeyResponseSchema,
   pageSchema,
   uploadResponseSchema,
   userSchema,
   workDetailSchema,
   workSummarySchema,
+  type ApiKeyScope,
   type CreateChapterInput,
   type CreatePageInput,
   type CreateWorkInput,
@@ -143,6 +146,23 @@ export const authApi = {
 export const usersApi = {
   create: (input: SignupInput) =>
     request('/auth/users', { method: 'POST', body: input, schema: meResponseSchema }),
+};
+
+// Personal API keys for the MCP server (and other programmatic, draft-only callers).
+// Every call rides the existing Bearer-auth request() helper — the /api-keys routes are
+// JWT-only, so an ApiKey credential can never reach them.
+export const apiKeysApi = {
+  list: () => request('/api-keys', { schema: z.array(apiKeySummarySchema) }),
+  create: (name: string, scopes: ApiKeyScope[], expiresAt?: string) =>
+    request('/api-keys', {
+      method: 'POST',
+      // `expiresAt` is omitted when never-expiring; when set it MUST be an absolute UTC/ISO
+      // instant (see api-keys.tsx) so the server's future-date check can't skew by the client.
+      body: { name, scopes, ...(expiresAt ? { expiresAt } : {}) },
+      schema: createApiKeyResponseSchema,
+    }),
+  // Revoke returns { ok: true } (HTTP 200, not 204) — no response schema needed.
+  revoke: (id: string) => request(`/api-keys/${id}`, { method: 'DELETE' }),
 };
 
 const statsQs = (q: StatsQuery): string => qs({ client: q.client, from: q.from, to: q.to });

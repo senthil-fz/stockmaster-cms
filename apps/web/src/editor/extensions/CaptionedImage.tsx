@@ -1,38 +1,12 @@
+// Spec lives in @blockpress/editor-schema; this file only re-attaches the React NodeView.
 import { useRef, useState } from 'react';
-import { Node, mergeAttributes } from '@tiptap/core';
 import { NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from '@tiptap/react';
+import { CaptionedImage as CaptionedImageBase, type ImageAlign } from '@blockpress/editor-schema';
 import { IMAGE_TYPE_MESSAGE, MAX_UPLOAD_BYTES, isAllowedImageType } from '@blockpress/shared';
 import { uploadsApi } from '../../lib/api';
 
-export type ImageAlign = 'full' | 'left';
-
-/** A figure with an image + caption. All fields are attributes (atom block); the panel edits them. */
-export const CaptionedImage = Node.create({
-  name: 'captionedImage',
-  group: 'block',
-  atom: true,
-  draggable: true,
-
-  addAttributes() {
-    return {
-      src: { default: '' },
-      caption: { default: '' },
-      align: { default: 'full' as ImageAlign },
-      label: { default: 'image' },
-    };
-  },
-
-  parseHTML() {
-    return [{ tag: 'figure[data-type="captioned-image"]' }];
-  },
-
-  renderHTML({ HTMLAttributes }) {
-    return ['figure', mergeAttributes(HTMLAttributes, { 'data-type': 'captioned-image' })];
-  },
-
-  addNodeView() {
-    return ReactNodeViewRenderer(ImageView);
-  },
+export const CaptionedImage = CaptionedImageBase.extend({
+  addNodeView: () => ReactNodeViewRenderer(ImageView),
 });
 
 function ImageView({ node, updateAttributes, editor }: NodeViewProps) {

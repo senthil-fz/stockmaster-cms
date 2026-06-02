@@ -11,6 +11,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@blockpress/editor-schema": "workspace:*",
     "@blockpress/shared": "workspace:*",
     "@floating-ui/dom": "^1.7.0",
     "@hookform/resolvers": "^3.10.0",

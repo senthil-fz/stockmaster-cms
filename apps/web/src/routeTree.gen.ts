@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppApiKeysRouteImport } from './routes/_app/api-keys'
 import { Route as AppWorksWorkIdReadIndexRouteImport } from './routes/_app/works.$workId.read.index'
 import { Route as AppWorksWorkIdReadPageIdRouteImport } from './routes/_app/works.$workId.read.$pageId'
 import { Route as AppWorksWorkIdPagesPageIdRouteImport } from './routes/_app/works.$workId.pages.$pageId'
@@ -28,6 +29,11 @@ const AppRoute = AppRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppApiKeysRoute = AppApiKeysRouteImport.update({
+  id: '/api-keys',
+  path: '/api-keys',
   getParentRoute: () => AppRoute,
 } as any)
 const AppWorksWorkIdReadIndexRoute = AppWorksWorkIdReadIndexRouteImport.update({
@@ -51,12 +57,14 @@ const AppWorksWorkIdPagesPageIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
+  '/api-keys': typeof AppApiKeysRoute
   '/works/$workId/pages/$pageId': typeof AppWorksWorkIdPagesPageIdRoute
   '/works/$workId/read/$pageId': typeof AppWorksWorkIdReadPageIdRoute
   '/works/$workId/read/': typeof AppWorksWorkIdReadIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/api-keys': typeof AppApiKeysRoute
   '/': typeof AppIndexRoute
   '/works/$workId/pages/$pageId': typeof AppWorksWorkIdPagesPageIdRoute
   '/works/$workId/read/$pageId': typeof AppWorksWorkIdReadPageIdRoute
@@ -66,6 +74,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/_app/api-keys': typeof AppApiKeysRoute
   '/_app/': typeof AppIndexRoute
   '/_app/works/$workId/pages/$pageId': typeof AppWorksWorkIdPagesPageIdRoute
   '/_app/works/$workId/read/$pageId': typeof AppWorksWorkIdReadPageIdRoute
@@ -76,12 +85,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/api-keys'
     | '/works/$workId/pages/$pageId'
     | '/works/$workId/read/$pageId'
     | '/works/$workId/read/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/api-keys'
     | '/'
     | '/works/$workId/pages/$pageId'
     | '/works/$workId/read/$pageId'
@@ -90,6 +101,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/login'
+    | '/_app/api-keys'
     | '/_app/'
     | '/_app/works/$workId/pages/$pageId'
     | '/_app/works/$workId/read/$pageId'
@@ -124,6 +136,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/api-keys': {
+      id: '/_app/api-keys'
+      path: '/api-keys'
+      fullPath: '/api-keys'
+      preLoaderRoute: typeof AppApiKeysRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/works/$workId/read/': {
       id: '/_app/works/$workId/read/'
       path: '/works/$workId/read'
@@ -149,6 +168,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppApiKeysRoute: typeof AppApiKeysRoute
   AppIndexRoute: typeof AppIndexRoute
   AppWorksWorkIdPagesPageIdRoute: typeof AppWorksWorkIdPagesPageIdRoute
   AppWorksWorkIdReadPageIdRoute: typeof AppWorksWorkIdReadPageIdRoute
@@ -156,6 +176,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppApiKeysRoute: AppApiKeysRoute,
   AppIndexRoute: AppIndexRoute,
   AppWorksWorkIdPagesPageIdRoute: AppWorksWorkIdPagesPageIdRoute,
   AppWorksWorkIdReadPageIdRoute: AppWorksWorkIdReadPageIdRoute,
