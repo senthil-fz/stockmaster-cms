@@ -1,3 +1,4 @@
+import { blankDoc } from '@blockpress/shared';
 import type {
   Chapter,
   Page,
@@ -63,7 +64,7 @@ export function toPageSummary(p: PageRow): PageSummary {
 }
 
 export function toPage(p: PageRow): Page {
-  return { ...toPageSummary(p), content: (p.content ?? { type: 'doc' }) as TiptapDoc };
+  return { ...toPageSummary(p), content: (p.content ?? blankDoc()) as TiptapDoc };
 }
 
 export function toChapter(c: ChapterRow): Chapter {

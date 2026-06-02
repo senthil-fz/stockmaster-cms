@@ -32,6 +32,23 @@ model User {
 
   works      Work[]
   readEvents ReadEvent[]
+  apiKeys    ApiKey[]
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  name        String
+  hashedKey   String    @unique
+  prefix      String
+  scopes      String[]  @default([])
+  ownerUserId String
+  owner       User      @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+  expiresAt   DateTime? // null = never expires
+  createdAt   DateTime  @default(now())
+
+  @@index([ownerUserId])
 }
 
 model Work {

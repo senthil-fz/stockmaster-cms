@@ -2,7 +2,7 @@ import { createParamDecorator, type ExecutionContext } from '@nestjs/common';
 
 export interface AuthUser {
   id: string;
-  email: string;
+  email?: string;
 }
 
 /** Injects the authenticated user (set by JwtAuthGuard) into a controller handler. */
