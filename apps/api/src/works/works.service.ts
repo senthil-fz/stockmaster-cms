@@ -86,6 +86,7 @@ export class WorksService {
         year: input.year,
         coverTone: input.coverTone,
         coverUrl: input.coverUrl,
+        buyLink: input.buyLink,
         status: input.status,
         tags: input.tags,
       },

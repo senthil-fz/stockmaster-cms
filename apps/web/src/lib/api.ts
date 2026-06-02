@@ -5,7 +5,7 @@ import {
   bookStatsResponseSchema,
   chapterSchema,
   pageSchema,
-  presignResponseSchema,
+  uploadResponseSchema,
   userSchema,
   workDetailSchema,
   workSummarySchema,
@@ -13,7 +13,6 @@ import {
   type CreatePageInput,
   type CreateWorkInput,
   type LoginInput,
-  type PresignRequest,
   type SignupInput,
   type StatsQuery,
   type UpdatePageInput,
@@ -197,6 +196,33 @@ export const pagesApi = {
 };
 
 export const uploadsApi = {
-  presign: (body: PresignRequest) =>
-    request('/uploads/presign', { method: 'POST', body, schema: presignResponseSchema }),
+  /** Multipart image upload to the API (stored on disk). Returns { url, key }. */
+  upload: async (file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    const doFetch = (): Promise<Response> =>
+      fetch(`${API_URL}/uploads`, {
+        method: 'POST',
+        credentials: 'include',
+        // No Content-Type — the browser sets the multipart boundary.
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+        body: form,
+      });
+    let res = await doFetch();
+    if (res.status === 401) {
+      if (await refreshAccessToken()) res = await doFetch();
+    }
+    if (!res.ok) {
+      let message = res.statusText;
+      try {
+        const err = (await res.json()) as { message?: string | string[] };
+        const m = err.message;
+        message = Array.isArray(m) ? m.join(', ') : (m ?? message);
+      } catch {
+        /* non-JSON */
+      }
+      throw new ApiError(res.status, message);
+    }
+    return uploadResponseSchema.parse(await res.json());
+  },
 };

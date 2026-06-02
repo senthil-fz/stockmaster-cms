@@ -224,6 +224,13 @@ export const Icons = {
       <path d="M18 15l.7 1.8L20.5 17.5l-1.8.7L18 20l-.7-1.8L15.5 17.5l1.8-.7z" />
     </Svg>
   ),
+  Cart: (p: IconProps) => (
+    <Svg {...p}>
+      <path d="M3 4h2l2.2 11.2a1 1 0 0 0 1 .8h8.4a1 1 0 0 0 1-.8L20.5 8H6.2" />
+      <circle cx={9} cy={20} r={1.3} />
+      <circle cx={17} cy={20} r={1.3} />
+    </Svg>
+  ),
   Clock: (p: IconProps) => (
     <Svg {...p}>
       <circle cx={12} cy={12} r={8.5} />

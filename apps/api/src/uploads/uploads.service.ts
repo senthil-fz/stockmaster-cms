@@ -1,49 +1,49 @@
 import { randomUUID } from 'node:crypto';
-import { Injectable } from '@nestjs/common';
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import type { PresignRequest, PresignResponse } from '@blockpress/shared';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  IMAGE_TYPE_MESSAGE,
+  MAX_UPLOAD_BYTES,
+  isAllowedImageType,
+  type UploadResponse,
+} from '@blockpress/shared';
+
+const EXT_BY_TYPE: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/gif': 'gif',
+  'image/webp': 'webp',
+  'image/avif': 'avif',
+};
 
 /**
- * Presigned PUT uploads. Works for BOTH MinIO (dev) and AWS S3 (prod): when
- * S3_ENDPOINT is set we point at MinIO with path-style addressing; otherwise the
- * client uses AWS defaults (virtual-hosted). Credentials never reach the browser —
- * the client only PUTs the file body to the signed URL, then uses the public URL.
+ * On-disk image storage (replaces S3). Files are saved under UPLOADS_DIR with a
+ * unique, content-type-derived name (`<year>/<uuid>.<ext>`) and served back as
+ * static assets at `/uploads/*` (see main.ts). The returned `url` is absolute so
+ * both the web app and the mobile reader can load it directly.
  */
 @Injectable()
 export class UploadsService {
-  private readonly client: S3Client;
-  private readonly bucket = process.env.S3_BUCKET ?? 'blockpress';
-  private readonly publicBase = (process.env.S3_PUBLIC_URL ?? '').replace(/\/$/, '');
+  /** Where files live on disk. Mounted as a persistent volume in production. */
+  readonly dir = process.env.UPLOADS_DIR ?? join(process.cwd(), 'uploads');
+  private readonly publicBase = (process.env.PUBLIC_API_URL ?? 'http://localhost:3001').replace(
+    /\/$/,
+    '',
+  );
 
-  constructor() {
-    const endpoint = process.env.S3_ENDPOINT;
-    this.client = new S3Client({
-      region: process.env.S3_REGION ?? 'us-east-1',
-      credentials: {
-        accessKeyId: process.env.S3_ACCESS_KEY ?? '',
-        secretAccessKey: process.env.S3_SECRET_KEY ?? '',
-      },
-      ...(endpoint
-        ? { endpoint, forcePathStyle: process.env.S3_FORCE_PATH_STYLE === 'true' }
-        : {}),
-    });
-  }
+  async save(file?: Express.Multer.File): Promise<UploadResponse> {
+    if (!file) throw new BadRequestException('No file uploaded');
+    if (!isAllowedImageType(file.mimetype)) throw new BadRequestException(IMAGE_TYPE_MESSAGE);
+    if (file.size > MAX_UPLOAD_BYTES) throw new BadRequestException('Image is too large (max 15MB)');
 
-  async presign(req: PresignRequest): Promise<PresignResponse> {
-    const ext = req.filename.includes('.') ? req.filename.split('.').pop() : 'bin';
-    const key = `uploads/${new Date().getFullYear()}/${randomUUID()}.${ext}`;
-    const command = new PutObjectCommand({
-      Bucket: this.bucket,
-      Key: key,
-      ContentType: req.contentType,
-    });
-    // Sign content-type so the browser PUT must send the identical header.
-    const uploadUrl = await getSignedUrl(this.client, command, {
-      expiresIn: 300,
-      signableHeaders: new Set(['content-type']),
-    });
-    const publicUrl = `${this.publicBase}/${key}`;
-    return { uploadUrl, publicUrl, key };
+    const ext = EXT_BY_TYPE[file.mimetype] ?? 'bin';
+    const key = `${new Date().getFullYear()}/${randomUUID()}.${ext}`;
+    const dest = join(this.dir, key);
+    await mkdir(join(this.dir, String(new Date().getFullYear())), { recursive: true });
+    await writeFile(dest, file.buffer);
+
+    return { url: `${this.publicBase}/uploads/${key}`, key };
   }
 }

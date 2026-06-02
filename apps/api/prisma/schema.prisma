@@ -43,6 +43,7 @@ model Work {
   year        String        @default("")
   coverTone   String        @default("default")
   coverUrl    String?
+  buyLink     String?
   status      PublishStatus @default(draft)
   tags        String[]      @default([])
   createdById String?

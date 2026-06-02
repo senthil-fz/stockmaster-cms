@@ -44,6 +44,8 @@ export const workSummarySchema = z.object({
   year: z.string(),
   coverTone: z.string(),
   coverUrl: z.string().nullable(),
+  /** External purchase URL. Only meaningful for books; null/absent for articles. */
+  buyLink: z.string().nullable(),
   status: publishStatusSchema,
   tags: z.array(z.string()),
   pageCount: z.number().int(),
@@ -66,6 +68,14 @@ export const createWorkSchema = z.object({
 });
 export type CreateWorkInput = z.infer<typeof createWorkSchema>;
 
+/**
+ * A URL restricted to the http(s) scheme. z.string().url() alone also accepts
+ * `javascript:`/`data:`, which become stored-XSS when rendered into an href, so
+ * the scheme is allowlisted server-side here.
+ */
+export const isHttpUrl = (value: string): boolean => /^https?:\/\//i.test(value.trim());
+const httpUrl = z.string().url().max(2000).refine(isHttpUrl, 'Must be an http(s) URL');
+
 export const updateWorkSchema = z
   .object({
     title: z.string().min(1).max(200),
@@ -73,7 +83,9 @@ export const updateWorkSchema = z
     author: z.string().max(120),
     year: z.string().max(12),
     coverTone: z.string().max(40),
-    coverUrl: z.string().url().nullable(),
+    coverUrl: httpUrl.nullable(),
+    /** Books only (UI-enforced). Empty input is sent as null. */
+    buyLink: httpUrl.nullable(),
     status: publishStatusSchema,
     tags: z.array(z.string().max(40)).max(20),
   })

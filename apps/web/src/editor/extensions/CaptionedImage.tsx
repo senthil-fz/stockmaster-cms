@@ -58,18 +58,8 @@ function ImageView({ node, updateAttributes, editor }: NodeViewProps) {
     }
     setStatus('uploading');
     try {
-      const { uploadUrl, publicUrl } = await uploadsApi.presign({
-        filename: file.name,
-        contentType: file.type,
-        size: file.size,
-      });
-      const res = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type },
-        body: file,
-      });
-      if (!res.ok) throw new Error(`Upload failed (${res.status})`);
-      updateAttributes({ src: publicUrl }); // only set src on a confirmed-ok upload
+      const { url } = await uploadsApi.upload(file);
+      updateAttributes({ src: url }); // only set src on a confirmed-ok upload
       setStatus('idle');
     } catch {
       setStatus('error');

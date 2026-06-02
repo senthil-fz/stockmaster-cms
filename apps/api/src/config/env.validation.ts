@@ -14,16 +14,10 @@ const envSchema = z
     JWT_REFRESH_TTL: z.string().default('7d'),
     // Shared secret the mobile app uses to HMAC-sign reader API (/v1) requests.
     MOBILE_APP_SECRET: secret,
-    // S3 / object storage — S3_PUBLIC_URL must be a real URL or presign returns a
-    // body the client's z.string().url() rejects. endpoint/forcePathStyle are
-    // optional (set for MinIO in dev; omitted for AWS in prod).
-    S3_BUCKET: z.string().min(1, 'is required'),
-    S3_REGION: z.string().default('us-east-1'),
-    S3_ACCESS_KEY: z.string().min(1, 'is required'),
-    S3_SECRET_KEY: z.string().min(1, 'is required'),
-    S3_PUBLIC_URL: z.string().url('must be a valid URL'),
-    S3_ENDPOINT: z.string().url().optional(),
-    S3_FORCE_PATH_STYLE: z.string().optional(),
+    // Image uploads — stored on disk under UPLOADS_DIR and served at /uploads/*.
+    // PUBLIC_API_URL is the absolute base used to build <img src> links to them.
+    UPLOADS_DIR: z.string().optional(),
+    PUBLIC_API_URL: z.string().url('must be a valid URL').default('http://localhost:3001'),
   })
   .superRefine((env, ctx) => {
     if (env.JWT_ACCESS_SECRET === env.JWT_REFRESH_SECRET) {

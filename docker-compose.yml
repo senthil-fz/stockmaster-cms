@@ -18,36 +18,6 @@ services:
       timeout: 5s
       retries: 10
 
-  minio:
-    image: minio/minio:latest
-    container_name: blockpress-minio
-    restart: unless-stopped
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-      # Allow browser PUTs to presigned URLs from the Vite dev origin (and any origin in dev).
-      MINIO_API_CORS_ALLOW_ORIGIN: "*"
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - miniodata:/data
-
-  # One-shot: create the bucket and make it publicly readable so <img src> works.
-  minio-init:
-    image: minio/mc:latest
-    container_name: blockpress-minio-init
-    depends_on:
-      - minio
-    entrypoint: >
-      /bin/sh -c "
-      until mc alias set local http://minio:9000 minioadmin minioadmin; do echo 'waiting for minio...'; sleep 2; done;
-      mc mb --ignore-existing local/blockpress;
-      mc anonymous set download local/blockpress;
-      echo 'minio bucket [blockpress] ready (public-read)';
-      "
-
   # ───────────────────────────────────────────────────────────────────────────
   # Application containers (hot-reload dev). Opt-in via `--profile apps` so the
   # default `docker compose up` / `pnpm infra:up` stays infra-only.
@@ -91,8 +61,8 @@ services:
         condition: service_completed_successfully
     # Env set explicitly here (authoritative) — we bypass the dotenv-wrapped npm
     # script so the container never reads the host-targeted ../../.env.
-    # DATABASE_URL → internal postgres:5432. S3 URLs stay localhost: presigning is
-    # offline (no API→MinIO connection) and the URLs are used by the browser.
+    # DATABASE_URL → internal postgres:5432. Uploaded images are stored on disk
+    # (UPLOADS_DIR, a named volume) and served at PUBLIC_API_URL/uploads/*.
     environment:
       DATABASE_URL: "postgresql://blockpress:blockpress@postgres:5432/blockpress?schema=public"
       JWT_ACCESS_SECRET: "dev-only-access-secret-change-me-0123456789abcdef"
@@ -102,13 +72,8 @@ services:
       MOBILE_APP_SECRET: "dev-only-mobile-app-secret-change-me-0123456789abcdef"
       API_PORT: "3001"
       WEB_ORIGIN: "http://localhost:5173"
-      S3_ENDPOINT: "http://localhost:9000"
-      S3_REGION: "us-east-1"
-      S3_BUCKET: "blockpress"
-      S3_ACCESS_KEY: "minioadmin"
-      S3_SECRET_KEY: "minioadmin"
-      S3_FORCE_PATH_STYLE: "true"
-      S3_PUBLIC_URL: "http://localhost:9000/blockpress"
+      UPLOADS_DIR: "/data/uploads"
+      PUBLIC_API_URL: "http://localhost:3001"
     command: pnpm --filter @blockpress/api exec nest start --watch
     ports:
       - "3001:3001"
@@ -119,6 +84,7 @@ services:
       - /app/apps/web/node_modules
       - /app/apps/extractor/node_modules
       - /app/packages/shared/node_modules
+      - uploads:/data/uploads
 
   web:
     profiles: ["apps"]
@@ -145,4 +111,4 @@ services:
 
 volumes:
   pgdata:
-  miniodata:
+  uploads:

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { WorkSummary } from '@blockpress/shared';
+import { isHttpUrl, type WorkSummary } from '@blockpress/shared';
 import { Icons } from './icons';
 import { BookCover } from './ui/BookCover';
 
@@ -113,6 +113,18 @@ function Card({
           <span>{work.pageCount} pages</span>
         ) : (
           <span>{work.wordCount.toLocaleString()} words</span>
+        )}
+        {work.kind === 'book' && work.buyLink && isHttpUrl(work.buyLink) && (
+          <a
+            className="wc-buy"
+            href={work.buyLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Buy ${work.title}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Icons.Cart /> Buy
+          </a>
         )}
         <button
           className="wc-read"

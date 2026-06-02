@@ -33,3 +33,6 @@ apps/web/.vite/
 
 # playwright mcp screenshots/snapshots
 .playwright-mcp/
+
+# Local on-disk image uploads (dev)
+apps/api/uploads/

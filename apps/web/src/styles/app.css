@@ -1177,6 +1177,34 @@
   width: 14px;
   height: 14px;
 }
+/* Buy link (books with a buyLink) — pushes the Buy+Read group to the right. */
+.work-card .wc-buy {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg-canvas);
+  text-decoration: none;
+  box-shadow: var(--sh-xs);
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.work-card .wc-buy:hover {
+  background: var(--bg-hover);
+}
+.work-card .wc-buy svg {
+  width: 14px;
+  height: 14px;
+}
+/* When Buy is present it owns the auto margin; Read sits just after it. */
+.work-card .wc-buy + .wc-read {
+  margin-left: 8px;
+}
 
 /* ============================================================ SLASH MENU */
 .menu {

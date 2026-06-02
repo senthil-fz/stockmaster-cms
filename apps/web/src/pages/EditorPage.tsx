@@ -20,6 +20,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Topbar, type SaveState } from '../components/Topbar';
 import { Panel } from '../components/Panel';
 import { PageSettings } from '../components/PageSettings';
+import { WorkSettings } from '../components/WorkSettings';
 import { Icons } from '../components/icons';
 import { useBlockEditor } from '../editor/useBlockEditor';
 import { useActiveBlock } from '../editor/useActiveBlock';
@@ -217,6 +218,7 @@ function EditorWorkspace({
   const queryClient = useQueryClient();
   const [rightOpen, setRightOpen] = useState(true);
   const [showPageSettings, setShowPageSettings] = useState(true);
+  const [panelTab, setPanelTab] = useState<'page' | 'book'>('page');
   const [saveState, setSaveState] = useState<SaveState>('saved');
   const [title, setTitle] = useState(page.title);
 
@@ -368,6 +370,17 @@ function EditorWorkspace({
           </button>
           <button
             className="icon-btn bordered"
+            title={work.kind === 'book' ? 'Book details' : 'Article details'}
+            style={{ opacity: rightOpen && panelTab === 'book' ? 1 : 0.6 }}
+            onClick={() => {
+              setRightOpen(true);
+              setPanelTab((t) => (t === 'book' ? 'page' : 'book'));
+            }}
+          >
+            <Icons.Book />
+          </button>
+          <button
+            className="icon-btn bordered"
             title="Toggle settings"
             style={{ opacity: rightOpen ? 1 : 0.6 }}
             onClick={() => setRightOpen((o) => !o)}
@@ -405,7 +418,9 @@ function EditorWorkspace({
         </div>
 
         {rightOpen &&
-          (showPageSettings || !active ? (
+          (panelTab === 'book' ? (
+              <WorkSettings work={work} onClose={() => setPanelTab('page')} />
+            ) : showPageSettings || !active ? (
               <PageSettings
                 chapterTitle={chapter.title}
                 title={title}

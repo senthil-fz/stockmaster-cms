@@ -37,6 +37,7 @@ interface WorkScalars {
   year: string;
   coverTone: string;
   coverUrl: string | null;
+  buyLink: string | null;
   status: PublishStatus;
   tags: string[];
   createdAt: Date;
@@ -93,6 +94,7 @@ export function toWorkSummary(w: WorkSummaryInput): WorkSummary {
     year: w.year,
     coverTone: w.coverTone,
     coverUrl: w.coverUrl,
+    buyLink: w.buyLink,
     status: w.status,
     tags: w.tags,
     pageCount,
