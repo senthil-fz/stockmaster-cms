@@ -19,8 +19,9 @@ import { hashKey } from '../../api-keys/api-key.crypto';
  * - Bearer JWT  -> req.user = { id, email }, req.scopes = ['*'], req.authType = 'jwt'.
  *   The wildcard scope is the backward-compat contract read by ScopeGuard.
  * - ApiKey      -> req.user = { id: ownerUserId }, req.scopes = key.scopes,
- *   req.authType = 'apikey'. Revoked or expired keys are rejected; the per-route
- *   scope enforcement (default-deny) happens later in ScopeGuard.
+ *   req.authType = 'apikey'. Revoked/expired keys and keys whose owner is
+ *   suspended are rejected; the per-route scope enforcement (default-deny)
+ *   happens later in ScopeGuard.
  *
  * The Bearer path is fully self-contained and RETURNS before any ApiKey/DB code
  * is reachable, so existing JWT behavior is unchanged. The ApiKey branch is
@@ -63,12 +64,22 @@ export class JwtAuthGuard implements CanActivate {
         const hashed = hashKey(raw);
         const key = await this.prisma.apiKey.findUnique({
           where: { hashedKey: hashed },
+          // Load the owner's suspension state in the same query so a suspended
+          // member's keys (incl. their MCP integration) stop working too — the
+          // JWT path already rejects login + refresh on `suspendedAt`.
+          include: { owner: { select: { suspendedAt: true } } },
         });
         if (!key || key.revokedAt !== null) {
           throw new UnauthorizedException('Invalid API key');
         }
         if (key.expiresAt && key.expiresAt.getTime() <= Date.now()) {
           throw new UnauthorizedException('expired API key');
+        }
+        // A suspended owner can hold a still-valid key; checking here (not just
+        // at key revocation) means suspension takes effect immediately and
+        // reverses cleanly on un-suspend, mirroring the JWT login/refresh gate.
+        if (key.owner.suspendedAt) {
+          throw new UnauthorizedException('This account has been suspended');
         }
         req.user = { id: key.ownerUserId };
         req.scopes = key.scopes;

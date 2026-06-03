@@ -11,6 +11,7 @@
  *  - ApiKey valid   -> req.user.id=ownerUserId, req.scopes=key.scopes, authType='apikey'
  *  - ApiKey revoked -> 401 'Invalid API key'
  *  - ApiKey expired -> 401 'expired API key'   (distinct message from revoked)
+ *  - ApiKey w/ SUSPENDED owner -> 401 'This account has been suspended'
  *  - ApiKey unknown -> 401 'Invalid API key'
  *  - malformed/absent header -> 401 'Missing or invalid authorization'
  *  - lastUsedAt update rejection is NON-FATAL (request still succeeds)
@@ -74,10 +75,15 @@ function makePrisma(opts: {
     scopes: string[];
     revokedAt: Date | null;
     expiresAt?: Date | null;
+    // The guard loads the owner's suspension state alongside the key (one query,
+    // `include: { owner: { select: { suspendedAt } } }`). Defaults to active.
+    owner?: { suspendedAt: Date | null };
   } | null;
   updateRejects?: boolean;
 }): { prisma: PrismaService; find: jest.Mock; update: jest.Mock } {
-  const find = jest.fn(async () => opts.key ?? null);
+  const find = jest.fn(async () =>
+    opts.key ? { owner: { suspendedAt: null }, ...opts.key } : null,
+  );
   const update = jest.fn(() =>
     opts.updateRejects
       ? Promise.reject(new Error('db down'))
@@ -254,6 +260,61 @@ describe('JwtAuthGuard', () => {
       const req: FakeReq = { headers: { authorization: `ApiKey ${RAW_KEY}` } };
       const ctx = makeCtx(req);
       await expect(guard.canActivate(ctx)).resolves.toBe(true);
+      expect(req.authType).toBe('apikey');
+    });
+
+    it("owner SUSPENDED -> 401 'This account has been suspended' (key valid, never grants)", async () => {
+      const { prisma, update } = makePrisma({
+        key: {
+          id: 'k1',
+          ownerUserId: 'owner-9',
+          scopes: ['content:write', 'content:publish'],
+          revokedAt: null,
+          expiresAt: null,
+          owner: { suspendedAt: new Date('2026-01-01T00:00:00Z') },
+        },
+      });
+      const guard = new JwtAuthGuard(
+        makeReflector(),
+        makeJwt({ reject: true }),
+        prisma,
+      );
+      const req: FakeReq = { headers: { authorization: `ApiKey ${RAW_KEY}` } };
+      const ctx = makeCtx(req);
+      const err = await capture(guard, ctx);
+      expect(err).toBeInstanceOf(UnauthorizedException);
+      // Same exact string the JWT login/refresh path uses — one suspension contract.
+      expect((err as UnauthorizedException).message).toBe(
+        'This account has been suspended',
+      );
+      expect((err as UnauthorizedException).getStatus()).toBe(401);
+      // The request is never authenticated and the key is NOT marked used: the
+      // suspension check precedes both the req mutation and the lastUsedAt bump.
+      expect(req.authType).toBeUndefined();
+      expect(req.user).toBeUndefined();
+      expect(update).not.toHaveBeenCalled();
+    });
+
+    it('an ACTIVE owner (suspendedAt null) still authenticates', async () => {
+      const { prisma } = makePrisma({
+        key: {
+          id: 'k1',
+          ownerUserId: 'owner-9',
+          scopes: ['content:write'],
+          revokedAt: null,
+          expiresAt: null,
+          owner: { suspendedAt: null },
+        },
+      });
+      const guard = new JwtAuthGuard(
+        makeReflector(),
+        makeJwt({ reject: true }),
+        prisma,
+      );
+      const req: FakeReq = { headers: { authorization: `ApiKey ${RAW_KEY}` } };
+      const ctx = makeCtx(req);
+      await expect(guard.canActivate(ctx)).resolves.toBe(true);
+      expect(req.user).toEqual({ id: 'owner-9' });
       expect(req.authType).toBe('apikey');
     });
 
