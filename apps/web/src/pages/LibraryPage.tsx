@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import type { User, WorkKind, WorkSummary } from '@blockpress/shared';
+import type { WorkKind, WorkSummary } from '@blockpress/shared';
 import { worksApi } from '../lib/api';
 import { workQueryOptions, worksQueryOptions } from '../lib/queries';
 import { useAuth } from '../lib/auth';
 import { AppShell } from '../components/AppShell';
-import { Sidebar } from '../components/Sidebar';
+import { WorkspaceSidebar } from '../components/WorkspaceSidebar';
 import { Topbar } from '../components/Topbar';
 import { Library, type LibraryTab } from '../components/Library';
 import { AddMember } from '../components/AddMember';
@@ -14,52 +14,19 @@ import { ReportingDashboard } from '../components/ReportingDashboard';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Icons } from '../components/icons';
 
-function LibrarySidebar({
-  user,
-  works,
-  tab,
-  onTab,
-  onOpenWork,
-  onOpenSettings,
-}: {
-  user: User;
-  works: WorkSummary[];
-  tab: string;
-  onTab: (t: string) => void;
-  onOpenWork: (w: WorkSummary) => void;
-  onOpenSettings: () => void;
-}) {
-  const drafts = works.filter((w) => w.status === 'draft').length;
-  return (
-    <Sidebar>
-      <Sidebar.Brand />
-      <Sidebar.Scroll>
-        <Sidebar.SectionLabel>Workspace</Sidebar.SectionLabel>
-        <Sidebar.NavItem icon="Library" label="Library" active={tab === 'all'} count={works.length} onClick={() => onTab('all')} />
-        <Sidebar.NavItem icon="Pencil" label="Drafts" active={tab === 'drafts'} count={drafts} onClick={() => onTab('drafts')} />
-        <Sidebar.NavItem icon="CheckCircle" label="Published" active={tab === 'published'} onClick={() => onTab('published')} />
-        <Sidebar.NavItem icon="Trash" label="Trash" onClick={() => undefined} />
-
-        <Sidebar.SectionLabel>Recent</Sidebar.SectionLabel>
-        {works.slice(0, 4).map((w) => (
-          <Sidebar.NavItem key={w.id} icon={w.kind === 'book' ? 'Book' : 'Doc'} label={w.title} onClick={() => onOpenWork(w)} />
-        ))}
-
-        <Sidebar.SectionLabel>General</Sidebar.SectionLabel>
-        <Sidebar.NavItem icon="Chart" label="Reporting" active={tab === 'reporting'} onClick={() => onTab('reporting')} />
-        <Sidebar.NavItem icon="Users" label="Authors" active={tab === 'authors'} onClick={() => onTab('authors')} />
-        <Sidebar.NavItem icon="Settings" label="API keys" onClick={onOpenSettings} />
-      </Sidebar.Scroll>
-      <Sidebar.User user={user} onClick={onOpenSettings} />
-    </Sidebar>
-  );
-}
+/** Library sidebar tabs that can be deep-linked via the URL hash (e.g. /#drafts). */
+const HASH_TABS = ['all', 'drafts', 'published', 'reporting', 'authors'];
 
 export function LibraryPage() {
   const auth = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState('all');
+  // Initialise from the URL hash so the API-keys sidebar can land on a specific
+  // tab (e.g. clicking "Drafts" from settings). In-page tab switches stay local.
+  const [tab, setTab] = useState<string>(() => {
+    const h = typeof window !== 'undefined' ? window.location.hash.slice(1) : '';
+    return HASH_TABS.includes(h) ? h : 'all';
+  });
 
   const { data: works = [] } = useQuery(worksQueryOptions());
 
@@ -120,13 +87,12 @@ export function LibraryPage() {
     <>
     <AppShell
       sidebar={() => (
-        <LibrarySidebar
+        <WorkspaceSidebar
           user={auth.user!}
           works={works}
-          tab={tab}
+          active={tab}
           onTab={setTab}
-          onOpenWork={openWork}
-          onOpenSettings={() => void navigate({ to: '/api-keys' })}
+          onOpenApiKeys={() => void navigate({ to: '/api-keys' })}
         />
       )}
     >

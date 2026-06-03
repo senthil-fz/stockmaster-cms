@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { ApiKeyScope, ApiKeySummary, CreateApiKeyResponse, User } from '@blockpress/shared';
+import type { ApiKeyScope, ApiKeySummary, CreateApiKeyResponse } from '@blockpress/shared';
 import { apiKeysApi, ApiError } from '../../lib/api';
+import { worksQueryOptions } from '../../lib/queries';
 import { useAuth } from '../../lib/auth';
 import { AppShell } from '../../components/AppShell';
-import { Sidebar } from '../../components/Sidebar';
+import { WorkspaceSidebar } from '../../components/WorkspaceSidebar';
 import { Topbar } from '../../components/Topbar';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { Icons } from '../../components/icons';
@@ -29,20 +30,6 @@ const fmtDate = (d: string | null): string =>
 
 const isExpired = (k: ApiKeySummary): boolean =>
   k.expiresAt !== null && new Date(k.expiresAt).getTime() <= Date.now();
-
-function KeysSidebar({ user, onBack }: { user: User; onBack: () => void }) {
-  return (
-    <Sidebar>
-      <Sidebar.Brand />
-      <Sidebar.Scroll>
-        <Sidebar.SectionLabel>Settings</Sidebar.SectionLabel>
-        <Sidebar.NavItem icon="Library" label="Back to library" onClick={onBack} />
-        <Sidebar.NavItem icon="Settings" label="API keys" active />
-      </Sidebar.Scroll>
-      <Sidebar.User user={user} />
-    </Sidebar>
-  );
-}
 
 function StatusBadge({ k }: { k: ApiKeySummary }) {
   if (k.revokedAt) {
@@ -76,6 +63,10 @@ function ApiKeysPage() {
     queryFn: () => apiKeysApi.list(),
   });
 
+  // Works power the shared workspace sidebar counts, so the menu stays identical
+  // to the Library — only the active highlight and content change here.
+  const { data: works = [] } = useQuery(worksQueryOptions());
+
   const [showCreate, setShowCreate] = useState(false);
   // The raw secret is held ONLY here, for the lifetime of the reveal modal. It is never
   // written to the query cache, localStorage, or any other persistence — closing the modal
@@ -102,7 +93,15 @@ function ApiKeysPage() {
   return (
     <>
       <AppShell
-        sidebar={() => <KeysSidebar user={auth.user!} onBack={backToLibrary} />}
+        sidebar={() => (
+          <WorkspaceSidebar
+            user={auth.user!}
+            works={works}
+            active="api-keys"
+            onTab={(t) => void navigate({ to: '/', hash: t })}
+            onOpenApiKeys={() => undefined}
+          />
+        )}
       >
         <Topbar>
           <Topbar.Crumbs>
