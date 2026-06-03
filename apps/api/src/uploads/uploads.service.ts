@@ -7,7 +7,7 @@ import {
   MAX_UPLOAD_BYTES,
   isAllowedImageType,
   type UploadResponse,
-} from '@blockpress/shared';
+} from '@stockmaster/shared';
 
 const EXT_BY_TYPE: Record<string, string> = {
   'image/png': 'png',

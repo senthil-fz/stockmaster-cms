@@ -1,19 +1,19 @@
 services:
   postgres:
     image: postgres:17-alpine
-    container_name: blockpress-postgres
+    container_name: stockmaster-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: blockpress
-      POSTGRES_PASSWORD: blockpress
-      POSTGRES_DB: blockpress
+      POSTGRES_USER: stockmaster
+      POSTGRES_PASSWORD: stockmaster
+      POSTGRES_DB: stockmaster
     # Host 5433 → container 5432 (avoids clashing with a host Postgres on 5432).
     ports:
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U blockpress -d blockpress"]
+      test: ["CMD-SHELL", "pg_isready -U stockmaster -d stockmaster"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -29,13 +29,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: blockpress-app-init
+    container_name: stockmaster-app-init
     working_dir: /app/apps/api
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: "postgresql://blockpress:blockpress@postgres:5432/blockpress?schema=public"
+      DATABASE_URL: "postgresql://stockmaster:stockmaster@postgres:5432/stockmaster?schema=public"
     command: >
       sh -c "pnpm exec prisma generate && pnpm exec prisma migrate deploy && pnpm exec ts-node prisma/seed.ts"
     volumes:
@@ -52,7 +52,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: blockpress-api
+    container_name: stockmaster-api
     restart: unless-stopped
     depends_on:
       postgres:
@@ -64,7 +64,7 @@ services:
     # DATABASE_URL → internal postgres:5432. Uploaded images are stored on disk
     # (UPLOADS_DIR, a named volume) and served at PUBLIC_API_URL/uploads/*.
     environment:
-      DATABASE_URL: "postgresql://blockpress:blockpress@postgres:5432/blockpress?schema=public"
+      DATABASE_URL: "postgresql://stockmaster:stockmaster@postgres:5432/stockmaster?schema=public"
       JWT_ACCESS_SECRET: "dev-only-access-secret-change-me-0123456789abcdef"
       JWT_REFRESH_SECRET: "dev-only-refresh-secret-change-me-0123456789abcdef"
       JWT_ACCESS_TTL: "15m"
@@ -74,7 +74,7 @@ services:
       WEB_ORIGIN: "http://localhost:5173"
       UPLOADS_DIR: "/data/uploads"
       PUBLIC_API_URL: "http://localhost:3001"
-    command: pnpm --filter @blockpress/api exec nest start --watch
+    command: pnpm --filter @stockmaster/api exec nest start --watch
     ports:
       - "3001:3001"
     volumes:
@@ -91,14 +91,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: blockpress-web
+    container_name: stockmaster-web
     restart: unless-stopped
     depends_on:
       - api
     # VITE_API_URL is unset on purpose — the client falls back to
     # http://localhost:3001 (api.ts), which the browser reaches via the published
     # port. Vite must bind 0.0.0.0 to be reachable from the host.
-    command: pnpm --filter @blockpress/web exec vite --host 0.0.0.0 --port 5173
+    command: pnpm --filter @stockmaster/web exec vite --host 0.0.0.0 --port 5173
     ports:
       - "5173:5173"
     volumes:
@@ -118,16 +118,16 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: blockpress-mcp
+    container_name: stockmaster-mcp
     restart: unless-stopped
     depends_on:
       - api
     environment:
-      BLOCKPRESS_API_URL: "http://api:3001"
+      STOCKMASTER_API_URL: "http://api:3001"
       MCP_HTTP_PORT: "3002"
       # Set MCP_ALLOWED_HOSTS (comma-separated) to enable DNS-rebinding protection
       # when fronting this with a public domain, e.g. MCP_ALLOWED_HOSTS=mcp.example.com
-    command: sh -c "pnpm --filter @blockpress/mcp build && node /app/apps/mcp/dist/server.js"
+    command: sh -c "pnpm --filter @stockmaster/mcp build && node /app/apps/mcp/dist/server.js"
     ports:
       - "3002:3002"
     volumes:

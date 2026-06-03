@@ -1,12 +1,12 @@
 /**
- * Jest config for the @blockpress/api security gate tests.
+ * Jest config for the @stockmaster/api security gate tests.
  *
  * These are UNIT tests for the auth/scope guards — no live DB, no Nest DI
  * container. The guards are instantiated directly with hand-built fakes
  * (Reflector / PrismaService / JwtService / a fake req), so all we need from
  * Jest is ts-jest transform + a node environment.
  *
- * `@blockpress/shared` is mapped to its compiled dist so the guards' real
+ * `@stockmaster/shared` is mapped to its compiled dist so the guards' real
  * `publishStatusSchema` import (and the schema-drift pin) resolve without
  * pulling the workspace TS source into the test program.
  */
@@ -24,7 +24,7 @@ module.exports = {
   // load would otherwise throw "Reflect.defineMetadata is not a function".
   setupFiles: ['reflect-metadata'],
   moduleNameMapper: {
-    '^@blockpress/shared$': '<rootDir>/../../packages/shared/dist/index.js',
+    '^@stockmaster/shared$': '<rootDir>/../../packages/shared/dist/index.js',
   },
   // Override the preset's transform entry IN PLACE (same key) so isolatedModules
   // reliably applies — a differently-keyed entry would shallow-merge alongside

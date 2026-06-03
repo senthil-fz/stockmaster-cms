@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEditorState } from '@tiptap/react';
 import type { JSONContent } from '@tiptap/core';
-import { countWordsInDoc, type ArticleDetail } from '@blockpress/shared';
+import { countWordsInDoc, type ArticleDetail } from '@stockmaster/shared';
 import { articlesApi } from '../lib/api';
 import { articleQueryOptions } from '../lib/queries';
 import { useDebouncedCallback } from '../lib/useDebouncedCallback';

@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { publishStatusSchema } from '@blockpress/shared';
+import { publishStatusSchema } from '@stockmaster/shared';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import {
   CONTENT_DELETE,

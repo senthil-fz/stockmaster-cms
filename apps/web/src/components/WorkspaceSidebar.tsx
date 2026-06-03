@@ -1,4 +1,4 @@
-import type { User } from '@blockpress/shared';
+import type { User } from '@stockmaster/shared';
 import { Sidebar } from './Sidebar';
 
 /**

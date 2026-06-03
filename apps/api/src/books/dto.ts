@@ -5,7 +5,7 @@ import {
   createChapterSchema,
   updateBookSchema,
   updateChapterSchema,
-} from '@blockpress/shared';
+} from '@stockmaster/shared';
 
 export class CreateBookDto extends createZodDto(createBookSchema) {}
 export class UpdateBookDto extends createZodDto(updateBookSchema) {}

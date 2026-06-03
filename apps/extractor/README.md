@@ -1,6 +1,6 @@
-# @blockpress/extractor
+# @stockmaster/extractor
 
-A reusable pipeline for turning a source **document (PDF)** into a Blockpress
+A reusable pipeline for turning a source **document (PDF)** into a StockMaster
 **Work → Chapter → Page** tree in the database.
 
 ```
@@ -49,7 +49,7 @@ because docling's layout post-processing trips on float64 under Apple MPS.
 
 ```bash
 # 1. Python env (docling + ocrmac). Requires `uv`.
-pnpm --filter @blockpress/extractor setup:py
+pnpm --filter @stockmaster/extractor setup:py
 
 # 2. TS deps + Prisma client are installed with the workspace (`pnpm install`).
 ```
@@ -58,7 +58,7 @@ pnpm --filter @blockpress/extractor setup:py
 
 ```bash
 # Extract → out/<name>/{extract.md, items.json}
-pnpm --filter @blockpress/extractor extract -- \
+pnpm --filter @stockmaster/extractor extract -- \
   --pdf "/path/to/book.pdf" --pages 3-176 --out-dir out/full
 
 # Structure items.json → per-chapter cleaned items (chapter split, drop running heads)
@@ -81,7 +81,7 @@ python python/rebucket.py \
 cp out/full/book.pages.json books/a-common-mans-voyage-in-the-stock-market.json   # the page seed
 
 # Seed a committed book into the DB as Work → Chapters → Pages (idempotent by title)
-pnpm --filter @blockpress/extractor ingest -- books/a-common-mans-voyage-in-the-stock-market.json
+pnpm --filter @stockmaster/extractor ingest -- books/a-common-mans-voyage-in-the-stock-market.json
 ```
 
 `out/` and `python/.venv/` are git-ignored — the venv and the intermediate
@@ -96,7 +96,7 @@ are committed so the import is reproducible without re-running OCR + the
 (non-deterministic) agent structuring pass:
 
 ```bash
-pnpm --filter @blockpress/extractor ingest -- books/a-common-mans-voyage-in-the-stock-market.json
+pnpm --filter @stockmaster/extractor ingest -- books/a-common-mans-voyage-in-the-stock-market.json
 ```
 
 - `books/a-common-mans-voyage-in-the-stock-market.json` — the **page seed** that ingest

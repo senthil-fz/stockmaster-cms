@@ -1,4 +1,4 @@
-# Dev image for the Blockpress pnpm workspace — hot-reload api + web.
+# Dev image for the StockMaster pnpm workspace — hot-reload api + web.
 # A single image serves both services (they share the workspace install); the
 # compose `command` picks which app to run.
 FROM node:22-bookworm-slim

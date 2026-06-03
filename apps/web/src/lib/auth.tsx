@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { LoginInput, User } from '@blockpress/shared';
+import type { LoginInput, User } from '@stockmaster/shared';
 import { authApi } from './api';
 
 export interface AuthState {

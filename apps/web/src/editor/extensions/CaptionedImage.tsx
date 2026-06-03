@@ -1,8 +1,8 @@
-// Spec lives in @blockpress/editor-schema; this file only re-attaches the React NodeView.
+// Spec lives in @stockmaster/editor-schema; this file only re-attaches the React NodeView.
 import { useRef, useState } from 'react';
 import { NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from '@tiptap/react';
-import { CaptionedImage as CaptionedImageBase, type ImageAlign } from '@blockpress/editor-schema';
-import { IMAGE_TYPE_MESSAGE, MAX_UPLOAD_BYTES, isAllowedImageType } from '@blockpress/shared';
+import { CaptionedImage as CaptionedImageBase, type ImageAlign } from '@stockmaster/editor-schema';
+import { IMAGE_TYPE_MESSAGE, MAX_UPLOAD_BYTES, isAllowedImageType } from '@stockmaster/shared';
 import { uploadsApi } from '../../lib/api';
 
 export const CaptionedImage = CaptionedImageBase.extend({

@@ -1,7 +1,7 @@
 import { Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { MAX_UPLOAD_BYTES } from '@blockpress/shared';
+import { MAX_UPLOAD_BYTES } from '@stockmaster/shared';
 import { UploadsService } from './uploads.service';
 
 @Controller('uploads')

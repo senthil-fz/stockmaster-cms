@@ -1,5 +1,5 @@
 import { createZodDto } from 'nestjs-zod';
-import { createPageSchema, updatePageSchema } from '@blockpress/shared';
+import { createPageSchema, updatePageSchema } from '@stockmaster/shared';
 
 export class CreatePageDto extends createZodDto(createPageSchema) {}
 export class UpdatePageDto extends createZodDto(updatePageSchema) {}

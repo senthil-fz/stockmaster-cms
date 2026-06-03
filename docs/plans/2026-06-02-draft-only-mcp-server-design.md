@@ -14,7 +14,7 @@
 >    allowlist, and still 403s publish/delete within it.
 > 2. **Publish check is body/method-driven** and derived from `publishStatusSchema.safeParse`
 >    (guards run before the validation pipe), not a raw string compare.
-> 3. **`validate_content` ships in v1** via a new React-free `@blockpress/editor-schema`
+> 3. **`validate_content` ships in v1** via a new React-free `@stockmaster/editor-schema`
 >    package (a later verification reversed the initial deferral). Tiptap v3 + ProseMirror
 >    ship dual ESM/CJS and `getSchema` runs headless, so `apps/mcp` imports the *same* schema
 >    `apps/web` uses — no hand-copy. Backs the vocabulary + `get_page` echo with an automated
@@ -51,8 +51,8 @@ New monorepo package **`apps/mcp`** — a standalone MCP server (Node + TypeScri
 `@modelcontextprotocol/sdk`, **stdio** transport) launched locally by the agent host
 (Claude Desktop / Claude Code). Config via env:
 
-- `BLOCKPRESS_API_URL` — base URL of the NestJS API
-- `BLOCKPRESS_API_KEY` — the raw draft-only key
+- `STOCKMASTER_API_URL` — base URL of the NestJS API
+- `STOCKMASTER_API_KEY` — the raw draft-only key
 
 The MCP server never touches Postgres. Every tool maps to an existing REST endpoint,
 reusing all validation, serializers, word-count, and read-tracking logic.
@@ -189,7 +189,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 
-const server = new McpServer({ name: 'blockpress-draft', version: '0.1.0' });
+const server = new McpServer({ name: 'stockmaster-draft', version: '0.1.0' });
 
 server.registerTool(
   'create_work',
@@ -234,7 +234,7 @@ ProseMirror discards non-conforming content during `fromJSON`, so a deep-diff of
 vs. `node.toJSON()` is what surfaces the silent drops. **Critical dependency:** the
 validator must use the editor's exact extension set — otherwise it validates against the
 wrong schema. Action item: extract the editor's extension list into a shared module
-(`packages/shared` or a small `@blockpress/editor-schema` package) imported by both
+(`packages/shared` or a small `@stockmaster/editor-schema` package) imported by both
 `apps/web` and `apps/mcp`. If that extraction is too invasive for v1, `validate_content`
 can ship in a later iteration and v1 relies on the documented vocabulary + `get_page`
 echo (the two cheaper mitigations).
@@ -282,7 +282,7 @@ detail lives in [the implementation plan](./2026-06-02-draft-only-mcp-server-imp
 - **`/api-keys` scope-enum validation.** `apiKeyScopeSchema = z.enum(['works:write','works:publish',
   'works:delete'])`; a caller can never mint a `['*']`/`['admin']` key. The raw key is returned
   **once** (only its sha256 hash is stored).
-- **`validate_content` ships in v1.** Backed by the new React-free `@blockpress/editor-schema`
+- **`validate_content` ships in v1.** Backed by the new React-free `@stockmaster/editor-schema`
   package — `apps/mcp` calls `getSchema(schemaExtensions)` (headless, no DOM/jsdom) and runs
   `nodeFromJSON → check → round-trip drop-diff + a Zod enum overlay` (catches invalid `callout.tone`
   / `divider.variant` / `captionedImage.align` the round-trip can't see). The schema is **imported,

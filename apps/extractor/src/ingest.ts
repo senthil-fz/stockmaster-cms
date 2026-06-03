@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { readFileSync } from 'node:fs';
 import { PrismaClient, Prisma } from '@prisma/client';
-import { countWordsInDoc } from '@blockpress/shared';
+import { countWordsInDoc } from '@stockmaster/shared';
 import { bookSchema, type Block } from './ir';
 import { blocksToDoc } from './convert';
 
@@ -16,12 +16,12 @@ import { blocksToDoc } from './convert';
  * re-running after a re-extraction produces a clean result. `createdBy` is attributed
  * to the first app user (shared workspace — it's display-only and never gates access).
  *
- *   pnpm --filter @blockpress/extractor ingest -- out/book.json
+ *   pnpm --filter @stockmaster/extractor ingest -- out/book.json
  */
 const prisma = new PrismaClient();
 
 /**
- * URL-friendly slug matching @blockpress/shared `slugSchema`
+ * URL-friendly slug matching @stockmaster/shared `slugSchema`
  * (`^[a-z0-9]+(?:-[a-z0-9]+)*$`): lowercase, non-alphanumerics → `-`, collapsed,
  * truncated (~80 chars) then trimmed of stray hyphens. Frozen on create.
  */

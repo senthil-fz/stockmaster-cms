@@ -1,6 +1,6 @@
-# @blockpress/editor-schema
+# @stockmaster/editor-schema
 
-The **single source of truth** for the Blockpress editor's Tiptap/ProseMirror schema.
+The **single source of truth** for the StockMaster editor's Tiptap/ProseMirror schema.
 
 This package holds the React-free node specs (`Callout`, `Quote`, `CaptionedImage`,
 `Divider`), their attribute string-union types (`CalloutTone`, `DividerVariant`,

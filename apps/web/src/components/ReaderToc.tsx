@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Chapter, PageSummary } from '@blockpress/shared';
+import type { Chapter, PageSummary } from '@stockmaster/shared';
 import { Icons } from './icons';
 
 function ChapterNode({

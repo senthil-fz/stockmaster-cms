@@ -2,7 +2,7 @@
  * `validate_content` core (Step 18).
  *
  * Validates a Tiptap/ProseMirror doc against the SAME canonical schema the web editor
- * uses (`@blockpress/editor-schema` → `getSchema(schemaExtensions)`), entirely HEADLESS:
+ * uses (`@stockmaster/editor-schema` → `getSchema(schemaExtensions)`), entirely HEADLESS:
  * `getSchema` + `nodeFromJSON` + `check` + `toJSON` need no DOM/jsdom (parseHTML/renderHTML
  * only run on HTML paste/copy, never on JSON round-trip).
  *
@@ -22,8 +22,8 @@
  * Never throws — all failure modes are returned as structured errors.
  */
 import { getSchema } from '@tiptap/core';
-import { schemaExtensions } from '@blockpress/editor-schema';
-import type { TiptapDoc, TiptapNode } from '@blockpress/shared';
+import { schemaExtensions } from '@stockmaster/editor-schema';
+import type { TiptapDoc, TiptapNode } from '@stockmaster/shared';
 import { z } from 'zod';
 
 export type ValidationErrorKind =

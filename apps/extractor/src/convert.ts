@@ -1,4 +1,4 @@
-import type { TiptapDoc, TiptapNode } from '@blockpress/shared';
+import type { TiptapDoc, TiptapNode } from '@stockmaster/shared';
 import type { Block } from './ir';
 
 /**

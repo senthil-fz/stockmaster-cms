@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import type { BookDetail, Chapter, User } from '@blockpress/shared';
+import type { BookDetail, Chapter, User } from '@stockmaster/shared';
 import { Icon, Icons, type IconName } from './icons';
 import { Avatar } from './ui/Avatar';
 import { BookCover } from './ui/BookCover';
@@ -17,7 +17,7 @@ function Brand() {
         <Icons.Logo />
       </div>
       <div className="sb-brand">
-        Blockpress
+        StockMaster
         <small>Editorial workspace</small>
       </div>
       <button className="sb-collapse" title="Collapse sidebar" onClick={() => setCollapsed(!collapsed)}>

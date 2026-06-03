@@ -1,5 +1,5 @@
 {
-  "name": "@blockpress/editor-schema",
+  "name": "@stockmaster/editor-schema",
   "version": "0.1.0",
   "private": true,
   "main": "./dist/index.js",
@@ -20,7 +20,7 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@blockpress/shared": "workspace:*",
+    "@stockmaster/shared": "workspace:*",
     "@tiptap/core": "^3.23.6",
     "@tiptap/extension-table": "^3.23.6",
     "@tiptap/starter-kit": "^3.23.6"

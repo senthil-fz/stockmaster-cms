@@ -1,4 +1,4 @@
-import { readingTimeMinutes, type PublishStatus } from '@blockpress/shared';
+import { readingTimeMinutes, type PublishStatus } from '@stockmaster/shared';
 import { Panel } from './Panel';
 import { Icons } from './icons';
 

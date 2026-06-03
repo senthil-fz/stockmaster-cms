@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { BookStat, StatsQuery } from '@blockpress/shared';
+import type { BookStat, StatsQuery } from '@stockmaster/shared';
 import { statsBookQueryOptions, statsBooksQueryOptions } from '../lib/queries';
 
 type ClientFilter = 'all' | 'mobile' | 'web';

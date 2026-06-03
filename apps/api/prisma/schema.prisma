@@ -1,4 +1,4 @@
-// Blockpress — Prisma schema.
+// StockMaster — Prisma schema.
 // Shared editorial workspace: no per-user row filtering. `createdById` is recorded
 // for display ("author") only, never used to gate reads or writes.
 

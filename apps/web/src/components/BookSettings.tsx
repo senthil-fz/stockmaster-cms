@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { BookDetail, UpdateBookInput } from '@blockpress/shared';
+import type { BookDetail, UpdateBookInput } from '@stockmaster/shared';
 import { booksApi, uploadsApi } from '../lib/api';
 import { useDebouncedCallback } from '../lib/useDebouncedCallback';
 import { Panel } from './Panel';

@@ -20,7 +20,7 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import type { ExecutionContext } from '@nestjs/common';
 import type { Reflector } from '@nestjs/core';
-import { publishStatusSchema } from '@blockpress/shared';
+import { publishStatusSchema } from '@stockmaster/shared';
 import { ScopeGuard } from '../src/common/guards/scope.guard';
 import { IS_PUBLIC_KEY } from '../src/common/decorators/public.decorator';
 import {

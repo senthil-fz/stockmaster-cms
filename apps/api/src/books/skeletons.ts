@@ -1,4 +1,4 @@
-import { blankDoc, type TiptapDoc } from '@blockpress/shared';
+import { blankDoc, type TiptapDoc } from '@stockmaster/shared';
 
 export interface PageSkeleton {
   title: string;

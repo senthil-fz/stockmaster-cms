@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { EditorContent } from '@tiptap/react';
-import type { BookDetail, Page } from '@blockpress/shared';
+import type { BookDetail, Page } from '@stockmaster/shared';
 import { bookQueryOptions, pageQueryOptions } from '../lib/queries';
 import { AppShell } from '../components/AppShell';
 import { Sidebar } from '../components/Sidebar';

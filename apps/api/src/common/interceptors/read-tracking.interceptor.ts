@@ -8,7 +8,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import { tap } from 'rxjs';
-import { CLIENT_HEADER } from '@blockpress/shared';
+import { CLIENT_HEADER } from '@stockmaster/shared';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TRACK_READ_KEY, type ReadKind } from '../decorators/track-read.decorator';
 

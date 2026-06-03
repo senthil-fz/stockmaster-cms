@@ -8,7 +8,7 @@ import {
   type CreateArticleInput,
   type TiptapDoc,
   type UpdateArticleInput,
-} from '@blockpress/shared';
+} from '@stockmaster/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { toArticleDetail, toArticleSummary } from './serializers';
 

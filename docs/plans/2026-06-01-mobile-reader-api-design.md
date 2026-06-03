@@ -6,7 +6,7 @@ attestation remains an optional future upgrade.
 
 ## Goal
 
-Expose published books/articles from the Blockpress CMS to the **StockMaster Expo
+Expose published books/articles from the StockMaster CMS to the **StockMaster Expo
 mobile app**. Content is **free** and read **anonymously** (no reader accounts, no
 purchases). The only real requirement beyond "published-only" is that the content should
 be served to **genuine installs of our app**, not arbitrary clients/scrapers.

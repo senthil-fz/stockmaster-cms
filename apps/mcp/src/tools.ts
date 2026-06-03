@@ -1,7 +1,7 @@
 /**
  * Registers the draft-only MCP tool surface (14 tools): books (+ chapters/pages) and articles.
  *
- * Every tool maps to an existing Blockpress REST endpoint via the per-session `api` client,
+ * Every tool maps to an existing StockMaster REST endpoint via the per-session `api` client,
  * which forwards the client's draft-only key as `Authorization: ApiKey <key>`. The server is
  * intentionally missing
  * any publish / status / delete affordance: there is NO publish tool, NO delete tool, and
@@ -68,7 +68,7 @@ const httpUrlNullable = z
   .describe('Absolute http(s) URL, <=2000 chars. Pass null to clear.');
 
 // ─── The shared content vocabulary, advertised on update_page AND update_article ─────────
-// Single source: matches @blockpress/editor-schema (StarterKit w/ blockquote+codeBlock
+// Single source: matches @stockmaster/editor-schema (StarterKit w/ blockquote+codeBlock
 // DISABLED + the 4 custom nodes + table family). blockquote/codeBlock DO NOT EXIST.
 // Book pages and article `content` use the EXACT SAME Tiptap vocabulary, so both tools
 // reference this constant rather than duplicating a thinner description.

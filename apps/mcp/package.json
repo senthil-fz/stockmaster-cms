@@ -1,9 +1,9 @@
 {
-  "name": "@blockpress/mcp",
+  "name": "@stockmaster/mcp",
   "version": "0.1.0",
   "private": true,
   "bin": {
-    "blockpress-mcp": "dist/server.js"
+    "stockmaster-mcp": "dist/server.js"
   },
   "scripts": {
     "build": "tsc",
@@ -12,8 +12,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@blockpress/editor-schema": "workspace:*",
-    "@blockpress/shared": "workspace:*",
+    "@stockmaster/editor-schema": "workspace:*",
+    "@stockmaster/shared": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@tiptap/core": "^3.23.6",
     "express": "^4.21.2",

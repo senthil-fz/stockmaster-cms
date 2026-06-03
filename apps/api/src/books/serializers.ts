@@ -1,4 +1,4 @@
-import { blankDoc } from '@blockpress/shared';
+import { blankDoc } from '@stockmaster/shared';
 import type {
   BookDetail,
   BookSummary,
@@ -7,7 +7,7 @@ import type {
   PageSummary,
   PublishStatus,
   TiptapDoc,
-} from '@blockpress/shared';
+} from '@stockmaster/shared';
 
 // Loose row shapes for what we select/include from Prisma.
 interface PageRow {

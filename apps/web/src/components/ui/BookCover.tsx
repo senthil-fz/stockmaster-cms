@@ -1,4 +1,4 @@
-import type { BookSummary } from '@blockpress/shared';
+import type { BookSummary } from '@stockmaster/shared';
 
 const TONES: Record<string, string> = {
   sand: 'linear-gradient(160deg,#d8c4a0,#b89b6e)',

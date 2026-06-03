@@ -13,7 +13,7 @@ export type { CalloutTone } from './Callout';
 export type { ImageAlign } from './CaptionedImage';
 export type { DividerVariant } from './Divider';
 
-// The exact StarterKit configuration for the Blockpress editor schema. Exported as a
+// The exact StarterKit configuration for the StockMaster editor schema. Exported as a
 // standalone const so apps/web can reuse the identical config (single source of truth).
 // `satisfies` keeps the literal types (`heading.levels`, the `false` disables) that
 // StarterKit.configure() requires — widening to number[]/boolean would be rejected.

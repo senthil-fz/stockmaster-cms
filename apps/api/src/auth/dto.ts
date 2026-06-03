@@ -1,5 +1,5 @@
 import { createZodDto } from 'nestjs-zod';
-import { loginSchema, signupSchema } from '@blockpress/shared';
+import { loginSchema, signupSchema } from '@stockmaster/shared';
 
 // Body for POST /auth/users (authenticated user-creation). Same shape as the old public
 // signup; reuses `signupSchema` (name/email/password).

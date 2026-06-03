@@ -1,10 +1,10 @@
-# Blockpress — Design & Implementation Plan
+# StockMaster — Design & Implementation Plan
 
 _Date: 2026-05-30_
 
 ## 1. What we're building
 
-**Blockpress** is a block-based editor for writing **books** and **articles**, recreated
+**StockMaster** is a block-based editor for writing **books** and **articles**, recreated
 from the Claude Design handoff bundle (`book-editor-ui`). The product has three surfaces:
 
 1. **Library** — a card grid of all works (books & articles) with status, page/word counts,

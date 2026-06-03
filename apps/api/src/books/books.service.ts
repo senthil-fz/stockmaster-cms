@@ -9,7 +9,7 @@ import {
   type CreateChapterInput,
   type UpdateBookInput,
   type UpdateChapterInput,
-} from '@blockpress/shared';
+} from '@stockmaster/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { newBookSkeleton } from './skeletons';
 import { toBookDetail, toBookSummary, toChapter } from './serializers';

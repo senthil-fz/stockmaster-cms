@@ -54,7 +54,7 @@ export async function startHttpServer(
     : {};
 
   app.get('/health', (_req, res) => {
-    res.json({ ok: true, server: 'blockpress-draft', transport: 'streamable-http', sessions: transports.size });
+    res.json({ ok: true, server: 'stockmaster-draft', transport: 'streamable-http', sessions: transports.size });
   });
 
   app.post('/mcp', async (req, res) => {
@@ -101,7 +101,7 @@ export async function startHttpServer(
 
       await transport.handleRequest(req, res, req.body);
     } catch (err) {
-      console.error('[blockpress-mcp] request error:', err);
+      console.error('[stockmaster-mcp] request error:', err);
       if (!res.headersSent) {
         res.status(500).json({ jsonrpc: '2.0', error: { code: -32603, message: 'Internal server error' }, id: null });
       }
@@ -123,7 +123,7 @@ export async function startHttpServer(
 
   await new Promise<void>((resolve) => {
     app.listen(port, () => {
-      console.error(`[blockpress-mcp] Streamable HTTP transport listening on :${port}/mcp`);
+      console.error(`[stockmaster-mcp] Streamable HTTP transport listening on :${port}/mcp`);
       resolve();
     });
   });

@@ -6,7 +6,7 @@ import {
   type ArticleDetail,
   type PublishStatus,
   type UpdateArticleInput,
-} from '@blockpress/shared';
+} from '@stockmaster/shared';
 import { articlesApi, uploadsApi } from '../lib/api';
 import { useDebouncedCallback } from '../lib/useDebouncedCallback';
 import { Panel } from './Panel';

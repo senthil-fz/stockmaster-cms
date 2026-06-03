@@ -2,7 +2,7 @@ import type { Editor } from '@tiptap/react';
 import { NodeSelection } from '@tiptap/pm/state';
 import { Panel } from '../components/Panel';
 import { Icons, type IconName } from '../components/icons';
-import { type CalloutTone } from '@blockpress/editor-schema';
+import { type CalloutTone } from '@stockmaster/editor-schema';
 import { CALLOUT_ICONS } from './extensions/Callout';
 import type { ActiveBlock } from './useActiveBlock';
 

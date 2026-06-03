@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from '@tanstack/react-router';
-import { loginSchema, type LoginInput } from '@blockpress/shared';
+import { loginSchema, type LoginInput } from '@stockmaster/shared';
 import { useAuth } from '../lib/auth';
 import { ApiError } from '../lib/api';
 import { Icons } from '../components/icons';
@@ -43,7 +43,7 @@ export function LoginPage() {
             <Icons.Logo />
           </span>
           <div className="sb-brand">
-            Blockpress
+            StockMaster
             <small>Editorial workspace</small>
           </div>
         </div>

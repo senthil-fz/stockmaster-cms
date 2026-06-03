@@ -5,15 +5,15 @@ import * as bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main(): Promise<void> {
-  console.log('Seeding Blockpress…');
+  console.log('Seeding StockMaster…');
 
   // Demo user (shared workspace — one is enough). Password: password123
   const passwordHash = await bcrypt.hash('password123', 10);
   const user = await prisma.user.upsert({
-    where: { email: 'sienna@blockpress.io' },
+    where: { email: 'sienna@stockmaster.io' },
     update: {},
     create: {
-      email: 'sienna@blockpress.io',
+      email: 'sienna@stockmaster.io',
       name: 'Sienna Hewitt',
       passwordHash,
       avatarColor: '#7d8b6a',

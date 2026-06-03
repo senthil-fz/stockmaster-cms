@@ -2,7 +2,7 @@ import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/co
 import { JwtService, type JwtSignOptions } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import type { User as PrismaUser } from '@prisma/client';
-import type { LoginInput, SignupInput, User } from '@blockpress/shared';
+import type { LoginInput, SignupInput, User } from '@stockmaster/shared';
 import { PrismaService } from '../prisma/prisma.service';
 
 const AVATAR_COLORS = ['#7d8b6a', '#4f5bd5', '#c2683a', '#3f9b6b', '#2f7bf6', '#9a6dd7'];

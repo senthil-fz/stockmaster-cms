@@ -19,7 +19,7 @@ const DEFAULTS: ThemeValues = {
   contentFont: 'sans',
   editorWidth: 'comfortable',
 };
-const STORAGE_KEY = 'blockpress.theme';
+const STORAGE_KEY = 'stockmaster.theme';
 const WIDTHS: Record<ThemeValues['editorWidth'], string> = {
   narrow: '640px',
   comfortable: '720px',

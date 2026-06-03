@@ -10,7 +10,7 @@ import {
   type Page,
   type PublishStatus,
   type UpdatePageInput,
-} from '@blockpress/shared';
+} from '@stockmaster/shared';
 import { booksApi, pagesApi } from '../lib/api';
 import { bookQueryOptions, pageQueryOptions } from '../lib/queries';
 import { useDebouncedCallback } from '../lib/useDebouncedCallback';

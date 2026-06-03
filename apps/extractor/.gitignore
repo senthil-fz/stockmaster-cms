@@ -1,5 +1,5 @@
 # ── Python ───────────────────────────────────────────────────────────────────
-# Virtualenv (recreate with `pnpm --filter @blockpress/extractor setup:py`)
+# Virtualenv (recreate with `pnpm --filter @stockmaster/extractor setup:py`)
 .venv/
 python/.venv/
 # Byte-compiled / cache

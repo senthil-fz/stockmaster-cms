@@ -1,11 +1,11 @@
-# Blockpress
+# StockMaster
 
 A block-based editor for writing **books** and **articles** — a Notion-style writing
 surface with a library manager, a contextual **Book → Chapters → Pages** tree, and a
 rich block editor whose JSON document is the silent source of truth.
 
 Recreated from the Claude Design "Book editor UI" handoff. See
-[`docs/plans/2026-05-30-blockpress-design.md`](docs/plans/2026-05-30-blockpress-design.md)
+[`docs/plans/2026-05-30-stockmaster-design.md`](docs/plans/2026-05-30-stockmaster-design.md)
 for the full design and the design-block → Tiptap-node mapping, and
 [`docs/plans/2026-05-30-stack-decisions.md`](docs/plans/2026-05-30-stack-decisions.md)
 for pinned versions and integration gotchas.
@@ -19,7 +19,7 @@ for pinned versions and integration gotchas.
 | Backend | **NestJS** · **Prisma 6** · **PostgreSQL** · `nestjs-zod` |
 | Auth | Email/password · JWT (access token + httpOnly refresh cookie) · bcryptjs |
 | Storage | **S3** presigned PUT (AWS SDK v3) — MinIO in dev, AWS S3 in prod |
-| Shared | `@blockpress/shared` — Zod schemas used by the API, the query layer, and forms |
+| Shared | `@stockmaster/shared` — Zod schemas used by the API, the query layer, and forms |
 
 The workspace is a **shared editorial space**: multiple users, no roles, everyone sees and
 edits every work.
@@ -50,7 +50,7 @@ pnpm install
 # 2. env — defaults work out of the box for local dev
 cp .env.example .env
 
-# 3. start Postgres + MinIO (creates a public-read `blockpress` bucket)
+# 3. start Postgres + MinIO (creates a public-read `stockmaster` bucket)
 pnpm infra:up
 
 # 4. database: run migrations + seed demo content
@@ -64,7 +64,7 @@ pnpm dev
 - Web: http://localhost:5173
 - API: http://localhost:3001
 
-**Demo login:** `sienna@blockpress.io` / `password123`
+**Demo login:** `sienna@stockmaster.io` / `password123`
 
 > Note: Postgres is mapped to host port **5433** (to avoid clashing with a local
 > Postgres on 5432). MinIO console is at http://localhost:9001 (`minioadmin` / `minioadmin`).

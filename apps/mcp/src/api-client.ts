@@ -1,5 +1,5 @@
 /**
- * Tiny typed HTTP client factory for the Blockpress REST API.
+ * Tiny typed HTTP client factory for the StockMaster REST API.
  *
  * `createApiClient(apiUrl, apiKey)` binds a client to one draft-only key. The HTTP transport
  * builds one per session from the key the CLIENT presents (Authorization: Bearer <bp_key>),

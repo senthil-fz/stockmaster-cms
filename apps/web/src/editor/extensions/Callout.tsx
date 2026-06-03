@@ -1,6 +1,6 @@
-// Spec lives in @blockpress/editor-schema; this file only re-attaches the React NodeView.
+// Spec lives in @stockmaster/editor-schema; this file only re-attaches the React NodeView.
 import { NodeViewContent, NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from '@tiptap/react';
-import { Callout as CalloutBase, type CalloutTone } from '@blockpress/editor-schema';
+import { Callout as CalloutBase, type CalloutTone } from '@stockmaster/editor-schema';
 import { Icon, type IconName } from '../../components/icons';
 
 export const CALLOUT_ICONS: IconName[] = ['Callout', 'Pin', 'Star', 'Sparkle', 'Check', 'Quote'];

@@ -1,5 +1,5 @@
 {
-  "name": "blockpress",
+  "name": "stockmaster",
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@10.33.0",
@@ -17,9 +17,9 @@
     "docker:up": "docker compose --profile apps up -d --build",
     "docker:down": "docker compose --profile apps down",
     "docker:logs": "docker compose --profile apps logs -f api web",
-    "db:migrate": "pnpm --filter @blockpress/api run migrate",
-    "db:seed": "pnpm --filter @blockpress/api run seed",
-    "db:studio": "pnpm --filter @blockpress/api run studio"
+    "db:migrate": "pnpm --filter @stockmaster/api run migrate",
+    "db:seed": "pnpm --filter @stockmaster/api run seed",
+    "db:studio": "pnpm --filter @stockmaster/api run studio"
   },
   "devDependencies": {
     "prettier": "^3.4.2",

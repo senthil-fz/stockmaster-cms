@@ -1,6 +1,6 @@
-// Spec lives in @blockpress/editor-schema; this file only re-attaches the React NodeView.
+// Spec lives in @stockmaster/editor-schema; this file only re-attaches the React NodeView.
 import { NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from '@tiptap/react';
-import { Divider as DividerBase, type DividerVariant } from '@blockpress/editor-schema';
+import { Divider as DividerBase, type DividerVariant } from '@stockmaster/editor-schema';
 
 export const Divider = DividerBase.extend({
   addNodeView: () => ReactNodeViewRenderer(DividerView),

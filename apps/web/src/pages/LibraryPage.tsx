@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import type { ArticleSummary, BookSummary } from '@blockpress/shared';
+import type { ArticleSummary, BookSummary } from '@stockmaster/shared';
 import { articlesApi, booksApi } from '../lib/api';
 import { articlesQueryOptions, booksQueryOptions, bookQueryOptions } from '../lib/queries';
 import { useAuth } from '../lib/auth';

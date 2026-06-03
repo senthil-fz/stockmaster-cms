@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { isHttpUrl, type ArticleSummary, type BookSummary } from '@blockpress/shared';
+import { isHttpUrl, type ArticleSummary, type BookSummary } from '@stockmaster/shared';
 import { Icons } from './icons';
 import { BookCover } from './ui/BookCover';
 

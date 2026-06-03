@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
-import type { ArticlesQuery, BooksQuery, StatsQuery } from '@blockpress/shared';
+import type { ArticlesQuery, BooksQuery, StatsQuery } from '@stockmaster/shared';
 import { articlesApi, booksApi, pagesApi, statsApi } from './api';
 
 export const queryKeys = {

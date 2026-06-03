@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { ApiKeyScope, ApiKeySummary, CreateApiKeyResponse } from '@blockpress/shared';
+import type { ApiKeyScope, ApiKeySummary, CreateApiKeyResponse } from '@stockmaster/shared';
 import { apiKeysApi, ApiError } from '../../lib/api';
 import { booksQueryOptions } from '../../lib/queries';
 import { useAuth } from '../../lib/auth';

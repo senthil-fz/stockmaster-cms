@@ -6,7 +6,7 @@ import {
   type CreatePageInput,
   type TiptapDoc,
   type UpdatePageInput,
-} from '@blockpress/shared';
+} from '@stockmaster/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { toPage } from '../books/serializers';
 

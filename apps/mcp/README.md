@@ -1,9 +1,9 @@
-# @blockpress/mcp — draft-only MCP server
+# @stockmaster/mcp — draft-only MCP server
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server that lets an AI agent
-**create and edit Blockpress books and articles — but only ever as drafts.** It runs as a
+**create and edit StockMaster books and articles — but only ever as drafts.** It runs as a
 long-lived service speaking MCP over the **Streamable HTTP** transport (`POST /mcp`), and calls
-the existing Blockpress REST API using a **scoped, draft-only API key**. The key carries
+the existing StockMaster REST API using a **scoped, draft-only API key**. The key carries
 `content:write` only, so the agent is *physically unable* to publish or delete content: those
 operations return **403** at the API, regardless of what the client tries.
 
@@ -19,7 +19,7 @@ The server holds **no API key of its own** — see [Auth](#auth) below. Its only
 
 | Variable             | Meaning                                                              |
 | -------------------- | ------------------------------------------------------------------- |
-| `BLOCKPRESS_API_URL` | Base URL of the running NestJS API. `http://localhost:3001` on the host; `http://api:3001` from inside the docker network. |
+| `STOCKMASTER_API_URL` | Base URL of the running NestJS API. `http://localhost:3001` on the host; `http://api:3001` from inside the docker network. |
 | `MCP_HTTP_PORT`      | Port the Streamable HTTP server listens on (default `3002`).        |
 | `MCP_ALLOWED_HOSTS`  | *(optional, production)* comma-separated allowlist of `Host` headers; setting it enables DNS-rebinding protection, e.g. `mcp.example.com`. |
 
@@ -33,10 +33,10 @@ and read-tracking run in the API.
 
 ## 2. Mint a draft-only API key
 
-A key is owned by a real Blockpress user; drafts the agent creates are authored by that user.
+A key is owned by a real StockMaster user; drafts the agent creates are authored by that user.
 Two ways to mint one:
 
-**Web UI (recommended).** Sign in to the Blockpress web app → **API Keys** → **Create key**.
+**Web UI (recommended).** Sign in to the StockMaster web app → **API Keys** → **Create key**.
 Give it a name (e.g. `MCP draft agent`), keep the default scope `content:write`, optionally set
 an expiry. The raw key is shown **exactly once** — copy it; you'll hand it to your MCP client in
 [§4](#4-connect-a-client). It is never shown again (only its sha256 hash is stored).
@@ -73,9 +73,9 @@ endpoint is `http://localhost:3002/mcp`.
 **Standalone (no docker):**
 
 ```bash
-pnpm --filter @blockpress/editor-schema build   # apps/mcp consumes its dist
-pnpm --filter @blockpress/mcp build             # tsc → dist/
-MCP_HTTP_PORT=3002 BLOCKPRESS_API_URL=http://localhost:3001 node dist/server.js
+pnpm --filter @stockmaster/editor-schema build   # apps/mcp consumes its dist
+pnpm --filter @stockmaster/mcp build             # tsc → dist/
+MCP_HTTP_PORT=3002 STOCKMASTER_API_URL=http://localhost:3001 node dist/server.js
 ```
 
 ## 4. Connect a client
@@ -87,7 +87,7 @@ Streamable HTTP endpoint `http://localhost:3002/mcp` and pass your draft-only ke
 **Claude Code:**
 
 ```bash
-claude mcp add --transport http blockpress-draft http://localhost:3002/mcp \
+claude mcp add --transport http stockmaster-draft http://localhost:3002/mcp \
   --header "Authorization: Bearer bp_your-draft-only-key"
 claude mcp list                       # verify it's connected
 # in a session, /mcp lists the tools
@@ -98,7 +98,7 @@ claude mcp list                       # verify it's connected
 ```json
 {
   "mcpServers": {
-    "blockpress-draft": {
+    "stockmaster-draft": {
       "type": "http",
       "url": "http://localhost:3002/mcp",
       "headers": { "Authorization": "Bearer bp_your-draft-only-key" }
@@ -121,7 +121,7 @@ https://mcp.example.com  →  reverse proxy (nginx/Caddy/Traefik, TLS)  →  mcp
 ```
 
 Clients then use `https://mcp.example.com/mcp` with their key header
-(`claude mcp add --transport http blockpress https://mcp.example.com/mcp --header "Authorization: Bearer <bp_key>"`).
+(`claude mcp add --transport http stockmaster https://mcp.example.com/mcp --header "Authorization: Bearer <bp_key>"`).
 
 **Auth is already per-client** — the URL alone is useless without a valid draft-only key, and
 every key is scoped to drafts and individually revocable. Still, before exposing it publicly:

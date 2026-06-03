@@ -1,4 +1,4 @@
 import { createZodDto } from 'nestjs-zod';
-import { statsQuerySchema } from '@blockpress/shared';
+import { statsQuerySchema } from '@stockmaster/shared';
 
 export class StatsQueryDto extends createZodDto(statsQuerySchema) {}

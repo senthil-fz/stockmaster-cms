@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import type { CreateApiKeyInput } from '@blockpress/shared';
+import type { CreateApiKeyInput } from '@stockmaster/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { derivePrefix, generateRawKey, hashKey } from './api-key.crypto';
 

@@ -5,7 +5,7 @@ import type {
   BookStatDetail,
   BookStatsResponse,
   StatsQuery,
-} from '@blockpress/shared';
+} from '@stockmaster/shared';
 import { PrismaService } from '../prisma/prisma.service';
 
 /**

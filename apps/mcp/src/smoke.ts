@@ -6,7 +6,7 @@
  * failure so a CI/human gate can rely on the exit code.
  *
  * Run it directly (the human runs this as the gate):
- *   pnpm --filter @blockpress/mcp exec ts-node src/smoke.ts
+ *   pnpm --filter @stockmaster/mcp exec ts-node src/smoke.ts
  *   # or, after build:  node dist/smoke.js
  *
  * NOTE: this is a standalone script, NOT the stdio server — logging to stdout here is

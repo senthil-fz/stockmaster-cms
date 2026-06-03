@@ -1,5 +1,5 @@
 {
-  "name": "@blockpress/extractor",
+  "name": "@stockmaster/extractor",
   "version": "0.0.0",
   "private": true,
   "description": "Reusable document pipeline: docling OCR extraction → Tiptap conversion → DB seeding.",
@@ -14,7 +14,7 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@blockpress/shared": "workspace:*",
+    "@stockmaster/shared": "workspace:*",
     "@prisma/client": "^6.5.0",
     "zod": "^3.25.0"
   },

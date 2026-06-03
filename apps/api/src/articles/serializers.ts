@@ -1,10 +1,10 @@
-import { blankDoc } from '@blockpress/shared';
+import { blankDoc } from '@stockmaster/shared';
 import type {
   ArticleDetail,
   ArticleSummary,
   PublishStatus,
   TiptapDoc,
-} from '@blockpress/shared';
+} from '@stockmaster/shared';
 
 // Loose row shape for what we select from Prisma.
 interface ArticleScalars {
