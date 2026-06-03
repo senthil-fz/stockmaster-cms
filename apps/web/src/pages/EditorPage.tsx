@@ -5,14 +5,14 @@ import { useEditorState } from '@tiptap/react';
 import type { JSONContent } from '@tiptap/core';
 import {
   countWordsInDoc,
+  type BookDetail,
   type Chapter,
   type Page,
   type PublishStatus,
   type UpdatePageInput,
-  type WorkDetail,
 } from '@blockpress/shared';
-import { pagesApi, worksApi } from '../lib/api';
-import { pageQueryOptions, workQueryOptions } from '../lib/queries';
+import { booksApi, pagesApi } from '../lib/api';
+import { bookQueryOptions, pageQueryOptions } from '../lib/queries';
 import { useDebouncedCallback } from '../lib/useDebouncedCallback';
 import { AppShell } from '../components/AppShell';
 import { Sidebar } from '../components/Sidebar';
@@ -20,15 +20,15 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Topbar, type SaveState } from '../components/Topbar';
 import { Panel } from '../components/Panel';
 import { PageSettings } from '../components/PageSettings';
-import { WorkSettings } from '../components/WorkSettings';
+import { BookSettings } from '../components/BookSettings';
 import { Icons } from '../components/icons';
 import { useBlockEditor } from '../editor/useBlockEditor';
 import { useActiveBlock } from '../editor/useActiveBlock';
 import { BlockEditor } from '../editor/BlockEditor';
 import { BlockSettings } from '../editor/BlockSettings';
 
-const ROUTE_ID = '/_app/works/$workId/pages/$pageId';
-const ROUTE_TO = '/works/$workId/pages/$pageId';
+const ROUTE_ID = '/_app/books/$bookId/pages/$pageId';
+const ROUTE_TO = '/books/$bookId/pages/$pageId';
 
 interface ConfirmState {
   title: string;
@@ -46,28 +46,28 @@ function nextPageId(flat: string[], removed: Set<string>, currentId: string): st
 }
 
 export function EditorPage() {
-  const { workId, pageId } = useParams({ from: ROUTE_ID });
+  const { bookId, pageId } = useParams({ from: ROUTE_ID });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data: work } = useQuery(workQueryOptions(workId));
+  const { data: book } = useQuery(bookQueryOptions(bookId));
   const { data: page } = useQuery(pageQueryOptions(pageId));
 
   const goToPage = (pId: string) =>
-    navigate({ to: ROUTE_TO, params: { workId, pageId: pId } });
+    navigate({ to: ROUTE_TO, params: { bookId, pageId: pId } });
 
   const addPage = useMutation({
     mutationFn: (chapterId: string) => pagesApi.addPage(chapterId, {}),
     onSuccess: async (newPage) => {
-      await queryClient.invalidateQueries({ queryKey: ['work', workId] });
+      await queryClient.invalidateQueries({ queryKey: ['book', bookId] });
       void goToPage(newPage.id);
     },
   });
 
   const addChapter = useMutation({
-    mutationFn: () => worksApi.addChapter(workId, {}),
+    mutationFn: () => booksApi.addChapter(bookId, {}),
     onSuccess: async (chapter) => {
-      await queryClient.invalidateQueries({ queryKey: ['work', workId] });
+      await queryClient.invalidateQueries({ queryKey: ['book', bookId] });
       const first = chapter.pages[0];
       if (first) void goToPage(first.id);
     },
@@ -76,8 +76,8 @@ export function EditorPage() {
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
 
   const afterTreeChange = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['work', workId] });
-    await queryClient.invalidateQueries({ queryKey: ['works'] });
+    await queryClient.invalidateQueries({ queryKey: ['book', bookId] });
+    await queryClient.invalidateQueries({ queryKey: ['books'] });
   };
   const navigateAfterDelete = (goTo: string | null) => {
     setConfirm(null);
@@ -95,29 +95,29 @@ export function EditorPage() {
 
   const deleteChapter = useMutation({
     mutationFn: (vars: { chapterId: string; goTo: string | null }) =>
-      worksApi.removeChapter(vars.chapterId),
+      booksApi.removeChapter(vars.chapterId),
     onSuccess: async (_r, vars) => {
       await afterTreeChange();
       navigateAfterDelete(vars.goTo);
     },
   });
 
-  const deleteWork = useMutation({
-    mutationFn: () => worksApi.remove(workId),
+  const deleteBook = useMutation({
+    mutationFn: () => booksApi.remove(bookId),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['works'] });
+      await queryClient.invalidateQueries({ queryKey: ['books'] });
       setConfirm(null);
       void navigate({ to: '/' });
     },
   });
 
-  if (!work || !page) return null;
+  if (!book || !page) return null;
 
   const activePage = page;
   const chapter =
-    work.chapters.find((c) => c.pages.some((p) => p.id === activePage.id)) ?? work.chapters[0];
+    book.chapters.find((c) => c.pages.some((p) => p.id === activePage.id)) ?? book.chapters[0];
 
-  const flatPageIds = work.chapters.flatMap((c) => c.pages.map((p) => p.id));
+  const flatPageIds = book.chapters.flatMap((c) => c.pages.map((p) => p.id));
 
   const requestDeletePage = (pageId: string) => {
     const goTo =
@@ -130,19 +130,17 @@ export function EditorPage() {
     });
   };
 
-  const requestDeleteWork = () => {
+  const requestDeleteBook = () => {
     setConfirm({
-      title: work.kind === 'book' ? 'Delete book?' : 'Delete article?',
-      message: `This permanently removes "${work.title || 'Untitled'}"${
-        work.kind === 'book' ? ' and all its chapters and pages' : ''
-      }. This cannot be undone.`,
-      confirmLabel: work.kind === 'book' ? 'Delete book' : 'Delete article',
-      run: () => deleteWork.mutate(),
+      title: 'Delete book?',
+      message: `This permanently removes "${book.title || 'Untitled'}" and all its chapters and pages. This cannot be undone.`,
+      confirmLabel: 'Delete book',
+      run: () => deleteBook.mutate(),
     });
   };
 
   const requestDeleteChapter = (chapterId: string) => {
-    const ch = work.chapters.find((c) => c.id === chapterId);
+    const ch = book.chapters.find((c) => c.id === chapterId);
     const removed = new Set(ch?.pages.map((p) => p.id) ?? []);
     const goTo = removed.has(activePage.id)
       ? (nextPageId(flatPageIds, removed, activePage.id) ?? '/')
@@ -165,13 +163,13 @@ export function EditorPage() {
           <Sidebar>
             <Sidebar.Brand />
             <Sidebar.BookHead
-              work={work}
+              book={book}
               onBack={() => navigate({ to: '/' })}
-              onDelete={requestDeleteWork}
+              onDelete={requestDeleteBook}
             />
             <Sidebar.Scroll style={{ paddingTop: 0 }}>
               <Sidebar.Tree>
-                {work.chapters.map((ch) => (
+                {book.chapters.map((ch) => (
                   <Sidebar.Chapter
                     key={ch.id}
                     chapter={ch}
@@ -179,25 +177,23 @@ export function EditorPage() {
                     onOpenPage={(_chId, pId) => goToPage(pId)}
                     onAddPage={(chId) => addPage.mutate(chId)}
                     onDeletePage={(_chId, pId) => requestDeletePage(pId)}
-                    onDeleteChapter={work.kind === 'book' ? (chId) => requestDeleteChapter(chId) : undefined}
+                    onDeleteChapter={(chId) => requestDeleteChapter(chId)}
                   />
                 ))}
-                {work.kind === 'book' && (
-                  <Sidebar.TreeAdd label="Add chapter" onClick={() => addChapter.mutate()} />
-                )}
+                <Sidebar.TreeAdd label="Add chapter" onClick={() => addChapter.mutate()} />
               </Sidebar.Tree>
             </Sidebar.Scroll>
           </Sidebar>
         )}
       >
-        <EditorWorkspace key={activePage.id} work={work} chapter={chapter} page={activePage} />
+        <EditorWorkspace key={activePage.id} book={book} chapter={chapter} page={activePage} />
       </AppShell>
       <ConfirmDialog
         open={confirm !== null}
         title={confirm?.title ?? ''}
         message={confirm?.message ?? ''}
         confirmLabel={confirm?.confirmLabel}
-        busy={deletePage.isPending || deleteChapter.isPending || deleteWork.isPending}
+        busy={deletePage.isPending || deleteChapter.isPending || deleteBook.isPending}
         onConfirm={() => confirm?.run()}
         onCancel={() => setConfirm(null)}
       />
@@ -206,11 +202,11 @@ export function EditorPage() {
 }
 
 function EditorWorkspace({
-  work,
+  book,
   chapter,
   page,
 }: {
-  work: WorkDetail;
+  book: BookDetail;
   chapter: Chapter;
   page: Page;
 }) {
@@ -228,8 +224,8 @@ function EditorWorkspace({
   const saved = useRef<{ content: unknown; title: string }>({ content: page.content, title: page.title });
 
   const invalidateTree = () => {
-    void queryClient.invalidateQueries({ queryKey: ['work', work.id] });
-    void queryClient.invalidateQueries({ queryKey: ['works'] });
+    void queryClient.invalidateQueries({ queryKey: ['book', book.id] });
+    void queryClient.invalidateQueries({ queryKey: ['books'] });
   };
 
   const saveContent = useMutation({
@@ -325,11 +321,11 @@ function EditorWorkspace({
           <Topbar.Sep />
           <Topbar.Crumb
             onClick={() => {
-              const first = work.chapters[0]?.pages[0];
-              if (first) navigate({ to: ROUTE_TO, params: { workId: work.id, pageId: first.id } });
+              const first = book.chapters[0]?.pages[0];
+              if (first) navigate({ to: ROUTE_TO, params: { bookId: book.id, pageId: first.id } });
             }}
           >
-            {work.title}
+            {book.title}
           </Topbar.Crumb>
           <Topbar.Sep />
           <Topbar.Crumb current>{title || 'Untitled'}</Topbar.Crumb>
@@ -343,8 +339,8 @@ function EditorWorkspace({
             onClick={() => {
               flushPending();
               navigate({
-                to: '/works/$workId/read/$pageId',
-                params: { workId: work.id, pageId: page.id },
+                to: '/books/$bookId/read/$pageId',
+                params: { bookId: book.id, pageId: page.id },
               });
             }}
           >
@@ -370,7 +366,7 @@ function EditorWorkspace({
           </button>
           <button
             className="icon-btn bordered"
-            title={work.kind === 'book' ? 'Book details' : 'Article details'}
+            title="Book details"
             style={{ opacity: rightOpen && panelTab === 'book' ? 1 : 0.6 }}
             onClick={() => {
               setRightOpen(true);
@@ -396,7 +392,7 @@ function EditorWorkspace({
             <div className="editor">
               <div className="doc-meta-row">
                 <span className="kind-tag">
-                  {work.kind === 'book' ? <Icons.Book /> : <Icons.Doc />}
+                  <Icons.Book />
                   {chapter.title}
                 </span>
               </div>
@@ -419,14 +415,13 @@ function EditorWorkspace({
 
         {rightOpen &&
           (panelTab === 'book' ? (
-              <WorkSettings work={work} onClose={() => setPanelTab('page')} />
+              <BookSettings book={book} onClose={() => setPanelTab('page')} />
             ) : showPageSettings || !active ? (
               <PageSettings
                 chapterTitle={chapter.title}
                 title={title}
                 status={page.status}
-                tags={work.tags}
-                kindLabel={work.kind === 'book' ? 'Book' : 'Article'}
+                tags={book.tags}
                 words={stats.words}
                 blocks={stats.blocks}
                 updatedLabel="just now"

@@ -3,19 +3,19 @@ import { z } from 'zod';
 /**
  * The scopes an API key may hold. Pinned to a fixed enum so a caller can never mint a
  * key broader than this set (e.g. a `['*']` or `['admin']` key): ScopeGuard's per-scope
- * checks read exactly these strings.
- * - `works:write`   → create + edit DRAFT works/pages/chapters (the default).
- * - `works:publish` → transition content to `published` AND edit already-published rows.
- * - `works:delete`  → delete works/pages/chapters.
+ * checks read exactly these strings. They govern all editorial content (books + articles).
+ * - `content:write`   → create + edit DRAFT books/articles/pages/chapters (the default).
+ * - `content:publish` → transition content to `published` AND edit already-published rows.
+ * - `content:delete`  → delete books/articles/pages/chapters.
  */
-export const apiKeyScopeSchema = z.enum(['works:write', 'works:publish', 'works:delete']);
+export const apiKeyScopeSchema = z.enum(['content:write', 'content:publish', 'content:delete']);
 export type ApiKeyScope = z.infer<typeof apiKeyScopeSchema>;
 
 // ─── Write model (request DTO) ────────────────────────────────────────────────
 
 export const createApiKeySchema = z.object({
   name: z.string().min(1).max(120),
-  scopes: z.array(apiKeyScopeSchema).min(1).default(['works:write']),
+  scopes: z.array(apiKeyScopeSchema).min(1).default(['content:write']),
   /**
    * Optional time-box. `revokedAt` remains the primary kill switch; `expiresAt` lets a
    * key auto-expire. Coerced from an ISO instant and refined to be in the future, so a
@@ -36,7 +36,7 @@ export const apiKeySummarySchema = z.object({
   name: z.string(),
   prefix: z.string(),
   scopes: z.array(apiKeyScopeSchema),
-  // Read-model dates are ISO strings over the wire (matches workSummarySchema);
+  // Read-model dates are ISO strings over the wire (matches bookSummarySchema);
   // the API serializes Prisma Date objects to JSON before they reach any client.
   lastUsedAt: z.string().nullable(),
   revokedAt: z.string().nullable(),

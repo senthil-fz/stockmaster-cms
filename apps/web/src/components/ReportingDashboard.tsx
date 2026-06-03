@@ -88,18 +88,18 @@ export function ReportingDashboard() {
           <tbody>
             {data.books.map((b, i) => (
               <BookRow
-                key={b.workId}
+                key={b.bookId}
                 rank={i + 1}
                 book={b}
-                active={selected === b.workId}
-                onClick={() => setSelected(selected === b.workId ? null : b.workId)}
+                active={selected === b.bookId}
+                onClick={() => setSelected(selected === b.bookId ? null : b.bookId)}
               />
             ))}
           </tbody>
         </table>
       )}
 
-      {selected && <BookDetail workId={selected} query={query} />}
+      {selected && <BookDetail bookId={selected} query={query} />}
     </div>
   );
 }
@@ -180,8 +180,8 @@ function BookRow({
   );
 }
 
-function BookDetail({ workId, query }: { workId: string; query: StatsQuery }) {
-  const { data } = useQuery(statsBookQueryOptions(workId, query));
+function BookDetail({ bookId, query }: { bookId: string; query: StatsQuery }) {
+  const { data } = useQuery(statsBookQueryOptions(bookId, query));
   if (!data) return null;
   const trendMax = Math.max(1, ...data.trend.map((t) => t.reads));
   const dropMax = Math.max(1, ...data.dropoff.map((d) => d.readers));

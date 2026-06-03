@@ -1,4 +1,4 @@
-import type { User, WorkSummary } from '@blockpress/shared';
+import type { User } from '@blockpress/shared';
 import { Sidebar } from './Sidebar';
 
 /**
@@ -11,13 +11,14 @@ import { Sidebar } from './Sidebar';
  */
 export function WorkspaceSidebar({
   user,
-  works,
+  count,
   active,
   onTab,
   onOpenApiKeys,
 }: {
   user: User;
-  works: WorkSummary[];
+  /** Total library items (books + articles) shown next to the Library nav. */
+  count: number;
   /** Which section is highlighted: a library tab key, or 'api-keys'. */
   active: string;
   onTab: (t: string) => void;
@@ -28,7 +29,7 @@ export function WorkspaceSidebar({
       <Sidebar.Brand />
       <Sidebar.Scroll>
         <Sidebar.SectionLabel>Workspace</Sidebar.SectionLabel>
-        <Sidebar.NavItem icon="Library" label="Library" active={active === 'all'} count={works.length} onClick={() => onTab('all')} />
+        <Sidebar.NavItem icon="Library" label="Library" active={active === 'all'} count={count} onClick={() => onTab('all')} />
 
         <Sidebar.SectionLabel>General</Sidebar.SectionLabel>
         <Sidebar.NavItem icon="Chart" label="Reporting" active={active === 'reporting'} onClick={() => onTab('reporting')} />

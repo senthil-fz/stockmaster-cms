@@ -1,4 +1,4 @@
-import type { WorkSummary } from '@blockpress/shared';
+import type { BookSummary } from '@blockpress/shared';
 
 const TONES: Record<string, string> = {
   sand: 'linear-gradient(160deg,#d8c4a0,#b89b6e)',
@@ -7,16 +7,16 @@ const TONES: Record<string, string> = {
 };
 
 export function BookCover({
-  work,
+  book,
   className,
 }: {
-  work: Pick<WorkSummary, 'coverUrl' | 'coverTone' | 'title'>;
+  book: Pick<BookSummary, 'coverUrl' | 'coverTone' | 'title'>;
   className?: string;
 }) {
-  if (work.coverUrl) {
-    return <img src={work.coverUrl} className={className} alt="" />;
+  if (book.coverUrl) {
+    return <img src={book.coverUrl} className={className} alt="" />;
   }
-  const bg = TONES[work.coverTone] ?? TONES.default;
+  const bg = TONES[book.coverTone] ?? TONES.default;
   return (
     <div
       className={className}
@@ -42,7 +42,7 @@ export function BookCover({
           position: 'relative',
         }}
       >
-        {work.title.split(' ').slice(0, 3).join(' ')}
+        {book.title.split(' ').slice(0, 3).join(' ')}
       </span>
     </div>
   );

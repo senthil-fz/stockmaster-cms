@@ -5,7 +5,6 @@ import type {
   BookStatDetail,
   BookStatsResponse,
   StatsQuery,
-  WorkKind,
 } from '@blockpress/shared';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -23,16 +22,16 @@ export class StatsService {
     const filter = this.andFrag([...range, ...client]);
 
     const agg = await this.prisma.$queryRaw<
-      { workid: string; reads: number; opens: number; uniquereaders: number; lastreadat: Date | null }[]
+      { bookid: string; reads: number; opens: number; uniquereaders: number; lastreadat: Date | null }[]
     >(Prisma.sql`
-      SELECT re."workId" AS workid,
+      SELECT re."bookId" AS bookid,
              COUNT(*) FILTER (WHERE re.kind = 'page_read')::int AS reads,
              COUNT(*) FILTER (WHERE re.kind = 'book_open')::int AS opens,
              COUNT(DISTINCT re."userId")::int AS uniquereaders,
              MAX(re."createdAt") AS lastreadat
       FROM "ReadEvent" re
       WHERE TRUE ${filter}
-      GROUP BY re."workId"
+      GROUP BY re."bookId"
     `);
 
     const out: BookStatsResponse = {
@@ -44,31 +43,30 @@ export class StatsService {
     };
     if (agg.length === 0) return out;
 
-    const workIds = agg.map((a) => a.workid);
-    const [completion, works, totalReaders] = await Promise.all([
+    const bookIds = agg.map((a) => a.bookid);
+    const [completion, books_, totalReaders] = await Promise.all([
       this.completion([...range, ...client]),
-      this.prisma.work.findMany({
-        where: { id: { in: workIds } },
-        select: { id: true, title: true, kind: true },
+      this.prisma.book.findMany({
+        where: { id: { in: bookIds } },
+        select: { id: true, title: true },
       }),
       this.prisma.$queryRaw<{ c: number }[]>(Prisma.sql`
         SELECT COUNT(DISTINCT re."userId")::int AS c FROM "ReadEvent" re WHERE TRUE ${filter}
       `),
     ]);
-    const meta = new Map(works.map((w) => [w.id, w]));
+    const meta = new Map(books_.map((w) => [w.id, w]));
 
     const books: BookStat[] = agg
-      .filter((a) => meta.has(a.workid))
+      .filter((a) => meta.has(a.bookid))
       .map((a) => {
-        const m = meta.get(a.workid)!;
+        const m = meta.get(a.bookid)!;
         return {
-          workId: a.workid,
+          bookId: a.bookid,
           title: m.title,
-          kind: m.kind as WorkKind,
           reads: a.reads,
           opens: a.opens,
           uniqueReaders: a.uniquereaders,
-          avgCompletionPct: completion.get(a.workid) ?? 0,
+          avgCompletionPct: completion.get(a.bookid) ?? 0,
           lastReadAt: a.lastreadat ? a.lastreadat.toISOString() : null,
         };
       })
@@ -83,12 +81,12 @@ export class StatsService {
     return out;
   }
 
-  async bookDetail(workId: string, q: StatsQuery): Promise<BookStatDetail> {
-    const work = await this.prisma.work.findUnique({
-      where: { id: workId },
-      select: { id: true, title: true, kind: true },
+  async bookDetail(bookId: string, q: StatsQuery): Promise<BookStatDetail> {
+    const book = await this.prisma.book.findUnique({
+      where: { id: bookId },
+      select: { id: true, title: true },
     });
-    if (!work) throw new NotFoundException('Work not found');
+    if (!book) throw new NotFoundException('Book not found');
 
     const { range, client } = this.conds(q);
     const filter = this.andFrag([...range, ...client]);
@@ -96,7 +94,7 @@ export class StatsService {
     const [pc, agg, completion, trend, dropoff, byClient] = await Promise.all([
       this.prisma.$queryRaw<{ cnt: number }[]>(Prisma.sql`
         SELECT COUNT(p.id)::int AS cnt FROM "Page" p
-        JOIN "Chapter" c ON p."chapterId" = c.id WHERE c."workId" = ${workId}
+        JOIN "Chapter" c ON p."chapterId" = c.id WHERE c."bookId" = ${bookId}
       `),
       this.prisma.$queryRaw<
         { reads: number; opens: number; uniquereaders: number; lastreadat: Date | null }[]
@@ -105,43 +103,42 @@ export class StatsService {
                COUNT(*) FILTER (WHERE re.kind = 'book_open')::int AS opens,
                COUNT(DISTINCT re."userId")::int AS uniquereaders,
                MAX(re."createdAt") AS lastreadat
-        FROM "ReadEvent" re WHERE re."workId" = ${workId} ${filter}
+        FROM "ReadEvent" re WHERE re."bookId" = ${bookId} ${filter}
       `),
-      this.completion([Prisma.sql`re."workId" = ${workId}`, ...range, ...client]),
+      this.completion([Prisma.sql`re."bookId" = ${bookId}`, ...range, ...client]),
       this.prisma.$queryRaw<{ date: string; reads: number }[]>(Prisma.sql`
         SELECT to_char(date_trunc('day', re."createdAt"), 'YYYY-MM-DD') AS date,
                COUNT(*) FILTER (WHERE re.kind = 'page_read')::int AS reads
-        FROM "ReadEvent" re WHERE re."workId" = ${workId} ${filter}
+        FROM "ReadEvent" re WHERE re."bookId" = ${bookId} ${filter}
         GROUP BY 1 ORDER BY 1
       `),
       this.prisma.$queryRaw<{ position: number; readers: number }[]>(Prisma.sql`
         WITH pos AS (
           SELECT p.id AS pageid,
                  ROW_NUMBER() OVER (ORDER BY c."order", c.id, p."order", p.id) AS position
-          FROM "Page" p JOIN "Chapter" c ON p."chapterId" = c.id WHERE c."workId" = ${workId}
+          FROM "Page" p JOIN "Chapter" c ON p."chapterId" = c.id WHERE c."bookId" = ${bookId}
         )
         SELECT pos.position::int AS position, COUNT(DISTINCT re."userId")::int AS readers
         FROM "ReadEvent" re JOIN pos ON pos.pageid = re."pageId"
-        WHERE re."workId" = ${workId} AND re.kind = 'page_read' AND re."userId" IS NOT NULL ${filter}
+        WHERE re."bookId" = ${bookId} AND re.kind = 'page_read' AND re."userId" IS NOT NULL ${filter}
         GROUP BY pos.position ORDER BY pos.position
       `),
       // client split ignores the client filter on purpose — show every client's share.
       this.prisma.$queryRaw<{ client: string; reads: number }[]>(Prisma.sql`
         SELECT re."client" AS client, COUNT(*) FILTER (WHERE re.kind = 'page_read')::int AS reads
-        FROM "ReadEvent" re WHERE re."workId" = ${workId} ${this.andFrag(range)}
+        FROM "ReadEvent" re WHERE re."bookId" = ${bookId} ${this.andFrag(range)}
         GROUP BY re."client" ORDER BY reads DESC
       `),
     ]);
 
     const a = agg[0];
     return {
-      workId,
-      title: work.title,
-      kind: work.kind as WorkKind,
+      bookId,
+      title: book.title,
       reads: a?.reads ?? 0,
       opens: a?.opens ?? 0,
       uniqueReaders: a?.uniquereaders ?? 0,
-      avgCompletionPct: completion.get(workId) ?? 0,
+      avgCompletionPct: completion.get(bookId) ?? 0,
       lastReadAt: a?.lastreadat ? a.lastreadat.toISOString() : null,
       pageCount: pc[0]?.cnt ?? 0,
       trend: trend.map((t) => ({ date: t.date, reads: t.reads })),
@@ -157,24 +154,24 @@ export class StatsService {
    * disagree with the drop-off curve, which also only counts current pages).
    */
   private async completion(conds: Prisma.Sql[]): Promise<Map<string, number>> {
-    const rows = await this.prisma.$queryRaw<{ workid: string; avgpct: number | string }[]>(Prisma.sql`
-      SELECT sub."workId" AS workid, AVG(sub.frac) * 100 AS avgpct
+    const rows = await this.prisma.$queryRaw<{ bookid: string; avgpct: number | string }[]>(Prisma.sql`
+      SELECT sub."bookId" AS bookid, AVG(sub.frac) * 100 AS avgpct
       FROM (
-        SELECT re."workId",
+        SELECT re."bookId",
                COUNT(DISTINCT re."pageId")::float / NULLIF(pc.cnt, 0) AS frac
         FROM "ReadEvent" re
         JOIN "Page" pg ON pg.id = re."pageId"
         JOIN (
-          SELECT c."workId" AS wid, COUNT(p.id) AS cnt
+          SELECT c."bookId" AS wid, COUNT(p.id) AS cnt
           FROM "Page" p JOIN "Chapter" c ON p."chapterId" = c.id
-          GROUP BY c."workId"
-        ) pc ON pc.wid = re."workId"
+          GROUP BY c."bookId"
+        ) pc ON pc.wid = re."bookId"
         WHERE re.kind = 'page_read' AND re."userId" IS NOT NULL ${this.andFrag(conds)}
-        GROUP BY re."workId", re."userId", pc.cnt
+        GROUP BY re."bookId", re."userId", pc.cnt
       ) sub
-      GROUP BY sub."workId"
+      GROUP BY sub."bookId"
     `);
-    return new Map(rows.map((r) => [r.workid, Math.round(Number(r.avgpct) * 10) / 10]));
+    return new Map(rows.map((r) => [r.bookid, Math.round(Number(r.avgpct) * 10) / 10]));
   }
 
   // ── filter helpers (all values flow through Prisma.sql placeholders) ──────────

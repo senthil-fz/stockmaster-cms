@@ -169,7 +169,7 @@ describe('JwtAuthGuard', () => {
         key: {
           id: 'k1',
           ownerUserId: 'owner-9',
-          scopes: ['works:write'],
+          scopes: ['content:write'],
           revokedAt: null,
           expiresAt: null,
         },
@@ -183,7 +183,7 @@ describe('JwtAuthGuard', () => {
       const ctx = makeCtx(req);
       await expect(guard.canActivate(ctx)).resolves.toBe(true);
       expect(req.user).toEqual({ id: 'owner-9' });
-      expect(req.scopes).toEqual(['works:write']);
+      expect(req.scopes).toEqual(['content:write']);
       expect(req.authType).toBe('apikey');
       // lastUsedAt bump fired.
       expect(update).toHaveBeenCalledWith({
@@ -197,7 +197,7 @@ describe('JwtAuthGuard', () => {
         key: {
           id: 'k1',
           ownerUserId: 'owner-9',
-          scopes: ['works:write'],
+          scopes: ['content:write'],
           revokedAt: new Date('2026-01-01T00:00:00Z'),
           expiresAt: null,
         },
@@ -219,7 +219,7 @@ describe('JwtAuthGuard', () => {
         key: {
           id: 'k1',
           ownerUserId: 'owner-9',
-          scopes: ['works:write'],
+          scopes: ['content:write'],
           revokedAt: null,
           expiresAt: new Date(Date.now() - 60_000),
         },
@@ -241,7 +241,7 @@ describe('JwtAuthGuard', () => {
         key: {
           id: 'k1',
           ownerUserId: 'owner-9',
-          scopes: ['works:write'],
+          scopes: ['content:write'],
           revokedAt: null,
           expiresAt: new Date(Date.now() + 60_000),
         },
@@ -275,7 +275,7 @@ describe('JwtAuthGuard', () => {
         key: {
           id: 'k1',
           ownerUserId: 'owner-9',
-          scopes: ['works:write'],
+          scopes: ['content:write'],
           revokedAt: null,
           expiresAt: null,
         },

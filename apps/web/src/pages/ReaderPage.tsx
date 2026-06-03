@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { EditorContent } from '@tiptap/react';
-import type { Page, WorkDetail } from '@blockpress/shared';
-import { pageQueryOptions, workQueryOptions } from '../lib/queries';
+import type { BookDetail, Page } from '@blockpress/shared';
+import { bookQueryOptions, pageQueryOptions } from '../lib/queries';
 import { AppShell } from '../components/AppShell';
 import { Sidebar } from '../components/Sidebar';
 import { Topbar } from '../components/Topbar';
@@ -10,50 +10,50 @@ import { Icons } from '../components/icons';
 import { ReaderToc } from '../components/ReaderToc';
 import { useBlockEditor } from '../editor/useBlockEditor';
 
-const ROUTE_ID = '/_app/works/$workId/read/$pageId';
-const ROUTE_TO = '/works/$workId/read/$pageId';
+const ROUTE_ID = '/_app/books/$bookId/read/$pageId';
+const ROUTE_TO = '/books/$bookId/read/$pageId';
 
 export function ReaderPage() {
-  const { workId, pageId } = useParams({ from: ROUTE_ID });
+  const { bookId, pageId } = useParams({ from: ROUTE_ID });
   const navigate = useNavigate();
 
-  const { data: work } = useQuery(workQueryOptions(workId));
+  const { data: book } = useQuery(bookQueryOptions(bookId));
   const { data: page } = useQuery(pageQueryOptions(pageId));
 
   const goToPage = (pId: string) =>
-    navigate({ to: ROUTE_TO, params: { workId, pageId: pId } });
+    navigate({ to: ROUTE_TO, params: { bookId, pageId: pId } });
 
-  if (!work || !page) return null;
+  if (!book || !page) return null;
 
   return (
     <AppShell
       sidebar={() => (
         <Sidebar>
           <Sidebar.Brand />
-          <Sidebar.BookHead work={work} onBack={() => navigate({ to: '/' })} />
+          <Sidebar.BookHead book={book} onBack={() => navigate({ to: '/' })} />
           <Sidebar.Scroll style={{ paddingTop: 0 }}>
-            <ReaderToc chapters={work.chapters} activePageId={page.id} onOpenPage={goToPage} />
+            <ReaderToc chapters={book.chapters} activePageId={page.id} onOpenPage={goToPage} />
           </Sidebar.Scroll>
         </Sidebar>
       )}
     >
-      <ReaderWorkspace key={page.id} work={work} page={page} goToPage={goToPage} />
+      <ReaderWorkspace key={page.id} book={book} page={page} goToPage={goToPage} />
     </AppShell>
   );
 }
 
 function ReaderWorkspace({
-  work,
+  book,
   page,
   goToPage,
 }: {
-  work: WorkDetail;
+  book: BookDetail;
   page: Page;
   goToPage: (pageId: string) => void;
 }) {
   const navigate = useNavigate();
 
-  const flat = work.chapters.flatMap((ch) => ch.pages.map((p) => ({ page: p, chapter: ch })));
+  const flat = book.chapters.flatMap((ch) => ch.pages.map((p) => ({ page: p, chapter: ch })));
   const idx = flat.findIndex((e) => e.page.id === page.id);
   const current = idx >= 0 ? flat[idx] : undefined;
   const prev = idx > 0 ? flat[idx - 1] : undefined;
@@ -70,11 +70,11 @@ function ReaderWorkspace({
           <Topbar.Sep />
           <Topbar.Crumb
             onClick={() => {
-              const first = work.chapters[0]?.pages[0];
+              const first = book.chapters[0]?.pages[0];
               if (first) goToPage(first.id);
             }}
           >
-            {work.title}
+            {book.title}
           </Topbar.Crumb>
           <Topbar.Sep />
           <Topbar.Crumb current>{page.title || 'Untitled'}</Topbar.Crumb>
@@ -85,8 +85,8 @@ function ReaderWorkspace({
             className="btn btn-secondary"
             onClick={() =>
               navigate({
-                to: '/works/$workId/pages/$pageId',
-                params: { workId: work.id, pageId: page.id },
+                to: '/books/$bookId/pages/$pageId',
+                params: { bookId: book.id, pageId: page.id },
               })
             }
           >
@@ -100,7 +100,7 @@ function ReaderWorkspace({
           <div className="editor reader-doc">
             <div className="doc-meta-row">
               <span className="kind-tag">
-                {work.kind === 'book' ? <Icons.Book /> : <Icons.Doc />}
+                <Icons.Book />
                 {current?.chapter.title}
               </span>
               {page.status === 'draft' && <span className="reader-draft">Draft</span>}

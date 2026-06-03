@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { workKindSchema } from './work';
 
 /**
  * Book read-analytics contracts (shared by the API and the web Reporting dashboard).
@@ -26,9 +25,8 @@ export type StatsQuery = z.infer<typeof statsQuerySchema>;
 
 /** Per-book summary row (the Reporting table). */
 export const bookStatSchema = z.object({
-  workId: z.string(),
+  bookId: z.string(),
   title: z.string(),
-  kind: workKindSchema,
   reads: z.number().int(), // page_read events in range
   opens: z.number().int(), // book_open events in range
   uniqueReaders: z.number().int(),

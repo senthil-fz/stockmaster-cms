@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import type { Chapter, User, WorkDetail } from '@blockpress/shared';
+import type { BookDetail, Chapter, User } from '@blockpress/shared';
 import { Icon, Icons, type IconName } from './icons';
 import { Avatar } from './ui/Avatar';
 import { BookCover } from './ui/BookCover';
@@ -94,11 +94,11 @@ function UserCard({ user, onClick }: { user: User; onClick?: () => void }) {
 }
 
 function BookHead({
-  work,
+  book,
   onBack,
   onDelete,
 }: {
-  work: WorkDetail;
+  book: BookDetail;
   onBack: () => void;
   onDelete?: () => void;
 }) {
@@ -107,31 +107,25 @@ function BookHead({
       <button className="book-back" onClick={onBack} title="Back to library">
         <Icons.ArrowLeft />
       </button>
-      {work.kind === 'book' ? (
-        <BookCover work={work} className="book-cover-sm" />
-      ) : (
-        <div className="book-cover-sm" style={{ display: 'grid', placeItems: 'center', color: 'var(--text-tertiary)' }}>
-          <Icons.Doc />
-        </div>
-      )}
+      <BookCover book={book} className="book-cover-sm" />
       <div className="t">
         <div
           className="name"
           style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
         >
-          {work.title}
+          {book.title}
         </div>
         <div className="sub">
-          {work.author}
-          {work.year ? ` · ${work.year}` : ''}
+          {book.author}
+          {book.year ? ` · ${book.year}` : ''}
         </div>
       </div>
       {onDelete && (
         <button
           className="book-del"
           onClick={onDelete}
-          title={`Delete ${work.kind}`}
-          aria-label={`Delete ${work.kind} ${work.title}`}
+          title="Delete book"
+          aria-label={`Delete book ${book.title}`}
         >
           <Icons.Trash />
         </button>

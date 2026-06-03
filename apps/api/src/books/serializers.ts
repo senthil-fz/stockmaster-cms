@@ -1,13 +1,12 @@
 import { blankDoc } from '@blockpress/shared';
 import type {
+  BookDetail,
+  BookSummary,
   Chapter,
   Page,
   PageSummary,
   PublishStatus,
   TiptapDoc,
-  WorkDetail,
-  WorkKind,
-  WorkSummary,
 } from '@blockpress/shared';
 
 // Loose row shapes for what we select/include from Prisma.
@@ -23,15 +22,15 @@ interface PageRow {
 }
 interface ChapterRow {
   id: string;
-  workId: string;
+  bookId: string;
   title: string;
   order: number;
   pages?: PageRow[];
 }
 
-interface WorkScalars {
+interface BookScalars {
   id: string;
-  kind: WorkKind;
+  slug: string | null;
   title: string;
   subtitle: string;
   author: string;
@@ -46,10 +45,10 @@ interface WorkScalars {
 }
 
 // Summary only needs each page's wordCount (library list never loads content).
-type WorkSummaryInput = WorkScalars & {
+type BookSummaryInput = BookScalars & {
   chapters?: Array<{ pages?: Array<{ wordCount: number }> }>;
 };
-type WorkDetailInput = WorkScalars & { chapters?: ChapterRow[] };
+type BookDetailInput = BookScalars & { chapters?: ChapterRow[] };
 
 export function toPageSummary(p: PageRow): PageSummary {
   return {
@@ -70,14 +69,14 @@ export function toPage(p: PageRow): Page {
 export function toChapter(c: ChapterRow): Chapter {
   return {
     id: c.id,
-    workId: c.workId,
+    bookId: c.bookId,
     title: c.title,
     order: c.order,
     pages: (c.pages ?? []).map(toPageSummary),
   };
 }
 
-export function toWorkSummary(w: WorkSummaryInput): WorkSummary {
+export function toBookSummary(w: BookSummaryInput): BookSummary {
   let pageCount = 0;
   let wordCount = 0;
   for (const ch of w.chapters ?? []) {
@@ -88,7 +87,7 @@ export function toWorkSummary(w: WorkSummaryInput): WorkSummary {
   }
   return {
     id: w.id,
-    kind: w.kind,
+    slug: w.slug,
     title: w.title,
     subtitle: w.subtitle,
     author: w.author,
@@ -105,9 +104,9 @@ export function toWorkSummary(w: WorkSummaryInput): WorkSummary {
   };
 }
 
-export function toWorkDetail(w: WorkDetailInput): WorkDetail {
+export function toBookDetail(w: BookDetailInput): BookDetail {
   return {
-    ...toWorkSummary(w),
+    ...toBookSummary(w),
     chapters: (w.chapters ?? []).map(toChapter),
   };
 }

@@ -7,7 +7,6 @@ export function PageSettings({
   title,
   status,
   tags,
-  kindLabel,
   words,
   blocks,
   updatedLabel,
@@ -18,7 +17,6 @@ export function PageSettings({
   title: string;
   status: PublishStatus;
   tags: string[];
-  kindLabel: string;
   words: number;
   blocks: number;
   updatedLabel: string;
@@ -61,7 +59,7 @@ export function PageSettings({
       </Panel.Section>
 
       {tags.length > 0 && (
-        <Panel.Section label={`${kindLabel} tags`}>
+        <Panel.Section label="Book tags">
           <div className="tag-row">
             {tags.map((t) => (
               <span key={t} className="tag">

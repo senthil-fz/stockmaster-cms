@@ -1,20 +1,28 @@
 import { queryOptions } from '@tanstack/react-query';
-import type { StatsQuery, WorksQuery } from '@blockpress/shared';
-import { pagesApi, statsApi, worksApi } from './api';
+import type { ArticlesQuery, BooksQuery, StatsQuery } from '@blockpress/shared';
+import { articlesApi, booksApi, pagesApi, statsApi } from './api';
 
 export const queryKeys = {
-  works: (q: WorksQuery = {}) => ['works', q] as const,
-  work: (id: string) => ['work', id] as const,
+  books: (q: BooksQuery = {}) => ['books', q] as const,
+  book: (id: string) => ['book', id] as const,
+  articles: (q: ArticlesQuery = {}) => ['articles', q] as const,
+  article: (idOrSlug: string) => ['article', idOrSlug] as const,
   page: (id: string) => ['page', id] as const,
   statsBooks: (q: StatsQuery = {}) => ['stats', 'books', q] as const,
   statsBook: (id: string, q: StatsQuery = {}) => ['stats', 'book', id, q] as const,
 };
 
-export const worksQueryOptions = (q: WorksQuery = {}) =>
-  queryOptions({ queryKey: queryKeys.works(q), queryFn: () => worksApi.list(q) });
+export const booksQueryOptions = (q: BooksQuery = {}) =>
+  queryOptions({ queryKey: queryKeys.books(q), queryFn: () => booksApi.list(q) });
 
-export const workQueryOptions = (id: string) =>
-  queryOptions({ queryKey: queryKeys.work(id), queryFn: () => worksApi.detail(id) });
+export const bookQueryOptions = (id: string) =>
+  queryOptions({ queryKey: queryKeys.book(id), queryFn: () => booksApi.detail(id) });
+
+export const articlesQueryOptions = (q: ArticlesQuery = {}) =>
+  queryOptions({ queryKey: queryKeys.articles(q), queryFn: () => articlesApi.list(q) });
+
+export const articleQueryOptions = (idOrSlug: string) =>
+  queryOptions({ queryKey: queryKeys.article(idOrSlug), queryFn: () => articlesApi.detail(idOrSlug) });
 
 export const pageQueryOptions = (id: string) =>
   queryOptions({ queryKey: queryKeys.page(id), queryFn: () => pagesApi.get(id) });

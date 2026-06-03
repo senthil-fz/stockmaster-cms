@@ -2,22 +2,23 @@ import { SetMetadata } from '@nestjs/common';
 
 /**
  * Scope strings an ApiKey may hold. They double as the contract between the
- * key-management layer (apiKeyScopeSchema) and ScopeGuard's per-scope checks:
- * - `works:write`   → create + edit DRAFT works/pages/chapters (the default).
- * - `works:publish` → transition content to `published` AND edit already-published rows.
- * - `works:delete`  → delete works/pages/chapters.
+ * key-management layer (apiKeyScopeSchema) and ScopeGuard's per-scope checks.
+ * They govern all editorial content (books + articles):
+ * - `content:write`   → create + edit DRAFT books/articles/pages/chapters (the default).
+ * - `content:publish` → transition content to `published` AND edit already-published rows.
+ * - `content:delete`  → delete books/articles/pages/chapters.
  */
-export type WorkScope = 'works:write' | 'works:publish' | 'works:delete';
+export type ContentScope = 'content:write' | 'content:publish' | 'content:delete';
 
-export const WORKS_WRITE: WorkScope = 'works:write';
-export const WORKS_PUBLISH: WorkScope = 'works:publish';
-export const WORKS_DELETE: WorkScope = 'works:delete';
+export const CONTENT_WRITE: ContentScope = 'content:write';
+export const CONTENT_PUBLISH: ContentScope = 'content:publish';
+export const CONTENT_DELETE: ContentScope = 'content:delete';
 
 export const IS_CONTENT_ROUTE = 'isContentRoute';
 
 /**
- * Positively allowlists a works/pages content route an ApiKey principal MAY reach.
- * ScopeGuard runs default-deny for non-wildcard (ApiKey) principals: any route
+ * Positively allowlists a books/articles/pages content route an ApiKey principal MAY
+ * reach. ScopeGuard runs default-deny for non-wildcard (ApiKey) principals: any route
  * NOT carrying this marker is forbidden for an ApiKey. Reaching a marked route is
  * still subject to the per-scope publish/delete checks inside ScopeGuard.
  */

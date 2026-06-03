@@ -1,14 +1,14 @@
 import { createZodDto } from 'nestjs-zod';
 import {
+  booksQuerySchema,
+  createBookSchema,
   createChapterSchema,
-  createWorkSchema,
+  updateBookSchema,
   updateChapterSchema,
-  updateWorkSchema,
-  worksQuerySchema,
 } from '@blockpress/shared';
 
-export class CreateWorkDto extends createZodDto(createWorkSchema) {}
-export class UpdateWorkDto extends createZodDto(updateWorkSchema) {}
-export class WorksQueryDto extends createZodDto(worksQuerySchema) {}
+export class CreateBookDto extends createZodDto(createBookSchema) {}
+export class UpdateBookDto extends createZodDto(updateBookSchema) {}
+export class BooksQueryDto extends createZodDto(booksQuerySchema) {}
 export class CreateChapterDto extends createZodDto(createChapterSchema) {}
 export class UpdateChapterDto extends createZodDto(updateChapterSchema) {}

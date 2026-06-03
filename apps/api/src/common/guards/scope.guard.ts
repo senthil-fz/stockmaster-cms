@@ -10,10 +10,10 @@ import { Reflector } from '@nestjs/core';
 import { publishStatusSchema } from '@blockpress/shared';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import {
+  CONTENT_DELETE,
+  CONTENT_PUBLISH,
   IS_CONTENT_ROUTE,
   IS_JWT_ONLY,
-  WORKS_DELETE,
-  WORKS_PUBLISH,
 } from '../decorators/scopes.decorator';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -33,9 +33,9 @@ import { PrismaService } from '../../prisma/prisma.service';
  *  3. @JwtOnly route                       -> 403 (ApiKey principals never reach
  *                                              key-management / user-creation).
  *  4. NOT a @ContentRoute                  -> 403 (DEFAULT-DENY).
- *  5. content route: publish/delete checks against works:publish / works:delete.
- *  6. PATCH on an already-published work/page without works:publish -> 403
- *     (no versioning exists; works:write means create + edit DRAFT rows only).
+ *  5. content route: publish/delete checks against content:publish / content:delete.
+ *  6. PATCH on an already-published book/article/page without content:publish -> 403
+ *     (no versioning exists; content:write means create + edit DRAFT rows only).
  */
 @Injectable()
 export class ScopeGuard implements CanActivate {
@@ -104,47 +104,58 @@ export class ScopeGuard implements CanActivate {
       method === 'PATCH' &&
       parsedStatus.success &&
       parsedStatus.data === 'published';
-    if (wantsPublish && !scopes.includes(WORKS_PUBLISH)) {
+    if (wantsPublish && !scopes.includes(CONTENT_PUBLISH)) {
       this.logger.warn(
-        `Denied ${req.method} ${req.url}: missing scope ${WORKS_PUBLISH} (publish)`,
+        `Denied ${req.method} ${req.url}: missing scope ${CONTENT_PUBLISH} (publish)`,
       );
       throw new ForbiddenException('draft-only key cannot publish');
     }
-    if (method === 'DELETE' && !scopes.includes(WORKS_DELETE)) {
+    if (method === 'DELETE' && !scopes.includes(CONTENT_DELETE)) {
       this.logger.warn(
-        `Denied ${req.method} ${req.url}: missing scope ${WORKS_DELETE} (delete)`,
+        `Denied ${req.method} ${req.url}: missing scope ${CONTENT_DELETE} (delete)`,
       );
       throw new ForbiddenException('draft-only key cannot delete');
     }
 
-    // (6) Published-row guard: a works:write (no works:publish) key must not
+    // (6) Published-row guard: a content:write (no content:publish) key must not
     // mutate already-live content (no versioning exists). Only relevant for
-    // PATCH on a works/:id or pages/:id route; a works:publish key is exempt.
-    if (method === 'PATCH' && !scopes.includes(WORKS_PUBLISH)) {
+    // PATCH on a books/:id, articles/:id or pages/:id route; a content:publish
+    // key is exempt.
+    if (method === 'PATCH' && !scopes.includes(CONTENT_PUBLISH)) {
       const routePath: string = req.route?.path ?? req.path ?? '';
-      const isWorkRoute = routePath.includes('/works/');
+      const isBookRoute = routePath.includes('/books/');
+      const isArticleRoute = routePath.includes('/articles/');
       const isPageRoute = routePath.includes('/pages/');
-      if (isWorkRoute || isPageRoute) {
+      if (isBookRoute || isArticleRoute || isPageRoute) {
         const id: string = req.params?.id;
-        const current = isWorkRoute
-          ? await this.prisma.work.findUnique({
+        const current = isBookRoute
+          ? await this.prisma.book.findUnique({
               where: { id },
               select: { status: true },
             })
-          : await this.prisma.page.findUnique({
-              where: { id },
-              select: { status: true },
-            });
+          : isArticleRoute
+            ? await this.prisma.article.findUnique({
+                where: { id },
+                select: { status: true },
+              })
+            : await this.prisma.page.findUnique({
+                where: { id },
+                select: { status: true },
+              });
         if (!current) {
           // Match the service's not-found behavior so the guard does not mask a
           // 404 as a 403.
           throw new NotFoundException(
-            isWorkRoute ? 'Work not found' : 'Page not found',
+            isBookRoute
+              ? 'Book not found'
+              : isArticleRoute
+                ? 'Article not found'
+                : 'Page not found',
           );
         }
         if (current.status === 'published') {
           this.logger.warn(
-            `Denied ${req.method} ${req.url}: missing scope ${WORKS_PUBLISH} (edit published)`,
+            `Denied ${req.method} ${req.url}: missing scope ${CONTENT_PUBLISH} (edit published)`,
           );
           throw new ForbiddenException(
             'draft-only key cannot edit published content',

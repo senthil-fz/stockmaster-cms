@@ -10,7 +10,8 @@ import { ScopeGuard } from './common/guards/scope.guard';
 import { ReadTrackingInterceptor } from './common/interceptors/read-tracking.interceptor';
 import { AuthModule } from './auth/auth.module';
 import { ApiKeysModule } from './api-keys/api-keys.module';
-import { WorksModule } from './works/works.module';
+import { BooksModule } from './books/books.module';
+import { ArticlesModule } from './articles/articles.module';
 import { PagesModule } from './pages/pages.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { StatsModule } from './stats/stats.module';
@@ -27,7 +28,8 @@ import { ReaderModule } from './reader/reader.module';
     PrismaModule,
     AuthModule,
     ApiKeysModule,
-    WorksModule,
+    BooksModule,
+    ArticlesModule,
     PagesModule,
     UploadsModule,
     StatsModule,

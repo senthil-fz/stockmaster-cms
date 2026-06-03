@@ -8,7 +8,7 @@ import {
   type UpdatePageInput,
 } from '@blockpress/shared';
 import { PrismaService } from '../prisma/prisma.service';
-import { toPage } from '../works/serializers';
+import { toPage } from '../books/serializers';
 
 @Injectable()
 export class PagesService {
@@ -36,14 +36,14 @@ export class PagesService {
         wordCount: countWordsInDoc(content),
       },
     });
-    await this.touchWork(chapter.workId);
+    await this.touchBook(chapter.bookId);
     return toPage(page);
   }
 
   async update(id: string, input: UpdatePageInput) {
     const existing = await this.prisma.page.findUnique({
       where: { id },
-      include: { chapter: { select: { workId: true } } },
+      include: { chapter: { select: { bookId: true } } },
     });
     if (!existing) throw new NotFoundException('Page not found');
 
@@ -57,22 +57,22 @@ export class PagesService {
     }
 
     const page = await this.prisma.page.update({ where: { id }, data });
-    await this.touchWork(existing.chapter.workId);
+    await this.touchBook(existing.chapter.bookId);
     return toPage(page);
   }
 
   async remove(id: string) {
     const existing = await this.prisma.page.findUnique({
       where: { id },
-      include: { chapter: { select: { workId: true } } },
+      include: { chapter: { select: { bookId: true } } },
     });
     if (!existing) throw new NotFoundException('Page not found');
     await this.prisma.page.delete({ where: { id } });
-    await this.touchWork(existing.chapter.workId);
+    await this.touchBook(existing.chapter.bookId);
     return { ok: true };
   }
 
-  private async touchWork(workId: string) {
-    await this.prisma.work.update({ where: { id: workId }, data: { updatedAt: new Date() } });
+  private async touchBook(bookId: string) {
+    await this.prisma.book.update({ where: { id: bookId }, data: { updatedAt: new Date() } });
   }
 }

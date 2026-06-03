@@ -1,26 +1,31 @@
 import { z } from 'zod';
 import {
   apiKeySummarySchema,
+  articleDetailSchema,
+  articleSummarySchema,
   authResponseSchema,
+  bookDetailSchema,
   bookStatDetailSchema,
   bookStatsResponseSchema,
+  bookSummarySchema,
   chapterSchema,
   createApiKeyResponseSchema,
   pageSchema,
   uploadResponseSchema,
   userSchema,
-  workDetailSchema,
-  workSummarySchema,
   type ApiKeyScope,
+  type ArticlesQuery,
+  type BooksQuery,
+  type CreateArticleInput,
+  type CreateBookInput,
   type CreateChapterInput,
   type CreatePageInput,
-  type CreateWorkInput,
   type LoginInput,
   type SignupInput,
   type StatsQuery,
+  type UpdateArticleInput,
+  type UpdateBookInput,
   type UpdatePageInput,
-  type UpdateWorkInput,
-  type WorksQuery,
 } from '@blockpress/shared';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
@@ -174,19 +179,32 @@ export const statsApi = {
     request(`/stats/books/${id}${statsQs(q)}`, { schema: bookStatDetailSchema }),
 };
 
-export const worksApi = {
-  list: (query: WorksQuery = {}) =>
-    request(`/works${qs({ kind: query.kind, status: query.status })}`, {
-      schema: z.array(workSummarySchema),
+export const booksApi = {
+  list: (query: BooksQuery = {}) =>
+    request(`/books${qs({ status: query.status })}`, {
+      schema: z.array(bookSummarySchema),
     }),
-  detail: (id: string) => request(`/works/${id}`, { schema: workDetailSchema }),
-  create: (body: CreateWorkInput) => request('/works', { method: 'POST', body, schema: workSummarySchema }),
-  update: (id: string, body: UpdateWorkInput) =>
-    request(`/works/${id}`, { method: 'PATCH', body, schema: workSummarySchema }),
-  remove: (id: string) => request(`/works/${id}`, { method: 'DELETE' }),
-  addChapter: (workId: string, body: CreateChapterInput) =>
-    request(`/works/${workId}/chapters`, { method: 'POST', body, schema: chapterSchema }),
+  detail: (id: string) => request(`/books/${id}`, { schema: bookDetailSchema }),
+  create: (body: CreateBookInput) => request('/books', { method: 'POST', body, schema: bookSummarySchema }),
+  update: (id: string, body: UpdateBookInput) =>
+    request(`/books/${id}`, { method: 'PATCH', body, schema: bookSummarySchema }),
+  remove: (id: string) => request(`/books/${id}`, { method: 'DELETE' }),
+  addChapter: (bookId: string, body: CreateChapterInput) =>
+    request(`/books/${bookId}/chapters`, { method: 'POST', body, schema: chapterSchema }),
   removeChapter: (id: string) => request(`/chapters/${id}`, { method: 'DELETE' }),
+};
+
+export const articlesApi = {
+  list: (query: ArticlesQuery = {}) =>
+    request(`/articles${qs({ status: query.status })}`, {
+      schema: z.array(articleSummarySchema),
+    }),
+  detail: (idOrSlug: string) => request(`/articles/${idOrSlug}`, { schema: articleDetailSchema }),
+  create: (body: CreateArticleInput) =>
+    request('/articles', { method: 'POST', body, schema: articleSummarySchema }),
+  update: (id: string, body: UpdateArticleInput) =>
+    request(`/articles/${id}`, { method: 'PATCH', body, schema: articleDetailSchema }),
+  remove: (id: string) => request(`/articles/${id}`, { method: 'DELETE' }),
 };
 
 export const pagesApi = {

@@ -13,9 +13,11 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppApiKeysRouteImport } from './routes/_app/api-keys'
-import { Route as AppWorksWorkIdReadIndexRouteImport } from './routes/_app/works.$workId.read.index'
-import { Route as AppWorksWorkIdReadPageIdRouteImport } from './routes/_app/works.$workId.read.$pageId'
-import { Route as AppWorksWorkIdPagesPageIdRouteImport } from './routes/_app/works.$workId.pages.$pageId'
+import { Route as AppArticlesArticleIdIndexRouteImport } from './routes/_app/articles.$articleId.index'
+import { Route as AppArticlesArticleIdReadRouteImport } from './routes/_app/articles.$articleId.read'
+import { Route as AppBooksBookIdReadIndexRouteImport } from './routes/_app/books.$bookId.read.index'
+import { Route as AppBooksBookIdReadPageIdRouteImport } from './routes/_app/books.$bookId.read.$pageId'
+import { Route as AppBooksBookIdPagesPageIdRouteImport } from './routes/_app/books.$bookId.pages.$pageId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -36,21 +38,33 @@ const AppApiKeysRoute = AppApiKeysRouteImport.update({
   path: '/api-keys',
   getParentRoute: () => AppRoute,
 } as any)
-const AppWorksWorkIdReadIndexRoute = AppWorksWorkIdReadIndexRouteImport.update({
-  id: '/works/$workId/read/',
-  path: '/works/$workId/read/',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppWorksWorkIdReadPageIdRoute =
-  AppWorksWorkIdReadPageIdRouteImport.update({
-    id: '/works/$workId/read/$pageId',
-    path: '/works/$workId/read/$pageId',
+const AppArticlesArticleIdIndexRoute =
+  AppArticlesArticleIdIndexRouteImport.update({
+    id: '/articles/$articleId/',
+    path: '/articles/$articleId/',
     getParentRoute: () => AppRoute,
   } as any)
-const AppWorksWorkIdPagesPageIdRoute =
-  AppWorksWorkIdPagesPageIdRouteImport.update({
-    id: '/works/$workId/pages/$pageId',
-    path: '/works/$workId/pages/$pageId',
+const AppArticlesArticleIdReadRoute =
+  AppArticlesArticleIdReadRouteImport.update({
+    id: '/articles/$articleId/read',
+    path: '/articles/$articleId/read',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppBooksBookIdReadIndexRoute = AppBooksBookIdReadIndexRouteImport.update({
+  id: '/books/$bookId/read/',
+  path: '/books/$bookId/read/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBooksBookIdReadPageIdRoute =
+  AppBooksBookIdReadPageIdRouteImport.update({
+    id: '/books/$bookId/read/$pageId',
+    path: '/books/$bookId/read/$pageId',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppBooksBookIdPagesPageIdRoute =
+  AppBooksBookIdPagesPageIdRouteImport.update({
+    id: '/books/$bookId/pages/$pageId',
+    path: '/books/$bookId/pages/$pageId',
     getParentRoute: () => AppRoute,
   } as any)
 
@@ -58,17 +72,21 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
   '/api-keys': typeof AppApiKeysRoute
-  '/works/$workId/pages/$pageId': typeof AppWorksWorkIdPagesPageIdRoute
-  '/works/$workId/read/$pageId': typeof AppWorksWorkIdReadPageIdRoute
-  '/works/$workId/read/': typeof AppWorksWorkIdReadIndexRoute
+  '/articles/$articleId/read': typeof AppArticlesArticleIdReadRoute
+  '/articles/$articleId/': typeof AppArticlesArticleIdIndexRoute
+  '/books/$bookId/pages/$pageId': typeof AppBooksBookIdPagesPageIdRoute
+  '/books/$bookId/read/$pageId': typeof AppBooksBookIdReadPageIdRoute
+  '/books/$bookId/read/': typeof AppBooksBookIdReadIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/api-keys': typeof AppApiKeysRoute
   '/': typeof AppIndexRoute
-  '/works/$workId/pages/$pageId': typeof AppWorksWorkIdPagesPageIdRoute
-  '/works/$workId/read/$pageId': typeof AppWorksWorkIdReadPageIdRoute
-  '/works/$workId/read': typeof AppWorksWorkIdReadIndexRoute
+  '/articles/$articleId/read': typeof AppArticlesArticleIdReadRoute
+  '/articles/$articleId': typeof AppArticlesArticleIdIndexRoute
+  '/books/$bookId/pages/$pageId': typeof AppBooksBookIdPagesPageIdRoute
+  '/books/$bookId/read/$pageId': typeof AppBooksBookIdReadPageIdRoute
+  '/books/$bookId/read': typeof AppBooksBookIdReadIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -76,9 +94,11 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_app/api-keys': typeof AppApiKeysRoute
   '/_app/': typeof AppIndexRoute
-  '/_app/works/$workId/pages/$pageId': typeof AppWorksWorkIdPagesPageIdRoute
-  '/_app/works/$workId/read/$pageId': typeof AppWorksWorkIdReadPageIdRoute
-  '/_app/works/$workId/read/': typeof AppWorksWorkIdReadIndexRoute
+  '/_app/articles/$articleId/read': typeof AppArticlesArticleIdReadRoute
+  '/_app/articles/$articleId/': typeof AppArticlesArticleIdIndexRoute
+  '/_app/books/$bookId/pages/$pageId': typeof AppBooksBookIdPagesPageIdRoute
+  '/_app/books/$bookId/read/$pageId': typeof AppBooksBookIdReadPageIdRoute
+  '/_app/books/$bookId/read/': typeof AppBooksBookIdReadIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -86,26 +106,32 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/api-keys'
-    | '/works/$workId/pages/$pageId'
-    | '/works/$workId/read/$pageId'
-    | '/works/$workId/read/'
+    | '/articles/$articleId/read'
+    | '/articles/$articleId/'
+    | '/books/$bookId/pages/$pageId'
+    | '/books/$bookId/read/$pageId'
+    | '/books/$bookId/read/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
     | '/api-keys'
     | '/'
-    | '/works/$workId/pages/$pageId'
-    | '/works/$workId/read/$pageId'
-    | '/works/$workId/read'
+    | '/articles/$articleId/read'
+    | '/articles/$articleId'
+    | '/books/$bookId/pages/$pageId'
+    | '/books/$bookId/read/$pageId'
+    | '/books/$bookId/read'
   id:
     | '__root__'
     | '/_app'
     | '/login'
     | '/_app/api-keys'
     | '/_app/'
-    | '/_app/works/$workId/pages/$pageId'
-    | '/_app/works/$workId/read/$pageId'
-    | '/_app/works/$workId/read/'
+    | '/_app/articles/$articleId/read'
+    | '/_app/articles/$articleId/'
+    | '/_app/books/$bookId/pages/$pageId'
+    | '/_app/books/$bookId/read/$pageId'
+    | '/_app/books/$bookId/read/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -143,25 +169,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppApiKeysRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/works/$workId/read/': {
-      id: '/_app/works/$workId/read/'
-      path: '/works/$workId/read'
-      fullPath: '/works/$workId/read/'
-      preLoaderRoute: typeof AppWorksWorkIdReadIndexRouteImport
+    '/_app/articles/$articleId/': {
+      id: '/_app/articles/$articleId/'
+      path: '/articles/$articleId'
+      fullPath: '/articles/$articleId/'
+      preLoaderRoute: typeof AppArticlesArticleIdIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/works/$workId/read/$pageId': {
-      id: '/_app/works/$workId/read/$pageId'
-      path: '/works/$workId/read/$pageId'
-      fullPath: '/works/$workId/read/$pageId'
-      preLoaderRoute: typeof AppWorksWorkIdReadPageIdRouteImport
+    '/_app/articles/$articleId/read': {
+      id: '/_app/articles/$articleId/read'
+      path: '/articles/$articleId/read'
+      fullPath: '/articles/$articleId/read'
+      preLoaderRoute: typeof AppArticlesArticleIdReadRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/works/$workId/pages/$pageId': {
-      id: '/_app/works/$workId/pages/$pageId'
-      path: '/works/$workId/pages/$pageId'
-      fullPath: '/works/$workId/pages/$pageId'
-      preLoaderRoute: typeof AppWorksWorkIdPagesPageIdRouteImport
+    '/_app/books/$bookId/read/': {
+      id: '/_app/books/$bookId/read/'
+      path: '/books/$bookId/read'
+      fullPath: '/books/$bookId/read/'
+      preLoaderRoute: typeof AppBooksBookIdReadIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/books/$bookId/read/$pageId': {
+      id: '/_app/books/$bookId/read/$pageId'
+      path: '/books/$bookId/read/$pageId'
+      fullPath: '/books/$bookId/read/$pageId'
+      preLoaderRoute: typeof AppBooksBookIdReadPageIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/books/$bookId/pages/$pageId': {
+      id: '/_app/books/$bookId/pages/$pageId'
+      path: '/books/$bookId/pages/$pageId'
+      fullPath: '/books/$bookId/pages/$pageId'
+      preLoaderRoute: typeof AppBooksBookIdPagesPageIdRouteImport
       parentRoute: typeof AppRoute
     }
   }
@@ -170,17 +210,21 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppApiKeysRoute: typeof AppApiKeysRoute
   AppIndexRoute: typeof AppIndexRoute
-  AppWorksWorkIdPagesPageIdRoute: typeof AppWorksWorkIdPagesPageIdRoute
-  AppWorksWorkIdReadPageIdRoute: typeof AppWorksWorkIdReadPageIdRoute
-  AppWorksWorkIdReadIndexRoute: typeof AppWorksWorkIdReadIndexRoute
+  AppArticlesArticleIdReadRoute: typeof AppArticlesArticleIdReadRoute
+  AppArticlesArticleIdIndexRoute: typeof AppArticlesArticleIdIndexRoute
+  AppBooksBookIdPagesPageIdRoute: typeof AppBooksBookIdPagesPageIdRoute
+  AppBooksBookIdReadPageIdRoute: typeof AppBooksBookIdReadPageIdRoute
+  AppBooksBookIdReadIndexRoute: typeof AppBooksBookIdReadIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppApiKeysRoute: AppApiKeysRoute,
   AppIndexRoute: AppIndexRoute,
-  AppWorksWorkIdPagesPageIdRoute: AppWorksWorkIdPagesPageIdRoute,
-  AppWorksWorkIdReadPageIdRoute: AppWorksWorkIdReadPageIdRoute,
-  AppWorksWorkIdReadIndexRoute: AppWorksWorkIdReadIndexRoute,
+  AppArticlesArticleIdReadRoute: AppArticlesArticleIdReadRoute,
+  AppArticlesArticleIdIndexRoute: AppArticlesArticleIdIndexRoute,
+  AppBooksBookIdPagesPageIdRoute: AppBooksBookIdPagesPageIdRoute,
+  AppBooksBookIdReadPageIdRoute: AppBooksBookIdReadPageIdRoute,
+  AppBooksBookIdReadIndexRoute: AppBooksBookIdReadIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

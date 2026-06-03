@@ -11,8 +11,8 @@
  *   2. wildcard scope ['*'] (JWT)            -> allow (backward-compat bypass)
  *   3. @JwtOnly route                        -> 403
  *   4. NOT a @ContentRoute                   -> 403 (DEFAULT-DENY)
- *   5. publish-transition / delete           -> 403 unless works:publish / works:delete
- *   6. PATCH an already-published work/page   -> 403 unless works:publish
+ *   5. publish-transition / delete           -> 403 unless content:publish / content:delete
+ *   6. PATCH an already-published book/article/page -> 403 unless content:publish
  *
  * Assertions on the 403 messages are EXACT (toBe, not substring), because the
  * literal strings are the contract the MCP client surfaces verbatim.
@@ -65,19 +65,33 @@ function makeCtx(req: FakeReq): ExecutionContext {
 }
 
 /**
- * Prisma double. `work.findUnique` / `page.findUnique` resolve to whatever the
- * test seeds (an object with `status`, or `null` for not-found). The default
- * rejects so an unexpected DB read in a test that didn't set one is loud.
+ * Prisma double. `book.findUnique` / `article.findUnique` / `page.findUnique`
+ * resolve to whatever the test seeds (an object with `status`, or `null` for
+ * not-found). The default returns null so an unexpected DB read in a test that
+ * didn't seed one surfaces as a 404, never a phantom published row.
  */
 function makePrisma(opts?: {
-  workStatus?: 'draft' | 'published' | null;
+  bookStatus?: 'draft' | 'published' | null;
+  articleStatus?: 'draft' | 'published' | null;
   pageStatus?: 'draft' | 'published' | null;
-}): { prisma: PrismaService; workFind: jest.Mock; pageFind: jest.Mock } {
-  const workFind = jest.fn(async () =>
-    opts && 'workStatus' in opts
-      ? opts.workStatus === null
+}): {
+  prisma: PrismaService;
+  bookFind: jest.Mock;
+  articleFind: jest.Mock;
+  pageFind: jest.Mock;
+} {
+  const bookFind = jest.fn(async () =>
+    opts && 'bookStatus' in opts
+      ? opts.bookStatus === null
         ? null
-        : { status: opts.workStatus }
+        : { status: opts.bookStatus }
+      : null,
+  );
+  const articleFind = jest.fn(async () =>
+    opts && 'articleStatus' in opts
+      ? opts.articleStatus === null
+        ? null
+        : { status: opts.articleStatus }
       : null,
   );
   const pageFind = jest.fn(async () =>
@@ -88,10 +102,11 @@ function makePrisma(opts?: {
       : null,
   );
   const prisma = {
-    work: { findUnique: workFind },
+    book: { findUnique: bookFind },
+    article: { findUnique: articleFind },
     page: { findUnique: pageFind },
   } as unknown as PrismaService;
-  return { prisma, workFind, pageFind };
+  return { prisma, bookFind, articleFind, pageFind };
 }
 
 /** Run canActivate and capture the thrown error (or null on success). */
@@ -122,18 +137,18 @@ describe('ScopeGuard', () => {
         jwtReq({
           method: 'PATCH',
           body: { status: 'published' },
-          route: { path: '/works/:id' },
+          route: { path: '/books/:id' },
           params: { id: 'w1' },
         }),
       );
       await expect(guard.canActivate(ctx)).resolves.toBe(true);
     });
 
-    it('allows DELETE /works/:id', async () => {
+    it('allows DELETE /books/:id', async () => {
       const { prisma } = makePrisma();
       const guard = new ScopeGuard(makeReflector({}), prisma);
       const ctx = makeCtx(
-        jwtReq({ method: 'DELETE', route: { path: '/works/:id' } }),
+        jwtReq({ method: 'DELETE', route: { path: '/books/:id' } }),
       );
       await expect(guard.canActivate(ctx)).resolves.toBe(true);
     });
@@ -156,30 +171,30 @@ describe('ScopeGuard', () => {
       await expect(guard.canActivate(ctx)).resolves.toBe(true);
     });
 
-    it('allows PATCH on an already-published work (regression — JWT unaffected by clause 6)', async () => {
+    it('allows PATCH on an already-published book (regression — JWT unaffected by clause 6)', async () => {
       // Row is published; a JWT must still pass because clause 2 short-circuits
       // before any DB read. The Prisma double would reject if it were touched.
-      const { prisma, workFind } = makePrisma({ workStatus: 'published' });
+      const { prisma, bookFind } = makePrisma({ bookStatus: 'published' });
       const guard = new ScopeGuard(makeReflector({}), prisma);
       const ctx = makeCtx(
         jwtReq({
           method: 'PATCH',
           body: { title: 'new title' },
-          route: { path: '/works/:id' },
+          route: { path: '/books/:id' },
           params: { id: 'w1' },
         }),
       );
       await expect(guard.canActivate(ctx)).resolves.toBe(true);
       // Backward-compat proof: the wildcard bypass never consults the DB.
-      expect(workFind).not.toHaveBeenCalled();
+      expect(bookFind).not.toHaveBeenCalled();
     });
   });
 
-  // ── ApiKey ['works:write'] — the draft-only key ───────────────────────────
-  describe("ApiKey draft-only key (['works:write'])", () => {
+  // ── ApiKey ['content:write'] — the draft-only key ─────────────────────────
+  describe("ApiKey draft-only key (['content:write'])", () => {
     const writeReq = (over: Partial<FakeReq>): FakeReq => ({
       method: 'GET',
-      scopes: ['works:write'],
+      scopes: ['content:write'],
       authType: 'apikey',
       ...over,
     });
@@ -194,7 +209,7 @@ describe('ScopeGuard', () => {
         writeReq({
           method: 'PATCH',
           body: { status: 'published' },
-          route: { path: '/works/:id' },
+          route: { path: '/books/:id' },
           params: { id: 'w1' },
         }),
       );
@@ -206,14 +221,14 @@ describe('ScopeGuard', () => {
       expect((err as ForbiddenException).getStatus()).toBe(403);
     });
 
-    it("403 'draft-only key cannot delete' on DELETE /works/:id", async () => {
+    it("403 'draft-only key cannot delete' on DELETE /books/:id", async () => {
       const { prisma } = makePrisma();
       const guard = new ScopeGuard(
         makeReflector({ [IS_CONTENT_ROUTE]: true }),
         prisma,
       );
       const ctx = makeCtx(
-        writeReq({ method: 'DELETE', route: { path: '/works/:id' } }),
+        writeReq({ method: 'DELETE', route: { path: '/books/:id' } }),
       );
       const err = await capture(guard, ctx);
       expect(err).toBeInstanceOf(ForbiddenException);
@@ -223,8 +238,8 @@ describe('ScopeGuard', () => {
       expect((err as ForbiddenException).getStatus()).toBe(403);
     });
 
-    it("403 'draft-only key cannot edit published content' on PATCH title when target work is published", async () => {
-      const { prisma, workFind } = makePrisma({ workStatus: 'published' });
+    it("403 'draft-only key cannot edit published content' on PATCH title when target book is published", async () => {
+      const { prisma, bookFind } = makePrisma({ bookStatus: 'published' });
       const guard = new ScopeGuard(
         makeReflector({ [IS_CONTENT_ROUTE]: true }),
         prisma,
@@ -233,7 +248,7 @@ describe('ScopeGuard', () => {
         writeReq({
           method: 'PATCH',
           body: { title: 'edited' },
-          route: { path: '/works/:id' },
+          route: { path: '/books/:id' },
           params: { id: 'w1' },
         }),
       );
@@ -243,7 +258,7 @@ describe('ScopeGuard', () => {
         'draft-only key cannot edit published content',
       );
       expect((err as ForbiddenException).getStatus()).toBe(403);
-      expect(workFind).toHaveBeenCalled();
+      expect(bookFind).toHaveBeenCalled();
     });
 
     it("403 'draft-only key cannot edit published content' on PATCH title when target page is published", async () => {
@@ -268,8 +283,8 @@ describe('ScopeGuard', () => {
       expect(pageFind).toHaveBeenCalled();
     });
 
-    it('ALLOWS PATCH title when target work is draft', async () => {
-      const { prisma } = makePrisma({ workStatus: 'draft' });
+    it('ALLOWS PATCH title when target book is draft', async () => {
+      const { prisma } = makePrisma({ bookStatus: 'draft' });
       const guard = new ScopeGuard(
         makeReflector({ [IS_CONTENT_ROUTE]: true }),
         prisma,
@@ -278,7 +293,7 @@ describe('ScopeGuard', () => {
         writeReq({
           method: 'PATCH',
           body: { title: 'edited' },
-          route: { path: '/works/:id' },
+          route: { path: '/books/:id' },
           params: { id: 'w1' },
         }),
       );
@@ -302,8 +317,26 @@ describe('ScopeGuard', () => {
       await expect(guard.canActivate(ctx)).resolves.toBe(true);
     });
 
-    it('404 (not 403) when the PATCH target row is missing', async () => {
-      const { prisma } = makePrisma({ workStatus: null });
+    // ── Articles reuse the same default-deny ScopeGuard (clause 5 + clause 6) ──
+    it("403 'draft-only key cannot delete' on DELETE /articles/:id", async () => {
+      const { prisma } = makePrisma();
+      const guard = new ScopeGuard(
+        makeReflector({ [IS_CONTENT_ROUTE]: true }),
+        prisma,
+      );
+      const ctx = makeCtx(
+        writeReq({ method: 'DELETE', route: { path: '/articles/:id' } }),
+      );
+      const err = await capture(guard, ctx);
+      expect(err).toBeInstanceOf(ForbiddenException);
+      expect((err as ForbiddenException).message).toBe(
+        'draft-only key cannot delete',
+      );
+      expect((err as ForbiddenException).getStatus()).toBe(403);
+    });
+
+    it("403 'draft-only key cannot edit published content' on PATCH title when target article is published", async () => {
+      const { prisma, articleFind } = makePrisma({ articleStatus: 'published' });
       const guard = new ScopeGuard(
         makeReflector({ [IS_CONTENT_ROUTE]: true }),
         prisma,
@@ -312,7 +345,66 @@ describe('ScopeGuard', () => {
         writeReq({
           method: 'PATCH',
           body: { title: 'edited' },
-          route: { path: '/works/:id' },
+          route: { path: '/articles/:id' },
+          params: { id: 'a1' },
+        }),
+      );
+      const err = await capture(guard, ctx);
+      expect(err).toBeInstanceOf(ForbiddenException);
+      expect((err as ForbiddenException).message).toBe(
+        'draft-only key cannot edit published content',
+      );
+      expect((err as ForbiddenException).getStatus()).toBe(403);
+      expect(articleFind).toHaveBeenCalled();
+    });
+
+    it('ALLOWS PATCH title when target article is draft', async () => {
+      const { prisma } = makePrisma({ articleStatus: 'draft' });
+      const guard = new ScopeGuard(
+        makeReflector({ [IS_CONTENT_ROUTE]: true }),
+        prisma,
+      );
+      const ctx = makeCtx(
+        writeReq({
+          method: 'PATCH',
+          body: { title: 'edited' },
+          route: { path: '/articles/:id' },
+          params: { id: 'a1' },
+        }),
+      );
+      await expect(guard.canActivate(ctx)).resolves.toBe(true);
+    });
+
+    it('404 (not 403) when the PATCH target article is missing', async () => {
+      const { prisma } = makePrisma({ articleStatus: null });
+      const guard = new ScopeGuard(
+        makeReflector({ [IS_CONTENT_ROUTE]: true }),
+        prisma,
+      );
+      const ctx = makeCtx(
+        writeReq({
+          method: 'PATCH',
+          body: { title: 'edited' },
+          route: { path: '/articles/:id' },
+          params: { id: 'missing' },
+        }),
+      );
+      const err = await capture(guard, ctx);
+      expect(err).toBeInstanceOf(NotFoundException);
+      expect((err as NotFoundException).getStatus()).toBe(404);
+    });
+
+    it('404 (not 403) when the PATCH target row is missing', async () => {
+      const { prisma } = makePrisma({ bookStatus: null });
+      const guard = new ScopeGuard(
+        makeReflector({ [IS_CONTENT_ROUTE]: true }),
+        prisma,
+      );
+      const ctx = makeCtx(
+        writeReq({
+          method: 'PATCH',
+          body: { title: 'edited' },
+          route: { path: '/books/:id' },
           params: { id: 'missing' },
         }),
       );
@@ -361,17 +453,17 @@ describe('ScopeGuard', () => {
       );
       // Even a delete on a public route must short-circuit at clause 1.
       const ctx = makeCtx(
-        writeReq({ method: 'DELETE', route: { path: '/reader/works/:id' } }),
+        writeReq({ method: 'DELETE', route: { path: '/reader/books/:id' } }),
       );
       await expect(guard.canActivate(ctx)).resolves.toBe(true);
     });
 
     // ── Publish-bypass attempts that MUST NOT succeed as a publish ──────────
-    // A ['works:write'] key on a DRAFT work/page PATCH: if the malformed status
+    // A ['content:write'] key on a DRAFT book/page PATCH: if the malformed status
     // were treated as a publish attempt the guard would throw 'cannot publish';
     // resolving true is the proof it is NOT treated as a publish.
     it("does NOT treat status:'PUBLISHED' (wrong case) as a publish", async () => {
-      const { prisma } = makePrisma({ workStatus: 'draft' });
+      const { prisma } = makePrisma({ bookStatus: 'draft' });
       const guard = new ScopeGuard(
         makeReflector({ [IS_CONTENT_ROUTE]: true }),
         prisma,
@@ -380,7 +472,7 @@ describe('ScopeGuard', () => {
         writeReq({
           method: 'PATCH',
           body: { status: 'PUBLISHED' },
-          route: { path: '/works/:id' },
+          route: { path: '/books/:id' },
           params: { id: 'w1' },
         }),
       );
@@ -388,7 +480,7 @@ describe('ScopeGuard', () => {
     });
 
     it("does NOT treat status:['published'] (array) as a publish", async () => {
-      const { prisma } = makePrisma({ workStatus: 'draft' });
+      const { prisma } = makePrisma({ bookStatus: 'draft' });
       const guard = new ScopeGuard(
         makeReflector({ [IS_CONTENT_ROUTE]: true }),
         prisma,
@@ -397,7 +489,7 @@ describe('ScopeGuard', () => {
         writeReq({
           method: 'PATCH',
           body: { status: ['published'] },
-          route: { path: '/works/:id' },
+          route: { path: '/books/:id' },
           params: { id: 'w1' },
         }),
       );
@@ -405,7 +497,7 @@ describe('ScopeGuard', () => {
     });
 
     it('does NOT treat an empty body {} as a publish', async () => {
-      const { prisma } = makePrisma({ workStatus: 'draft' });
+      const { prisma } = makePrisma({ bookStatus: 'draft' });
       const guard = new ScopeGuard(
         makeReflector({ [IS_CONTENT_ROUTE]: true }),
         prisma,
@@ -414,7 +506,7 @@ describe('ScopeGuard', () => {
         writeReq({
           method: 'PATCH',
           body: {},
-          route: { path: '/works/:id' },
+          route: { path: '/books/:id' },
           params: { id: 'w1' },
         }),
       );
@@ -422,7 +514,7 @@ describe('ScopeGuard', () => {
     });
 
     it('does NOT crash on a non-object body (array) — treated as no publish attempt', async () => {
-      const { prisma } = makePrisma({ workStatus: 'draft' });
+      const { prisma } = makePrisma({ bookStatus: 'draft' });
       const guard = new ScopeGuard(
         makeReflector({ [IS_CONTENT_ROUTE]: true }),
         prisma,
@@ -431,7 +523,7 @@ describe('ScopeGuard', () => {
         writeReq({
           method: 'PATCH',
           body: ['published'],
-          route: { path: '/works/:id' },
+          route: { path: '/books/:id' },
           params: { id: 'w1' },
         }),
       );
@@ -439,17 +531,17 @@ describe('ScopeGuard', () => {
     });
   });
 
-  // ── ApiKey ['works:write','works:publish'] — publish + edit-published OK ──
-  describe("ApiKey publisher key (['works:write','works:publish'])", () => {
+  // ── ApiKey ['content:write','content:publish'] — publish + edit-published OK ──
+  describe("ApiKey publisher key (['content:write','content:publish'])", () => {
     const pubReq = (over: Partial<FakeReq>): FakeReq => ({
       method: 'GET',
-      scopes: ['works:write', 'works:publish'],
+      scopes: ['content:write', 'content:publish'],
       authType: 'apikey',
       ...over,
     });
 
     it('ALLOWS PATCH {status:published} (publish)', async () => {
-      const { prisma } = makePrisma({ workStatus: 'draft' });
+      const { prisma } = makePrisma({ bookStatus: 'draft' });
       const guard = new ScopeGuard(
         makeReflector({ [IS_CONTENT_ROUTE]: true }),
         prisma,
@@ -458,16 +550,16 @@ describe('ScopeGuard', () => {
         pubReq({
           method: 'PATCH',
           body: { status: 'published' },
-          route: { path: '/works/:id' },
+          route: { path: '/books/:id' },
           params: { id: 'w1' },
         }),
       );
       await expect(guard.canActivate(ctx)).resolves.toBe(true);
     });
 
-    it('ALLOWS editing an already-published work (clause 6 exempt with works:publish)', async () => {
-      // works:publish exempts clause 6, so the published-row DB read is skipped.
-      const { prisma, workFind } = makePrisma({ workStatus: 'published' });
+    it('ALLOWS editing an already-published book (clause 6 exempt with content:publish)', async () => {
+      // content:publish exempts clause 6, so the published-row DB read is skipped.
+      const { prisma, bookFind } = makePrisma({ bookStatus: 'published' });
       const guard = new ScopeGuard(
         makeReflector({ [IS_CONTENT_ROUTE]: true }),
         prisma,
@@ -476,22 +568,40 @@ describe('ScopeGuard', () => {
         pubReq({
           method: 'PATCH',
           body: { title: 'edited' },
-          route: { path: '/works/:id' },
+          route: { path: '/books/:id' },
           params: { id: 'w1' },
         }),
       );
       await expect(guard.canActivate(ctx)).resolves.toBe(true);
-      expect(workFind).not.toHaveBeenCalled();
+      expect(bookFind).not.toHaveBeenCalled();
     });
 
-    it("still 403 'draft-only key cannot delete' on DELETE without works:delete", async () => {
+    it('ALLOWS editing an already-published article (clause 6 exempt with content:publish)', async () => {
+      const { prisma, articleFind } = makePrisma({ articleStatus: 'published' });
+      const guard = new ScopeGuard(
+        makeReflector({ [IS_CONTENT_ROUTE]: true }),
+        prisma,
+      );
+      const ctx = makeCtx(
+        pubReq({
+          method: 'PATCH',
+          body: { title: 'edited' },
+          route: { path: '/articles/:id' },
+          params: { id: 'a1' },
+        }),
+      );
+      await expect(guard.canActivate(ctx)).resolves.toBe(true);
+      expect(articleFind).not.toHaveBeenCalled();
+    });
+
+    it("still 403 'draft-only key cannot delete' on DELETE without content:delete", async () => {
       const { prisma } = makePrisma();
       const guard = new ScopeGuard(
         makeReflector({ [IS_CONTENT_ROUTE]: true }),
         prisma,
       );
       const ctx = makeCtx(
-        pubReq({ method: 'DELETE', route: { path: '/works/:id' } }),
+        pubReq({ method: 'DELETE', route: { path: '/books/:id' } }),
       );
       const err = await capture(guard, ctx);
       expect(err).toBeInstanceOf(ForbiddenException);

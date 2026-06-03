@@ -1,5 +1,5 @@
 /**
- * Registers the draft-only MCP tool surface (10 tools).
+ * Registers the draft-only MCP tool surface (14 tools): books (+ chapters/pages) and articles.
  *
  * Every tool maps to an existing Blockpress REST endpoint via the per-session `api` client,
  * which forwards the client's draft-only key as `Authorization: ApiKey <key>`. The server is
@@ -67,14 +67,12 @@ const httpUrlNullable = z
   .optional()
   .describe('Absolute http(s) URL, <=2000 chars. Pass null to clear.');
 
-// ─── The corrected page-content vocabulary, advertised on update_page ─────────
+// ─── The shared content vocabulary, advertised on update_page AND update_article ─────────
 // Single source: matches @blockpress/editor-schema (StarterKit w/ blockquote+codeBlock
 // DISABLED + the 4 custom nodes + table family). blockquote/codeBlock DO NOT EXIST.
-const UPDATE_PAGE_DESCRIPTION = [
-  'Update a draft page (title / content / order). `content` is a Tiptap (ProseMirror) JSON document.',
-  '',
-  'There is intentionally NO publish, status, or delete tool — this server can only create and edit DRAFTS.',
-  '',
+// Book pages and article `content` use the EXACT SAME Tiptap vocabulary, so both tools
+// reference this constant rather than duplicating a thinner description.
+const CONTENT_VOCABULARY = [
   'Content model (the ONLY supported node/mark types — anything else is silently dropped on save; run validate_content first):',
   '  Block nodes (children of doc):',
   '    - paragraph: { type:"paragraph", content:[ ...text ] }',
@@ -93,7 +91,6 @@ const UPDATE_PAGE_DESCRIPTION = [
   'IMPORTANT:',
   '  - blockquote and codeBlock DO NOT EXIST — use `quote` and `paragraph`/`code` mark instead.',
   '  - captionedImage.src MUST be an absolute external http(s) URL. There is NO upload tool; you cannot upload files.',
-  '  - Read-modify-write: call get_page first to get the canonical persisted doc, then edit and send the whole doc back.',
   '',
   'Worked example (a heading, a paragraph with a bold word and a link, a callout, and a quote):',
   JSON.stringify(
@@ -128,67 +125,89 @@ const UPDATE_PAGE_DESCRIPTION = [
   ),
 ].join('\n');
 
+// Description for update_page: the page intro + shared vocabulary + page read-modify-write hint.
+const UPDATE_PAGE_DESCRIPTION = [
+  'Update a draft page (title / content / order). `content` is a Tiptap (ProseMirror) JSON document.',
+  '',
+  'There is intentionally NO publish, status, or delete tool — this server can only create and edit DRAFTS.',
+  '',
+  CONTENT_VOCABULARY,
+  '',
+  'Read-modify-write: call get_page first to get the canonical persisted doc, then edit and send the whole doc back.',
+].join('\n');
+
+// Description for update_article: the article intro + the SAME shared vocabulary + article read-modify-write hint.
+const UPDATE_ARTICLE_DESCRIPTION = [
+  "Update a draft article's metadata and/or single-page `content`. An article is one Tiptap (ProseMirror) JSON document —",
+  'it uses the EXACT SAME content vocabulary as book pages (update_page); there are no chapters or pages.',
+  '',
+  'There is intentionally NO publish, status, or delete tool — this server can only create and edit DRAFTS.',
+  '',
+  CONTENT_VOCABULARY,
+  '',
+  'Read-modify-write: call get_article first to get the canonical persisted doc, then edit and send the whole doc back.',
+].join('\n');
+
 export function registerTools(server: McpServer, api: ApiClient): void {
-  // ── list_works ──────────────────────────────────────────────────────────────
+  // ── list_books ──────────────────────────────────────────────────────────────
   server.registerTool(
-    'list_works',
+    'list_books',
     {
-      title: 'List works',
+      title: 'List books',
       description:
-        'List books and articles (summaries: id, title, status, counts). Optional filters by kind and status. ' +
-        'The status filter is READ-ONLY filtering — it does NOT publish or change anything.',
+        'List books (summaries: id, title, status, page/word counts). Optional filter by status. ' +
+        'The status filter is READ-ONLY filtering — it does NOT publish or change anything. ' +
+        'For single-page articles, use list_articles.',
       inputSchema: {
-        kind: z.enum(['book', 'article']).optional().describe('Filter by work kind.'),
         status: z.enum(['draft', 'published']).optional().describe('Filter by status (read-only filter; not a publish action).'),
       },
     },
-    async ({ kind, status }) => {
+    async ({ status }) => {
       const params = new URLSearchParams();
-      if (kind) params.set('kind', kind);
       if (status) params.set('status', status);
       const q = params.toString();
-      return run(() => api.get(`/works${q ? `?${q}` : ''}`));
+      return run(() => api.get(`/books${q ? `?${q}` : ''}`));
     },
   );
 
-  // ── get_work ────────────────────────────────────────────────────────────────
+  // ── get_book ────────────────────────────────────────────────────────────────
   server.registerTool(
-    'get_work',
+    'get_book',
     {
-      title: 'Get work',
-      description: 'Fetch one work by id with its full chapter/page tree (chapter ids + page ids live here — use these for add_page/update_page).',
+      title: 'Get book',
+      description: 'Fetch one book by id with its full chapter/page tree (chapter ids + page ids live here — use these for add_page/update_page).',
       inputSchema: {
-        id: z.string().describe('Work id.'),
+        id: z.string().describe('Book id.'),
       },
     },
-    async ({ id }) => run(() => api.get(`/works/${seg(id)}`)),
+    async ({ id }) => run(() => api.get(`/books/${seg(id)}`)),
   );
 
-  // ── create_work ─────────────────────────────────────────────────────────────
+  // ── create_book ─────────────────────────────────────────────────────────────
   server.registerTool(
-    'create_work',
+    'create_book',
     {
-      title: 'Create draft work',
+      title: 'Create draft book',
       description:
-        'Create a new DRAFT book or article. It CANNOT be published through this server. ' +
-        'Returns a summary WITHOUT the chapter/page tree — call get_work next to get the chapter ids needed for add_page.',
+        'Create a new DRAFT book. It CANNOT be published through this server. ' +
+        'Returns a summary WITHOUT the chapter/page tree — call get_book next to get the chapter ids needed for add_page. ' +
+        'For a single-page article (no chapters/pages), use create_article.',
       inputSchema: {
-        kind: z.enum(['book', 'article']).describe('Work kind: "book" or "article".'),
         title: titleField,
       },
     },
-    async ({ kind, title }) => run(() => api.post('/works', { kind, ...(title !== undefined ? { title } : {}) })),
+    async ({ title }) => run(() => api.post('/books', title !== undefined ? { title } : {})),
   );
 
-  // ── update_work ─────────────────────────────────────────────────────────────
+  // ── update_book ─────────────────────────────────────────────────────────────
   // NOTE: `status` is deliberately OMITTED — there is no publish affordance.
   server.registerTool(
-    'update_work',
+    'update_book',
     {
-      title: 'Update work metadata',
-      description: 'Update a draft work’s metadata. Cannot publish (no status field) and cannot edit an already-published work (the API returns 403).',
+      title: 'Update book metadata',
+      description: 'Update a draft book’s metadata. Cannot publish (no status field) and cannot edit an already-published book (the API returns 403).',
       inputSchema: {
-        id: z.string().describe('Work id.'),
+        id: z.string().describe('Book id.'),
         title: z.string().min(1).max(200).optional().describe('Title, 1-200 chars.'),
         subtitle: z.string().max(300).optional().describe('Subtitle, <=300 chars.'),
         author: z.string().max(120).optional().describe('Author, <=120 chars.'),
@@ -199,7 +218,7 @@ export function registerTools(server: McpServer, api: ApiClient): void {
         buyLink: httpUrlNullable.describe('External purchase URL (books only): absolute http(s) URL, <=2000 chars. null clears it.'),
       },
     },
-    async ({ id, ...patch }) => run(() => api.patch(`/works/${seg(id)}`, patch)),
+    async ({ id, ...patch }) => run(() => api.patch(`/books/${seg(id)}`, patch)),
   );
 
   // ── add_chapter ─────────────────────────────────────────────────────────────
@@ -207,14 +226,14 @@ export function registerTools(server: McpServer, api: ApiClient): void {
     'add_chapter',
     {
       title: 'Add chapter',
-      description: 'Add a chapter to a work. Returns the chapter (with its id) — use that id with add_page.',
+      description: 'Add a chapter to a book. Returns the chapter (with its id) — use that id with add_page.',
       inputSchema: {
-        workId: z.string().describe('Id of the work to add the chapter to.'),
+        bookId: z.string().describe('Id of the book to add the chapter to.'),
         title: titleField,
       },
     },
-    async ({ workId, title }) =>
-      run(() => api.post(`/works/${seg(workId)}/chapters`, title !== undefined ? { title } : {})),
+    async ({ bookId, title }) =>
+      run(() => api.post(`/books/${seg(bookId)}/chapters`, title !== undefined ? { title } : {})),
   );
 
   // ── update_chapter ──────────────────────────────────────────────────────────
@@ -222,7 +241,7 @@ export function registerTools(server: McpServer, api: ApiClient): void {
     'update_chapter',
     {
       title: 'Update chapter',
-      description: 'Update a chapter’s title and/or order within its work.',
+      description: 'Update a chapter’s title and/or order within its book.',
       inputSchema: {
         id: z.string().describe('Chapter id.'),
         title: z.string().min(1).max(200).optional().describe('New title, 1-200 chars.'),
@@ -279,13 +298,92 @@ export function registerTools(server: McpServer, api: ApiClient): void {
     async ({ id, ...patch }) => run(() => api.patch(`/pages/${seg(id)}`, patch)),
   );
 
+  // ── create_article ───────────────────────────────────────────────────────────
+  server.registerTool(
+    'create_article',
+    {
+      title: 'Create draft article',
+      description:
+        'Create a new DRAFT article — a SINGLE-PAGE content type (one Tiptap doc, NO chapters/pages, NO buyLink). ' +
+        'It CANNOT be published through this server. Returns the created draft article summary (id, slug, status). ' +
+        'Edit its body and metadata with update_article. The article body uses the SAME content vocabulary as book pages.',
+      inputSchema: {
+        title: titleField,
+      },
+    },
+    async ({ title }) => run(() => api.post('/articles', title !== undefined ? { title } : {})),
+  );
+
+  // ── list_articles ─────────────────────────────────────────────────────────────
+  server.registerTool(
+    'list_articles',
+    {
+      title: 'List articles',
+      description:
+        'List articles (summaries: id, slug, title, status, wordCount). Optional filter by status. ' +
+        'The status filter is READ-ONLY filtering — it does NOT publish or change anything.',
+      inputSchema: {
+        status: z.enum(['draft', 'published']).optional().describe('Filter by status (read-only filter; not a publish action).'),
+      },
+    },
+    async ({ status }) => {
+      const params = new URLSearchParams();
+      if (status) params.set('status', status);
+      const q = params.toString();
+      return run(() => api.get(`/articles${q ? `?${q}` : ''}`));
+    },
+  );
+
+  // ── get_article ───────────────────────────────────────────────────────────────
+  server.registerTool(
+    'get_article',
+    {
+      title: 'Get article',
+      description:
+        'Fetch one article by id OR slug, INCLUDING its stored Tiptap `content`. Use this for read-modify-write: read the ' +
+        'canonical persisted doc, edit it, then send the whole doc back via update_article.',
+      inputSchema: {
+        idOrSlug: z.string().describe('Article id (uuid) or slug.'),
+      },
+    },
+    async ({ idOrSlug }) => run(() => api.get(`/articles/${seg(idOrSlug)}`)),
+  );
+
+  // ── update_article ────────────────────────────────────────────────────────────
+  // NOTE: `status` is deliberately OMITTED — there is no publish affordance (mirrors update_page/update_book).
+  server.registerTool(
+    'update_article',
+    {
+      title: 'Update article',
+      description: UPDATE_ARTICLE_DESCRIPTION,
+      inputSchema: {
+        id: z.string().describe('Article id (uuid).'),
+        title: z.string().min(1).max(200).optional().describe('Title, 1-200 chars.'),
+        subtitle: z.string().max(300).optional().describe('Subtitle, <=300 chars.'),
+        author: z.string().max(120).optional().describe('Author, <=120 chars.'),
+        year: z.string().max(12).optional().describe('Publication year, <=12 chars.'),
+        coverUrl: httpUrlNullable.describe('Cover image: absolute http(s) URL, <=2000 chars. null clears it.'),
+        tags: z.array(z.string().max(40)).max(20).optional().describe('Up to 20 tags, each <=40 chars.'),
+        slug: z
+          .string()
+          .min(1)
+          .max(120)
+          .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'lowercase letters, digits and single hyphens')
+          .optional()
+          .describe('URL slug: lowercase letters, digits and single hyphens, 1-120 chars. Must be unique.'),
+        content: tiptapDocInput.optional().describe('The full Tiptap doc ({ type:"doc", content:[...] }). Same vocabulary as book pages — see the content model above. Run validate_content first.'),
+      },
+    },
+    async ({ id, ...patch }) => run(() => api.patch(`/articles/${seg(id)}`, patch)),
+  );
+
   // ── validate_content (local — no API call) ───────────────────────────────────
   server.registerTool(
     'validate_content',
     {
-      title: 'Validate page content',
+      title: 'Validate content',
       description:
-        'Locally validate a Tiptap doc against the editor’s real ProseMirror schema BEFORE saving via update_page. ' +
+        'Locally validate a Tiptap doc against the editor’s real ProseMirror schema BEFORE saving via update_page or update_article. ' +
         'Reports unknown node/mark types, content-model violations, content that would be silently DROPPED on save, and ' +
         'out-of-range enum attrs (callout.tone, divider.variant, captionedImage.align). Returns { ok, errors:[{path,kind,detail}] }. ' +
         'Residual: callout.icon name validity is NOT checked (an unknown icon persists and the web reader falls back gracefully).',

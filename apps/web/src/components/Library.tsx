@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { isHttpUrl, type WorkSummary } from '@blockpress/shared';
+import { isHttpUrl, type ArticleSummary, type BookSummary } from '@blockpress/shared';
 import { Icons } from './icons';
 import { BookCover } from './ui/BookCover';
 
@@ -55,83 +55,62 @@ function Empty() {
   );
 }
 
-function Card({
-  work,
-  onOpen,
-  onRead,
+/** Shared card chrome: delete button, footer status + read action. */
+function CardShell({
+  title,
+  status,
+  deleteLabel,
   onDelete,
+  onRead,
+  cover,
+  meta,
+  footExtra,
+  onOpen,
 }: {
-  work: WorkSummary;
-  onOpen: (work: WorkSummary) => void;
-  onRead: (work: WorkSummary) => void;
-  onDelete?: (work: WorkSummary) => void;
+  title: string;
+  status: 'draft' | 'published';
+  deleteLabel: string;
+  onDelete?: () => void;
+  onRead: () => void;
+  cover: ReactNode;
+  meta: ReactNode;
+  footExtra?: ReactNode;
+  onOpen: () => void;
 }) {
   return (
     <div className="work-card">
       {onDelete && (
         <button
           className="wc-del"
-          aria-label={`Delete ${work.title}`}
-          title={`Delete ${work.kind}`}
+          aria-label={`Delete ${title}`}
+          title={deleteLabel}
           onClick={(e) => {
             e.stopPropagation();
-            onDelete(work);
+            onDelete();
           }}
         >
           <Icons.Trash />
         </button>
       )}
-      <button className="wc-open" onClick={() => onOpen(work)}>
+      <button className="wc-open" onClick={onOpen}>
         <div className="cover-wrap">
-          {work.kind === 'book' ? (
-            <BookCover work={work} className="cover" />
-          ) : (
-            <div className="doc-glyph">
-              <Icons.Doc />
-            </div>
-          )}
-          <div className="wc-meta">
-            <h3>{work.title}</h3>
-            <div className="byline">
-              {work.author}
-              {work.year ? ` · ${work.year}` : ''}
-            </div>
-            <span className="kind-tag">
-              {work.kind === 'book' ? <Icons.Book /> : <Icons.Doc />}
-              {work.kind}
-            </span>
-          </div>
+          {cover}
+          {meta}
         </div>
       </button>
       <div className="wc-foot">
-        <span className={'status ' + work.status}>
+        <span className={'status ' + status}>
           <span className="led" />
-          {work.status === 'published' ? 'Published' : 'Draft'}
+          {status === 'published' ? 'Published' : 'Draft'}
         </span>
         <span className="dot" />
-        {work.kind === 'book' ? (
-          <span>{work.pageCount} pages</span>
-        ) : (
-          <span>{work.wordCount.toLocaleString()} words</span>
-        )}
-        {work.kind === 'book' && work.buyLink && isHttpUrl(work.buyLink) && (
-          <a
-            className="wc-buy"
-            href={work.buyLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`Buy ${work.title}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Icons.Cart /> Buy
-          </a>
-        )}
+        {footExtra}
         <button
           className="wc-read"
-          aria-label={`Read ${work.title}`}
+          aria-label={`Read ${title}`}
           onClick={(e) => {
             e.stopPropagation();
-            onRead(work);
+            onRead();
           }}
         >
           <Icons.Eye /> Read
@@ -141,5 +120,101 @@ function Card({
   );
 }
 
-export const LibraryRoot = Object.assign(Library, { Hero, Tabs, Grid, Empty, Card });
+function BookCard({
+  book,
+  onOpen,
+  onRead,
+  onDelete,
+}: {
+  book: BookSummary;
+  onOpen: (book: BookSummary) => void;
+  onRead: (book: BookSummary) => void;
+  onDelete?: (book: BookSummary) => void;
+}) {
+  return (
+    <CardShell
+      title={book.title}
+      status={book.status}
+      deleteLabel="Delete book"
+      onDelete={onDelete ? () => onDelete(book) : undefined}
+      onRead={() => onRead(book)}
+      onOpen={() => onOpen(book)}
+      cover={<BookCover book={book} className="cover" />}
+      meta={
+        <div className="wc-meta">
+          <h3>{book.title}</h3>
+          <div className="byline">
+            {book.author}
+            {book.year ? ` · ${book.year}` : ''}
+          </div>
+          <span className="kind-tag">
+            <Icons.Book />
+            book
+          </span>
+        </div>
+      }
+      footExtra={
+        <>
+          <span>{book.pageCount} pages</span>
+          {book.buyLink && isHttpUrl(book.buyLink) && (
+            <a
+              className="wc-buy"
+              href={book.buyLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Buy ${book.title}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Icons.Cart /> Buy
+            </a>
+          )}
+        </>
+      }
+    />
+  );
+}
+
+function ArticleCard({
+  article,
+  onOpen,
+  onRead,
+  onDelete,
+}: {
+  article: ArticleSummary;
+  onOpen: (article: ArticleSummary) => void;
+  onRead: (article: ArticleSummary) => void;
+  onDelete?: (article: ArticleSummary) => void;
+}) {
+  return (
+    <CardShell
+      title={article.title}
+      status={article.status}
+      deleteLabel="Delete article"
+      onDelete={onDelete ? () => onDelete(article) : undefined}
+      onRead={() => onRead(article)}
+      onOpen={() => onOpen(article)}
+      cover={
+        <div className="doc-glyph">
+          <Icons.Doc />
+        </div>
+      }
+      meta={
+        <div className="wc-meta">
+          <h3>{article.title}</h3>
+          <div className="byline">
+            {article.author}
+            {article.year ? ` · ${article.year}` : ''}
+          </div>
+          <span className="kind-tag">
+            <Icons.Doc />
+            article
+          </span>
+        </div>
+      }
+      footExtra={<span>{article.wordCount.toLocaleString()} words</span>}
+    />
+  );
+}
+
+export const LibraryRoot = Object.assign(Library, { Hero, Tabs, Grid, Empty, BookCard, ArticleCard });
 export { LibraryRoot as Library };

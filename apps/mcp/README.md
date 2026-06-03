@@ -4,7 +4,7 @@ A [Model Context Protocol](https://modelcontextprotocol.io) server that lets an 
 **create and edit Blockpress books and articles — but only ever as drafts.** It runs as a
 long-lived service speaking MCP over the **Streamable HTTP** transport (`POST /mcp`), and calls
 the existing Blockpress REST API using a **scoped, draft-only API key**. The key carries
-`works:write` only, so the agent is *physically unable* to publish or delete content: those
+`content:write` only, so the agent is *physically unable* to publish or delete content: those
 operations return **403** at the API, regardless of what the client tries.
 
 There is intentionally **no publish, status, or delete tool** in this server, and the
@@ -37,7 +37,7 @@ A key is owned by a real Blockpress user; drafts the agent creates are authored 
 Two ways to mint one:
 
 **Web UI (recommended).** Sign in to the Blockpress web app → **API Keys** → **Create key**.
-Give it a name (e.g. `MCP draft agent`), keep the default scope `works:write`, optionally set
+Give it a name (e.g. `MCP draft agent`), keep the default scope `content:write`, optionally set
 an expiry. The raw key is shown **exactly once** — copy it; you'll hand it to your MCP client in
 [§4](#4-connect-a-client). It is never shown again (only its sha256 hash is stored).
 
@@ -48,12 +48,13 @@ with a user **Bearer** token:
 curl -X POST http://localhost:3001/api-keys \
   -H 'Authorization: Bearer <your-jwt-access-token>' \
   -H 'Content-Type: application/json' \
-  -d '{"name":"MCP draft agent","scopes":["works:write"]}'
+  -d '{"name":"MCP draft agent","scopes":["content:write"]}'
 # → { ..., "prefix":"bp_1a2b3", "rawKey":"bp_<64-hex>" }   ← copy rawKey ONCE
 ```
 
-Scopes are a fixed enum: `works:write` (create + edit drafts — what you want),
-`works:publish`, `works:delete`. A draft-only key uses **only** `works:write`.
+Scopes are a fixed enum: `content:write` (create + edit drafts — what you want),
+`content:publish`, `content:delete`. A draft-only key uses **only** `content:write`.
+These scopes govern both books and articles.
 To revoke: `DELETE /api-keys/:id` (or the **Revoke** button) — the key then 401s immediately.
 
 ## 3. Run it
@@ -131,27 +132,45 @@ every key is scoped to drafts and individually revocable. Still, before exposing
 
 ## 5. Tools
 
+**Books** (chapter → page tree):
+
 | Tool                | REST mapping            | Notes                                                              |
 | ------------------- | ----------------------- | ------------------------------------------------------------------ |
-| `list_works`        | `GET /works`            | Filters `kind` / `status` are **read-only filtering**, not publishing. |
-| `get_work`          | `GET /works/:id`        | Full chapter/page tree — where chapter ids + page ids come from.   |
-| `create_work`       | `POST /works`           | Always a DRAFT. Returns a summary **without** the tree → call `get_work` next for chapter ids. |
-| `update_work`       | `PATCH /works/:id`      | Metadata only. **No `status` field** — cannot publish.            |
-| `add_chapter`       | `POST /works/:id/chapters` | Returns the chapter with its id.                               |
+| `list_books`        | `GET /books`            | Filter by `status` is **read-only filtering**, not publishing.    |
+| `get_book`          | `GET /books/:id`        | Full chapter/page tree — where chapter ids + page ids come from.   |
+| `create_book`       | `POST /books`           | Always a DRAFT. Returns a summary **without** the tree → call `get_book` next for chapter ids. |
+| `update_book`       | `PATCH /books/:id`      | Metadata only (incl. `buyLink`). **No `status` field** — cannot publish. |
+| `add_chapter`       | `POST /books/:id/chapters` | Returns the chapter with its id.                               |
 | `update_chapter`    | `PATCH /chapters/:id`   | Title / order.                                                    |
 | `get_page`          | `GET /pages/:id`        | Returns the **stored content** — read-modify-write base.          |
 | `add_page`          | `POST /chapters/:id/pages` | Returns the page with id + a blank starter doc.               |
 | `update_page`       | `PATCH /pages/:id`      | Title / `content` (Tiptap doc) / order. **No `status` field.**    |
-| `validate_content`  | local (no API call)     | Validates a doc against the real ProseMirror schema before saving. |
 
-There is intentionally **NO publish/status/delete tool** in v1. `validate_content` **IS**
-included — it is local-only and never mutates anything.
+**Articles** (single-page — one Tiptap `content` doc, NO chapters/pages, NO buyLink):
 
-## 6. Page content vocabulary
+| Tool                | REST mapping              | Notes                                                            |
+| ------------------- | ------------------------- | ---------------------------------------------------------------- |
+| `create_article`    | `POST /articles`          | Always a DRAFT. Returns the created article summary (id + slug). |
+| `list_articles`     | `GET /articles`           | Filter by `status` is **read-only filtering**, not publishing.   |
+| `get_article`       | `GET /articles/:idOrSlug` | Returns the **stored content** — read-modify-write base (by id or slug). |
+| `update_article`    | `PATCH /articles/:id`     | Metadata + `slug` + `content` (same vocabulary as book pages). **No `status` field** — cannot publish. |
 
-`update_page` content is a Tiptap (ProseMirror) JSON document. The editor's StarterKit has
-`blockquote` and `codeBlock` **disabled** and adds four custom nodes plus the table family, so
-the supported set is:
+**Local:**
+
+| Tool                | REST mapping            | Notes                                                              |
+| ------------------- | ----------------------- | ------------------------------------------------------------------ |
+| `validate_content`  | local (no API call)     | Validates a doc against the real ProseMirror schema before saving (pages **and** articles). |
+
+There is intentionally **NO publish/status/delete tool** in v1, for either books or articles.
+`validate_content` **IS** included — it is local-only and never mutates anything.
+
+## 6. Content vocabulary (book pages AND articles)
+
+Both `update_page` (a book page) and `update_article` (a single-page article) take a Tiptap
+(ProseMirror) JSON document as their `content` — the **exact same vocabulary**. A book is a
+chapter → page tree; an article is one standalone `content` doc with no chapters or pages. The
+editor's StarterKit has `blockquote` and `codeBlock` **disabled** and adds four custom nodes
+plus the table family, so the supported set is:
 
 **Block nodes** (children of `doc`):
 
@@ -205,7 +224,8 @@ A text node: `{ type:"text", text:"hello", marks:[{ type:"bold" }] }`.
 }
 ```
 
-**Recommended flow:** `get_page` → edit the returned doc → `validate_content` → `update_page`.
+**Recommended flow (pages):** `get_page` → edit the returned doc → `validate_content` → `update_page`.
+**Recommended flow (articles):** `get_article` → edit the returned doc → `validate_content` → `update_article`.
 
 ## 7. Known residuals (v1)
 
@@ -214,5 +234,5 @@ A text node: `{ type:"text", text:"hello", marks:[{ type:"bold" }] }`.
   icon registry lives in `apps/web`, so an unknown icon name (e.g. `"FakeIcon"`) is **not**
   flagged — it persists and the web reader falls back to a default icon.
 - The round-trip drop-diff is heuristic: it catches dropped/added node & mark *types*, not a
-  normalization that reorders or merges same-type content. Always `get_page` to read the
-  canonical persisted form.
+  normalization that reorders or merges same-type content. Always `get_page` / `get_article` to
+  read the canonical persisted form.

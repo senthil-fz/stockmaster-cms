@@ -1,38 +1,37 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { UpdateWorkInput, WorkDetail } from '@blockpress/shared';
-import { uploadsApi, worksApi } from '../lib/api';
+import type { BookDetail, UpdateBookInput } from '@blockpress/shared';
+import { booksApi, uploadsApi } from '../lib/api';
 import { useDebouncedCallback } from '../lib/useDebouncedCallback';
 import { Panel } from './Panel';
 import { BookCover } from './ui/BookCover';
 
 /**
- * Work-level editor (right panel). Edits cover, title/author/subtitle/year, and —
- * for books only — a buy link. Saves via worksApi.update (text fields debounced,
- * cover/buy-link saved on commit). Buy link is books-only by UI; the API accepts it
- * on any work but only books surface it.
+ * Book-level editor (right panel). Edits cover, title/author/subtitle/year, and a
+ * buy link. Saves via booksApi.update (text fields debounced, cover/buy-link saved
+ * on commit).
  */
-export function WorkSettings({ work, onClose }: { work: WorkDetail; onClose: () => void }) {
+export function BookSettings({ book, onClose }: { book: BookDetail; onClose: () => void }) {
   const qc = useQueryClient();
-  const isBook = work.kind === 'book';
-  const [title, setTitle] = useState(work.title);
-  const [author, setAuthor] = useState(work.author);
-  const [subtitle, setSubtitle] = useState(work.subtitle);
-  const [year, setYear] = useState(work.year);
-  const [buyLink, setBuyLink] = useState(work.buyLink ?? '');
+  const [title, setTitle] = useState(book.title);
+  const [author, setAuthor] = useState(book.author);
+  const [subtitle, setSubtitle] = useState(book.subtitle);
+  const [year, setYear] = useState(book.year);
+  const [slug, setSlug] = useState(book.slug ?? '');
+  const [buyLink, setBuyLink] = useState(book.buyLink ?? '');
   const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   const save = useMutation({
-    mutationFn: (patch: Partial<UpdateWorkInput>) => worksApi.update(work.id, patch),
+    mutationFn: (patch: Partial<UpdateBookInput>) => booksApi.update(book.id, patch),
     onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ['work', work.id] });
-      await qc.invalidateQueries({ queryKey: ['works'] });
+      await qc.invalidateQueries({ queryKey: ['book', book.id] });
+      await qc.invalidateQueries({ queryKey: ['books'] });
     },
     onError: () => setErr('Save failed'),
   });
   const debouncedSave = useDebouncedCallback(
-    (patch: Partial<UpdateWorkInput>) => save.mutate(patch),
+    (patch: Partial<UpdateBookInput>) => save.mutate(patch),
     600,
   );
 
@@ -47,6 +46,25 @@ export function WorkSettings({ work, onClose }: { work: WorkDetail; onClose: () 
       setErr('Cover upload failed (PNG/JPEG/WebP/GIF/AVIF, ≤15MB)');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const commitSlug = async () => {
+    const v = slug.trim().toLowerCase();
+    if (!v || v === (book.slug ?? '')) {
+      setErr(null);
+      return;
+    }
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(v)) {
+      setErr('Slug must be lowercase letters, digits and single hyphens');
+      return;
+    }
+    setErr(null);
+    try {
+      const updated = await save.mutateAsync({ slug: v });
+      setSlug(updated.slug ?? v); // server may de-dupe (e.g. add -2); reflect the stored value
+    } catch {
+      /* onError already set the message */
     }
   };
 
@@ -72,19 +90,14 @@ export function WorkSettings({ work, onClose }: { work: WorkDetail; onClose: () 
 
   return (
     <Panel>
-      <Panel.Head
-        icon={isBook ? 'Book' : 'Doc'}
-        title={isBook ? 'Book details' : 'Article details'}
-        subtitle={work.title}
-        onClose={onClose}
-      />
+      <Panel.Head icon="Book" title="Book details" subtitle={book.title} onClose={onClose} />
 
       <Panel.Section label="Cover">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>
-          <BookCover work={work} className="cover" />
+          <BookCover book={book} className="cover" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
             <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
-              {uploading ? 'Uploading…' : work.coverUrl ? 'Replace cover' : 'Upload cover'}
+              {uploading ? 'Uploading…' : book.coverUrl ? 'Replace cover' : 'Upload cover'}
               <input
                 type="file"
                 accept="image/png,image/jpeg,image/gif,image/webp,image/avif"
@@ -92,7 +105,7 @@ export function WorkSettings({ work, onClose }: { work: WorkDetail; onClose: () 
                 onChange={(e) => onCover(e.target.files?.[0])}
               />
             </label>
-            {work.coverUrl && (
+            {book.coverUrl && (
               <button className="btn btn-ghost" onClick={() => save.mutate({ coverUrl: null })}>
                 Remove cover
               </button>
@@ -144,22 +157,35 @@ export function WorkSettings({ work, onClose }: { work: WorkDetail; onClose: () 
         </Panel.Field>
       </Panel.Section>
 
-      {isBook && (
-        <Panel.Section label="Buy link">
-          <Panel.Field label="Purchase URL">
-            <input
-              className="input"
-              value={buyLink}
-              placeholder="https://…"
-              onChange={(e) => setBuyLink(e.target.value)}
-              onBlur={commitBuyLink}
-            />
-          </Panel.Field>
-          <p className="muted" style={{ fontSize: 12, margin: '4px 0 0', lineHeight: 1.4 }}>
-            Shown as a “Buy” button on the book card and reader.
-          </p>
-        </Panel.Section>
-      )}
+      <Panel.Section label="Web address">
+        <Panel.Field label="URL slug">
+          <input
+            className="input"
+            value={slug}
+            placeholder="my-book-title"
+            onChange={(e) => setSlug(e.target.value)}
+            onBlur={commitSlug}
+          />
+        </Panel.Field>
+        <p className="muted" style={{ fontSize: 12, margin: '4px 0 0', lineHeight: 1.4 }}>
+          Lowercase letters, digits and hyphens — used for clean book URLs.
+        </p>
+      </Panel.Section>
+
+      <Panel.Section label="Buy link">
+        <Panel.Field label="Purchase URL">
+          <input
+            className="input"
+            value={buyLink}
+            placeholder="https://…"
+            onChange={(e) => setBuyLink(e.target.value)}
+            onBlur={commitBuyLink}
+          />
+        </Panel.Field>
+        <p className="muted" style={{ fontSize: 12, margin: '4px 0 0', lineHeight: 1.4 }}>
+          Shown as a “Buy” button on the book card and reader.
+        </p>
+      </Panel.Section>
 
       {err && (
         <Panel.Section>

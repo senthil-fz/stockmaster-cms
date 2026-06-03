@@ -1,12 +1,24 @@
 import { z } from 'zod';
 import { tiptapDocSchema } from './tiptap';
 
-/** Wire enums — lowercase to match Prisma enum values exactly (no mapping needed). */
-export const workKindSchema = z.enum(['book', 'article']);
-export type WorkKind = z.infer<typeof workKindSchema>;
-
+/** Wire enum — lowercase to match the Prisma enum values exactly (no mapping needed). */
 export const publishStatusSchema = z.enum(['draft', 'published']);
 export type PublishStatus = z.infer<typeof publishStatusSchema>;
+
+/** URL-friendly slug: lowercase letters, digits and single hyphens (shared by books + articles). */
+export const slugSchema = z
+  .string()
+  .min(1)
+  .max(120)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'must be lowercase letters, digits and single hyphens');
+
+/**
+ * A URL restricted to the http(s) scheme. z.string().url() alone also accepts
+ * `javascript:`/`data:`, which become stored-XSS when rendered into an href, so
+ * the scheme is allowlisted server-side here. Exported so articles reuse it.
+ */
+export const isHttpUrl = (value: string): boolean => /^https?:\/\//i.test(value.trim());
+export const httpUrl = z.string().url().max(2000).refine(isHttpUrl, 'Must be an http(s) URL');
 
 // ─── Read models ──────────────────────────────────────────────────────────────
 
@@ -28,23 +40,23 @@ export type Page = z.infer<typeof pageSchema>;
 
 export const chapterSchema = z.object({
   id: z.string(),
-  workId: z.string(),
+  bookId: z.string(),
   title: z.string(),
   order: z.number().int(),
   pages: z.array(pageSummarySchema),
 });
 export type Chapter = z.infer<typeof chapterSchema>;
 
-export const workSummarySchema = z.object({
+export const bookSummarySchema = z.object({
   id: z.string(),
-  kind: workKindSchema,
+  slug: z.string().nullable(),
   title: z.string(),
   subtitle: z.string(),
   author: z.string(),
   year: z.string(),
   coverTone: z.string(),
   coverUrl: z.string().nullable(),
-  /** External purchase URL. Only meaningful for books; null/absent for articles. */
+  /** External purchase URL (books only). */
   buyLink: z.string().nullable(),
   status: publishStatusSchema,
   tags: z.array(z.string()),
@@ -53,30 +65,21 @@ export const workSummarySchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
 });
-export type WorkSummary = z.infer<typeof workSummarySchema>;
+export type BookSummary = z.infer<typeof bookSummarySchema>;
 
-export const workDetailSchema = workSummarySchema.extend({
+export const bookDetailSchema = bookSummarySchema.extend({
   chapters: z.array(chapterSchema),
 });
-export type WorkDetail = z.infer<typeof workDetailSchema>;
+export type BookDetail = z.infer<typeof bookDetailSchema>;
 
 // ─── Write models (request DTOs) ────────────────────────────────────────────────
 
-export const createWorkSchema = z.object({
-  kind: workKindSchema,
+export const createBookSchema = z.object({
   title: z.string().min(1).max(200).optional(),
 });
-export type CreateWorkInput = z.infer<typeof createWorkSchema>;
+export type CreateBookInput = z.infer<typeof createBookSchema>;
 
-/**
- * A URL restricted to the http(s) scheme. z.string().url() alone also accepts
- * `javascript:`/`data:`, which become stored-XSS when rendered into an href, so
- * the scheme is allowlisted server-side here.
- */
-export const isHttpUrl = (value: string): boolean => /^https?:\/\//i.test(value.trim());
-const httpUrl = z.string().url().max(2000).refine(isHttpUrl, 'Must be an http(s) URL');
-
-export const updateWorkSchema = z
+export const updateBookSchema = z
   .object({
     title: z.string().min(1).max(200),
     subtitle: z.string().max(300),
@@ -84,13 +87,13 @@ export const updateWorkSchema = z
     year: z.string().max(12),
     coverTone: z.string().max(40),
     coverUrl: httpUrl.nullable(),
-    /** Books only (UI-enforced). Empty input is sent as null. */
     buyLink: httpUrl.nullable(),
+    slug: slugSchema,
     status: publishStatusSchema,
     tags: z.array(z.string().max(40)).max(20),
   })
   .partial();
-export type UpdateWorkInput = z.infer<typeof updateWorkSchema>;
+export type UpdateBookInput = z.infer<typeof updateBookSchema>;
 
 export const createChapterSchema = z.object({
   title: z.string().min(1).max(200).optional(),
@@ -120,14 +123,13 @@ export const updatePageSchema = z
   .partial();
 export type UpdatePageInput = z.infer<typeof updatePageSchema>;
 
-/** Reorder a list of sibling entities (chapters within a work, pages within a chapter). */
+/** Reorder a list of sibling entities (chapters within a book, pages within a chapter). */
 export const reorderSchema = z.object({
   ids: z.array(z.string()).min(1),
 });
 export type ReorderInput = z.infer<typeof reorderSchema>;
 
-export const worksQuerySchema = z.object({
-  kind: workKindSchema.optional(),
+export const booksQuerySchema = z.object({
   status: publishStatusSchema.optional(),
 });
-export type WorksQuery = z.infer<typeof worksQuerySchema>;
+export type BooksQuery = z.infer<typeof booksQuerySchema>;

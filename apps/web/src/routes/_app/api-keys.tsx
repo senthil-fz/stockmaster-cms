@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ApiKeyScope, ApiKeySummary, CreateApiKeyResponse } from '@blockpress/shared';
 import { apiKeysApi, ApiError } from '../../lib/api';
-import { worksQueryOptions } from '../../lib/queries';
+import { booksQueryOptions } from '../../lib/queries';
 import { useAuth } from '../../lib/auth';
 import { AppShell } from '../../components/AppShell';
 import { WorkspaceSidebar } from '../../components/WorkspaceSidebar';
@@ -15,12 +15,12 @@ export const Route = createFileRoute('/_app/api-keys')({
   component: ApiKeysPage,
 });
 
-// The full scope catalogue, in the order the create form lists it. `works:write` is the
+// The full scope catalogue, in the order the create form lists it. `content:write` is the
 // safe default a draft-only MCP key needs; publish/delete are deliberately opt-in.
 const SCOPES: { value: ApiKeyScope; label: string; hint: string }[] = [
-  { value: 'works:write', label: 'works:write', hint: 'Create and edit draft content' },
-  { value: 'works:publish', label: 'works:publish', hint: 'Publish and edit published content' },
-  { value: 'works:delete', label: 'works:delete', hint: 'Delete works, chapters and pages' },
+  { value: 'content:write', label: 'content:write', hint: 'Create and edit draft books and articles' },
+  { value: 'content:publish', label: 'content:publish', hint: 'Publish and edit published content' },
+  { value: 'content:delete', label: 'content:delete', hint: 'Delete books, articles, chapters and pages' },
 ];
 
 const fmtDate = (d: string | null): string =>
@@ -63,9 +63,9 @@ function ApiKeysPage() {
     queryFn: () => apiKeysApi.list(),
   });
 
-  // Works power the shared workspace sidebar counts, so the menu stays identical
+  // Books power the shared workspace sidebar counts, so the menu stays identical
   // to the Library — only the active highlight and content change here.
-  const { data: works = [] } = useQuery(worksQueryOptions());
+  const { data: books = [] } = useQuery(booksQueryOptions());
 
   const [showCreate, setShowCreate] = useState(false);
   // The raw secret is held ONLY here, for the lifetime of the reveal modal. It is never
@@ -96,7 +96,7 @@ function ApiKeysPage() {
         sidebar={() => (
           <WorkspaceSidebar
             user={auth.user!}
-            works={works}
+            count={books.length}
             active="api-keys"
             onTab={(t) => void navigate({ to: '/', hash: t })}
             onOpenApiKeys={() => undefined}
@@ -227,7 +227,7 @@ function CreateKeyModal({
 }) {
   const [name, setName] = useState('');
   // Default to the draft-only scope — the common MCP case.
-  const [scopes, setScopes] = useState<ApiKeyScope[]>(['works:write']);
+  const [scopes, setScopes] = useState<ApiKeyScope[]>(['content:write']);
   // Bound to <input type="datetime-local">, which yields a NAIVE local string. We convert it
   // to an absolute UTC/ISO instant on submit so the server's future-date check can't skew.
   const [expiresLocal, setExpiresLocal] = useState('');

@@ -62,21 +62,21 @@ export class ReadTrackingInterceptor implements NestInterceptor {
     client: string,
   ): Promise<void> {
     if (!id) return;
-    let workId: string | null = null;
+    let bookId: string | null = null;
     let pageId: string | null = null;
 
     if (kind === 'book_open') {
-      workId = id;
+      bookId = id;
     } else {
       pageId = id;
       const page = await this.prisma.page.findUnique({
         where: { id },
-        select: { chapter: { select: { workId: true } } },
+        select: { chapter: { select: { bookId: true } } },
       });
-      workId = page?.chapter.workId ?? null;
+      bookId = page?.chapter.bookId ?? null;
     }
-    if (!workId) return; // book no longer exists — nothing to attribute
+    if (!bookId) return; // book no longer exists — nothing to attribute
 
-    await this.prisma.readEvent.create({ data: { workId, pageId, userId, client, kind } });
+    await this.prisma.readEvent.create({ data: { bookId, pageId, userId, client, kind } });
   }
 }
