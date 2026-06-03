@@ -80,9 +80,9 @@ export function WorkSettings({ work, onClose }: { work: WorkDetail; onClose: () 
       />
 
       <Panel.Section label="Cover">
-        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>
           <BookCover work={work} className="cover" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
             <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
               {uploading ? 'Uploading…' : work.coverUrl ? 'Replace cover' : 'Upload cover'}
               <input
