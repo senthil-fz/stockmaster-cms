@@ -17,7 +17,9 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc ./
 COPY apps/api/package.json        apps/api/package.json
 COPY apps/web/package.json        apps/web/package.json
 COPY apps/extractor/package.json  apps/extractor/package.json
+COPY apps/mcp/package.json        apps/mcp/package.json
 COPY packages/shared/package.json packages/shared/package.json
+COPY packages/editor-schema/package.json packages/editor-schema/package.json
 # The api's `postinstall: prisma generate` needs the schema present at install.
 COPY apps/api/prisma apps/api/prisma
 

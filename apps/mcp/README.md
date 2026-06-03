@@ -1,10 +1,11 @@
 # @blockpress/mcp — draft-only MCP server
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server that lets an AI agent
-**create and edit Blockpress books and articles — but only ever as drafts.** It calls the
-existing Blockpress REST API over stdio-launched HTTP using a **scoped, draft-only API key**.
-The key carries `works:write` only, so the agent is *physically unable* to publish or delete
-content: those operations return **403** at the API, regardless of what the client tries.
+**create and edit Blockpress books and articles — but only ever as drafts.** It runs as a
+long-lived service speaking MCP over the **Streamable HTTP** transport (`POST /mcp`), and calls
+the existing Blockpress REST API using a **scoped, draft-only API key**. The key carries
+`works:write` only, so the agent is *physically unable* to publish or delete content: those
+operations return **403** at the API, regardless of what the client tries.
 
 There is intentionally **no publish, status, or delete tool** in this server, and the
 `update_*` tools deliberately omit the `status` field. The 403 is the backstop; the missing
@@ -18,8 +19,10 @@ Copy `.env.example` and fill in the two variables (see [.env.example](./.env.exa
 
 | Variable             | Meaning                                                              |
 | -------------------- | ------------------------------------------------------------------- |
-| `BLOCKPRESS_API_URL` | Base URL of the running NestJS API, e.g. `http://localhost:3001`.   |
+| `BLOCKPRESS_API_URL` | Base URL of the running NestJS API. `http://localhost:3001` on the host; `http://api:3001` from inside the docker network. |
 | `BLOCKPRESS_API_KEY` | The raw draft-only key (shown once at mint time). Begins with `bp_`. |
+| `MCP_HTTP_PORT`      | Port the Streamable HTTP server listens on (default `3002`).        |
+| `MCP_ALLOWED_HOSTS`  | *(optional, production)* comma-separated allowlist of `Host` headers; setting it enables DNS-rebinding protection, e.g. `mcp.example.com`. |
 
 The server sends `Authorization: ApiKey <BLOCKPRESS_API_KEY>` on **every** request. It never
 touches Postgres directly — all validation, serializers, word-count, and read-tracking run in
@@ -50,64 +53,75 @@ Scopes are a fixed enum: `works:write` (create + edit drafts — what you want),
 `works:publish`, `works:delete`. A draft-only key uses **only** `works:write`.
 To revoke: `DELETE /api-keys/:id` (or the **Revoke** button) — the key then 401s immediately.
 
-## 3. Build and run
+## 3. Run it
+
+**Docker (recommended)** — runs as the `mcp` service alongside the API/web stack. Set
+`BLOCKPRESS_MCP_KEY` in the repo-root `.env` to your draft-only key, then:
 
 ```bash
-pnpm --filter @blockpress/editor-schema build   # build the schema package first (apps/mcp consumes its dist)
-pnpm --filter @blockpress/mcp build             # tsc → dist/server.js (with #!/usr/bin/env node shebang)
+pnpm docker:up                        # docker compose --profile apps up -d --build
+curl http://localhost:3002/health     # { "ok": true, "transport": "streamable-http", ... }
 ```
 
-For local development (loads the repo-root `.env`):
+The compose `mcp` service reaches the API over the internal docker network (`api:3001`) and
+reads `BLOCKPRESS_MCP_KEY` from `.env`. The endpoint is then `http://localhost:3002/mcp`.
+
+**Standalone (no docker):**
 
 ```bash
-pnpm --filter @blockpress/mcp dev               # dotenv -e ../../.env -- ts-node src/server.ts
+pnpm --filter @blockpress/editor-schema build   # apps/mcp consumes its dist
+pnpm --filter @blockpress/mcp build             # tsc → dist/
+MCP_HTTP_PORT=3002 \
+BLOCKPRESS_API_URL=http://localhost:3001 \
+BLOCKPRESS_API_KEY=bp_your-draft-only-key \
+node dist/server.js
 ```
 
-## 4. Register with an agent host (stdio)
+## 4. Connect a client
 
-The server speaks MCP over **stdio**. Add it to your agent host's MCP config.
+The server is reachable by **URL** — no per-session process spawn. Point any MCP client at the
+Streamable HTTP endpoint `http://localhost:3002/mcp`.
 
-**Claude Desktop** — `claude_desktop_config.json`:
+**Claude Code:**
+
+```bash
+claude mcp add --transport http blockpress-draft http://localhost:3002/mcp
+claude mcp list                       # verify it's connected
+# in a session, /mcp lists the tools
+```
+
+**`.mcp.json` / `claude_desktop_config.json` (URL form):**
 
 ```json
 {
   "mcpServers": {
-    "blockpress-draft": {
-      "command": "node",
-      "args": ["/absolute/path/to/blockpress/apps/mcp/dist/server.js"],
-      "env": {
-        "BLOCKPRESS_API_URL": "http://localhost:3001",
-        "BLOCKPRESS_API_KEY": "bp_your-raw-draft-only-key"
-      }
-    }
+    "blockpress-draft": { "type": "http", "url": "http://localhost:3002/mcp" }
   }
 }
 ```
 
-**Claude Code** — Claude Code reads the **same `mcpServers` shape** from a project-level
-`.mcp.json` (in your repo root). Use the identical snippet, env block included:
+> The server uses **stateful** Streamable HTTP — it mints an `Mcp-Session-Id` on `initialize`
+> and clients carry it automatically. `POST /mcp` is the protocol endpoint; `GET /health` is a
+> liveness check; logs go to stderr.
 
-```json
-{
-  "mcpServers": {
-    "blockpress-draft": {
-      "command": "node",
-      "args": ["/absolute/path/to/blockpress/apps/mcp/dist/server.js"],
-      "env": {
-        "BLOCKPRESS_API_URL": "http://localhost:3001",
-        "BLOCKPRESS_API_KEY": "bp_your-raw-draft-only-key"
-      }
-    }
-  }
-}
+### Deploying behind a domain
+
+In production, run the container and front it with a TLS reverse proxy:
+
+```
+https://mcp.example.com  →  reverse proxy (nginx/Caddy/Traefik, TLS)  →  mcp container :3002
 ```
 
-To run from source instead of the built `dist/server.js`, point `command`/`args` at the dev
-script — `"command": "pnpm", "args": ["--filter", "@blockpress/mcp", "dev"]` — which loads the
-repo-root `.env` for the two variables (so the `env` block above can be omitted).
+Clients then use `https://mcp.example.com/mcp`
+(`claude mcp add --transport http blockpress https://mcp.example.com/mcp`).
 
-> stdout is the transport — the server logs **only to stderr**. Do not pipe anything into
-> stdout when launching it.
+**Secure it first.** This endpoint carries one API key, so anyone who can reach the URL can use
+it. Before exposing it publicly:
+
+- Put **auth in front of it** — a bearer token your proxy validates (clients pass it via a
+  header; Claude Code: `--header "Authorization: Bearer <token>"`), or OAuth.
+- Set `MCP_ALLOWED_HOSTS=mcp.example.com` to enable **DNS-rebinding (Host header) protection**.
+- Serve over **HTTPS only**.
 
 ## 5. Tools
 

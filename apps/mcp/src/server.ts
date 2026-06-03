@@ -2,26 +2,27 @@
 /**
  * Blockpress draft-only MCP server entry point.
  *
- * Speaks MCP over stdio (stdin/stdout IS the transport), so this process must write
- * NOTHING to stdout except the protocol stream. All diagnostics go to stderr.
+ * Speaks MCP over the Streamable HTTP transport: a long-lived service reachable by URL
+ * (POST /mcp), e.g. a Docker container behind a domain. Clients connect with
+ * `claude mcp add --transport http <name> <url>` (or any MCP client's HTTP option).
  *
- * Launched by an agent host (Claude Desktop / Claude Code) with BLOCKPRESS_API_URL and
- * BLOCKPRESS_API_KEY in the environment. Every tool maps to the Blockpress REST API and
- * the credential is a draft-only ApiKey, so the agent physically cannot publish or delete.
+ * Every tool maps to the Blockpress REST API using a draft-only ApiKey
+ * (BLOCKPRESS_API_URL / BLOCKPRESS_API_KEY), so the agent physically cannot publish or delete.
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { registerTools } from './tools';
+import { startHttpServer } from './http-transport';
 
-async function main(): Promise<void> {
+/** Build a fresh, fully-wired MCP server — one per HTTP session. */
+export function buildServer(): McpServer {
   const server = new McpServer({ name: 'blockpress-draft', version: '0.1.0' });
   registerTools(server);
+  return server;
+}
 
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-
-  // stderr only — stdout is the MCP stdio transport.
-  console.error('[blockpress-mcp] draft-only MCP server ready on stdio.');
+async function main(): Promise<void> {
+  const port = Number(process.env.MCP_HTTP_PORT ?? process.env.PORT ?? 3002);
+  await startHttpServer(buildServer, port);
 }
 
 main().catch((err) => {

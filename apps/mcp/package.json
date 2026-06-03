@@ -7,6 +7,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "start": "node dist/server.js",
     "dev": "dotenv -e ../../.env -- ts-node src/server.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
@@ -15,9 +16,11 @@
     "@blockpress/shared": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@tiptap/core": "^3.23.6",
+    "express": "^4.21.2",
     "zod": "^3.25.0"
   },
   "devDependencies": {
+    "@types/express": "^4.17.21",
     "@types/node": "^22.10.0",
     "dotenv-cli": "^8.0.0",
     "ts-node": "^10.9.2",
