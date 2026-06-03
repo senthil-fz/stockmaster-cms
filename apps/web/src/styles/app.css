@@ -1336,9 +1336,9 @@
    `.cover` class has no dimensions outside a `.work-card` and collapses to a
    flush-left strip; fix the size and clip images to a book aspect ratio. */
 .panel .cover {
-  width: 56px;
-  height: 76px;
-  border-radius: 6px;
+  width: 128px;
+  height: 176px;
+  border-radius: 8px;
   flex: none;
   object-fit: cover;
   box-shadow: var(--sh-sm);
