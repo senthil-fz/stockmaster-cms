@@ -22,11 +22,13 @@ const SCOPES: { value: ApiKeyScope; label: string; hint: string }[] = [
   { value: 'works:delete', label: 'works:delete', hint: 'Delete works, chapters and pages' },
 ];
 
-const fmtDate = (d: Date | null): string =>
-  d ? d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+const fmtDate = (d: string | null): string =>
+  d
+    ? new Date(d).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+    : '—';
 
 const isExpired = (k: ApiKeySummary): boolean =>
-  k.expiresAt !== null && k.expiresAt.getTime() <= Date.now();
+  k.expiresAt !== null && new Date(k.expiresAt).getTime() <= Date.now();
 
 function KeysSidebar({ user, onBack }: { user: User; onBack: () => void }) {
   return (

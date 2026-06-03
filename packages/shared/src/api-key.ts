@@ -36,10 +36,12 @@ export const apiKeySummarySchema = z.object({
   name: z.string(),
   prefix: z.string(),
   scopes: z.array(apiKeyScopeSchema),
-  lastUsedAt: z.date().nullable(),
-  revokedAt: z.date().nullable(),
-  expiresAt: z.date().nullable(),
-  createdAt: z.date(),
+  // Read-model dates are ISO strings over the wire (matches workSummarySchema);
+  // the API serializes Prisma Date objects to JSON before they reach any client.
+  lastUsedAt: z.string().nullable(),
+  revokedAt: z.string().nullable(),
+  expiresAt: z.string().nullable(),
+  createdAt: z.string(),
 });
 export type ApiKeySummary = z.infer<typeof apiKeySummarySchema>;
 
