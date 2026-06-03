@@ -1756,6 +1756,83 @@
   font-size: 13px;
   margin-bottom: 16px;
 }
+/* The bare success icon has no ancestor svg-sizing rule (unlike .btn svg etc.),
+   so constrain it here or it renders at the SVG default size. */
+.member-ok svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+/* ── Authors table ─────────────────────────────────────────────────────── */
+.author-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.author-cell .name {
+  font-weight: 600;
+}
+/* Badges use transparent-over-accent/amber mixes so they read natively in BOTH light and
+   dark themes (the --accent-soft token is mixed against white only, so it isn't theme-safe). */
+.you-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  background: color-mix(in oklch, var(--accent) 16%, transparent);
+  border: 1px solid color-mix(in oklch, var(--accent) 32%, transparent);
+  border-radius: var(--r-pill);
+  padding: 1px 8px;
+}
+.status-suspended {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--amber);
+  background: color-mix(in oklch, var(--amber) 14%, transparent);
+  border: 1px solid color-mix(in oklch, var(--amber) 32%, transparent);
+  border-radius: var(--r-pill);
+  padding: 1px 8px;
+}
+.authors-table tr.is-suspended .author-cell .name {
+  color: var(--text-tertiary);
+}
+.author-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+.author-actions .btn {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+/* Staggered reveal on load — animation-delay set inline per row index. */
+.authors-table tbody tr {
+  animation: author-row-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.authors-table tbody tr:hover {
+  background: var(--bg-hover);
+}
+@keyframes author-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .authors-table tbody tr {
+    animation: none;
+  }
+}
 
 /* ── Reporting dashboard ──────────────────────────────────────────────────── */
 .report {

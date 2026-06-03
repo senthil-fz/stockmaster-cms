@@ -13,6 +13,7 @@ import {
   pageSchema,
   uploadResponseSchema,
   userSchema,
+  usersListResponseSchema,
   type ApiKeyScope,
   type ArticlesQuery,
   type BooksQuery,
@@ -24,6 +25,7 @@ import {
   type SignupInput,
   type StatsQuery,
   type UpdateArticleInput,
+  type UpdateUserInput,
   type UpdateBookInput,
   type UpdatePageInput,
 } from '@stockmaster/shared';
@@ -149,8 +151,12 @@ export const authApi = {
 // Authenticated user management. Creating a user does NOT touch the current session's
 // access token — the signed-in creator stays themselves; the new user signs in later.
 export const usersApi = {
+  list: () => request('/auth/users', { schema: usersListResponseSchema }).then((r) => r.users),
   create: (input: SignupInput) =>
     request('/auth/users', { method: 'POST', body: input, schema: meResponseSchema }),
+  update: (id: string, input: UpdateUserInput) =>
+    request(`/auth/users/${id}`, { method: 'PATCH', body: input, schema: meResponseSchema }),
+  remove: (id: string) => request(`/auth/users/${id}`, { method: 'DELETE' }),
 };
 
 // Personal API keys for the MCP server (and other programmatic, draft-only callers).

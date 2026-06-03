@@ -9,7 +9,7 @@ import { AppShell } from '../components/AppShell';
 import { WorkspaceSidebar } from '../components/WorkspaceSidebar';
 import { Topbar } from '../components/Topbar';
 import { Library, type LibraryTab } from '../components/Library';
-import { AddMember } from '../components/AddMember';
+import { Authors } from '../components/Authors';
 import { ReportingDashboard } from '../components/ReportingDashboard';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Icons } from '../components/icons';
@@ -139,7 +139,7 @@ export function LibraryPage() {
           {tab === 'reporting' ? (
             <ReportingDashboard />
           ) : tab === 'authors' ? (
-            <AddMember />
+            <Authors currentUserId={auth.user!.id} />
           ) : (
             <Library>
               <Library.Hero>

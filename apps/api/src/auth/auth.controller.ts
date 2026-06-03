@@ -1,10 +1,10 @@
-import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, Res } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { Public } from '../common/decorators/public.decorator';
 import { JwtOnly } from '../common/decorators/scopes.decorator';
 import { CurrentUser, type AuthUser } from '../common/decorators/current-user.decorator';
 import { AuthService } from './auth.service';
-import { CreateUserDto, LoginDto } from './dto';
+import { CreateUserDto, LoginDto, UpdateUserDto } from './dto';
 
 const REFRESH_COOKIE = 'bp_refresh';
 const REFRESH_PATH = '/auth/refresh';
@@ -39,6 +39,33 @@ export class AuthController {
   @JwtOnly()
   async createUser(@Body() dto: CreateUserDto) {
     return this.auth.createUser(dto);
+  }
+
+  // List every account for the Authors table. JWT-only (like createUser): a draft-only
+  // ApiKey principal is rejected by ScopeGuard, so programmatic callers can't enumerate users.
+  @Get('users')
+  @JwtOnly()
+  async listUsers() {
+    return { users: await this.auth.listUsers() };
+  }
+
+  // Edit a member and/or toggle suspension. JWT-only; the acting user is passed so the
+  // service can forbid suspending your own account.
+  @Patch('users/:id')
+  @JwtOnly()
+  async updateUser(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.auth.updateUser(user.id, id, dto);
+  }
+
+  // Permanently delete a member. JWT-only; guards against deleting yourself / the last account.
+  @Delete('users/:id')
+  @JwtOnly()
+  async deleteUser(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+    return this.auth.deleteUser(user.id, id);
   }
 
   @Public()

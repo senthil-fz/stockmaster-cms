@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 import type { ArticlesQuery, BooksQuery, StatsQuery } from '@stockmaster/shared';
-import { articlesApi, booksApi, pagesApi, statsApi } from './api';
+import { articlesApi, booksApi, pagesApi, statsApi, usersApi } from './api';
 
 export const queryKeys = {
   books: (q: BooksQuery = {}) => ['books', q] as const,
@@ -10,6 +10,7 @@ export const queryKeys = {
   page: (id: string) => ['page', id] as const,
   statsBooks: (q: StatsQuery = {}) => ['stats', 'books', q] as const,
   statsBook: (id: string, q: StatsQuery = {}) => ['stats', 'book', id, q] as const,
+  users: () => ['users'] as const,
 };
 
 export const booksQueryOptions = (q: BooksQuery = {}) =>
@@ -32,3 +33,6 @@ export const statsBooksQueryOptions = (q: StatsQuery = {}) =>
 
 export const statsBookQueryOptions = (id: string, q: StatsQuery = {}) =>
   queryOptions({ queryKey: queryKeys.statsBook(id, q), queryFn: () => statsApi.bookDetail(id, q) });
+
+export const usersQueryOptions = () =>
+  queryOptions({ queryKey: queryKeys.users(), queryFn: () => usersApi.list() });

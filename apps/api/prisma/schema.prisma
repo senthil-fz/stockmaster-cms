@@ -17,13 +17,15 @@ enum PublishStatus {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
+  id           String    @id @default(cuid())
+  email        String    @unique
   passwordHash String
   name         String
-  avatarColor  String   @default("#7d8b6a")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  avatarColor  String    @default("#7d8b6a")
+  // null = active. When set, the account is suspended: login + token refresh are rejected.
+  suspendedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   books      Book[]
   articles   Article[]

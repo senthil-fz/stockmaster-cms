@@ -1,8 +1,14 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService, type JwtSignOptions } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import type { User as PrismaUser } from '@prisma/client';
-import type { LoginInput, SignupInput, User } from '@stockmaster/shared';
+import type { LoginInput, SignupInput, UpdateUserInput, User } from '@stockmaster/shared';
 import { PrismaService } from '../prisma/prisma.service';
 
 const AVATAR_COLORS = ['#7d8b6a', '#4f5bd5', '#c2683a', '#3f9b6b', '#2f7bf6', '#9a6dd7'];
@@ -41,6 +47,9 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('Invalid email or password');
     const ok = await bcrypt.compare(input.password, user.passwordHash);
     if (!ok) throw new UnauthorizedException('Invalid email or password');
+    // A suspended account cannot obtain new tokens (enforced here AND on refresh, so an
+    // already-issued access token dies within its <=15m TTL once the user is suspended).
+    if (user.suspendedAt) throw new UnauthorizedException('This account has been suspended');
     return { user: this.toUser(user), ...(await this.issueTokens(user)) };
   }
 
@@ -54,6 +63,7 @@ export class AuthService {
     }
     const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
     if (!user) throw new UnauthorizedException('User no longer exists');
+    if (user.suspendedAt) throw new UnauthorizedException('This account has been suspended');
     return this.issueTokens(user);
   }
 
@@ -61,6 +71,67 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException();
     return this.toUser(user);
+  }
+
+  /**
+   * Every account, oldest first — powers the Authors table. Returns only the public
+   * `User` view (toUser strips passwordHash); this is a shared workspace, so any
+   * signed-in member may list the team.
+   */
+  async listUsers(): Promise<User[]> {
+    const users = await this.prisma.user.findMany({ orderBy: { createdAt: 'asc' } });
+    return users.map((u) => this.toUser(u));
+  }
+
+  /**
+   * Edit a member (name/email/password) and/or toggle suspension. `actingUserId` is the
+   * signed-in caller — used to forbid self-suspension (which would lock yourself out).
+   */
+  async updateUser(actingUserId: string, targetId: string, input: UpdateUserInput): Promise<{ user: User }> {
+    const target = await this.prisma.user.findUnique({ where: { id: targetId } });
+    if (!target) throw new NotFoundException('User not found');
+
+    if (input.suspended !== undefined && targetId === actingUserId) {
+      throw new ForbiddenException('You cannot change the suspended state of your own account');
+    }
+
+    if (input.email && input.email !== target.email) {
+      const clash = await this.prisma.user.findUnique({ where: { email: input.email } });
+      if (clash) throw new ConflictException('That email is already registered');
+    }
+
+    const data: {
+      name?: string;
+      email?: string;
+      passwordHash?: string;
+      suspendedAt?: Date | null;
+    } = {};
+    if (input.name !== undefined) data.name = input.name;
+    if (input.email !== undefined) data.email = input.email;
+    if (input.password !== undefined) data.passwordHash = await bcrypt.hash(input.password, 10);
+    if (input.suspended !== undefined) data.suspendedAt = input.suspended ? new Date() : null;
+
+    const user = await this.prisma.user.update({ where: { id: targetId }, data });
+    return { user: this.toUser(user) };
+  }
+
+  /**
+   * Permanently delete a member. Their books/articles are kept (createdById → null via the
+   * schema's onDelete: SetNull); their API keys cascade-delete. Guards against deleting
+   * yourself (lock-out) or the last remaining account (an empty, unloginnable workspace).
+   */
+  async deleteUser(actingUserId: string, targetId: string): Promise<{ ok: true }> {
+    if (targetId === actingUserId) {
+      throw new ForbiddenException('You cannot delete your own account');
+    }
+    const target = await this.prisma.user.findUnique({ where: { id: targetId } });
+    if (!target) throw new NotFoundException('User not found');
+
+    const total = await this.prisma.user.count();
+    if (total <= 1) throw new ForbiddenException('Cannot delete the last remaining account');
+
+    await this.prisma.user.delete({ where: { id: targetId } });
+    return { ok: true };
   }
 
   private async issueTokens(user: PrismaUser): Promise<AuthTokens> {
@@ -85,6 +156,7 @@ export class AuthService {
       email: u.email,
       name: u.name,
       avatarColor: u.avatarColor,
+      suspendedAt: u.suspendedAt ? u.suspendedAt.toISOString() : null,
       createdAt: u.createdAt.toISOString(),
     };
   }
