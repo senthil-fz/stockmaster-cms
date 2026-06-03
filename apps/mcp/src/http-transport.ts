@@ -3,6 +3,16 @@ import express from 'express';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
+import { createApiClient, type ApiClient } from './api-client';
+
+/** Pull the draft-only key the client presents: `Authorization: Bearer <bp_key>` (or ApiKey). */
+function extractApiKey(req: express.Request): string | undefined {
+  const h = req.headers['authorization'];
+  if (typeof h !== 'string') return undefined;
+  const m = h.match(/^(?:Bearer|ApiKey)\s+(.+)$/i);
+  const token = (m ? m[1] : h).trim();
+  return token.length > 0 ? token : undefined;
+}
 
 /**
  * Serve the MCP server over the Streamable HTTP transport so it can run as a long-lived
@@ -17,14 +27,18 @@ import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
  * server rejects non-initialize requests (e.g. typescript-sdk issue #1994). Stateful is the
  * canonical, well-tested pattern for remote servers and every client handles it transparently.
  *
- * The draft-only ApiKey is read from the environment by the HTTP client layer, so the
- * "cannot publish/delete" guarantee is identical to the stdio build.
+ * Auth: each client presents its OWN draft-only key as `Authorization: Bearer <bp_key>`; the
+ * server holds none and forwards it to the API per session (401 if absent). A connection can
+ * therefore only do what its key allows — create/edit drafts, never publish or delete.
  *
- * DEPLOYMENT: behind a public domain (e.g. https://mcp.example.com) this endpoint needs its
- * OWN auth — it carries a single API key and anyone who can reach the URL can use it. Set
- * MCP_ALLOWED_HOSTS to enable DNS-rebinding (Host header) protection in production.
+ * DEPLOYMENT: behind a public domain (e.g. https://mcp.example.com), set MCP_ALLOWED_HOSTS to
+ * enable DNS-rebinding (Host header) protection, and serve over HTTPS.
  */
-export async function startHttpServer(buildServer: () => McpServer, port: number): Promise<void> {
+export async function startHttpServer(
+  buildServer: (api: ApiClient) => McpServer,
+  port: number,
+  apiUrl: string,
+): Promise<void> {
   const app = express();
   app.use(express.json({ limit: '8mb' })); // TipTap docs can be large
 
@@ -50,7 +64,19 @@ export async function startHttpServer(buildServer: () => McpServer, port: number
 
       if (!transport) {
         if (!sessionId && isInitializeRequest(req.body)) {
-          // New session — create a transport + fresh server and register it on init.
+          const apiKey = extractApiKey(req);
+          if (!apiKey) {
+            res.status(401).json({
+              jsonrpc: '2.0',
+              error: {
+                code: -32001,
+                message: 'Unauthorized: present your draft-only key as `Authorization: Bearer <bp_key>`.',
+              },
+              id: null,
+            });
+            return;
+          }
+          // New session — create a transport + fresh server bound to THIS client's key.
           const newTransport: StreamableHTTPServerTransport = new StreamableHTTPServerTransport({
             sessionIdGenerator: () => randomUUID(),
             onsessioninitialized: (sid) => {
@@ -61,7 +87,7 @@ export async function startHttpServer(buildServer: () => McpServer, port: number
           newTransport.onclose = () => {
             if (newTransport.sessionId) transports.delete(newTransport.sessionId);
           };
-          await buildServer().connect(newTransport);
+          await buildServer(createApiClient(apiUrl, apiKey)).connect(newTransport);
           transport = newTransport;
         } else {
           res.status(400).json({

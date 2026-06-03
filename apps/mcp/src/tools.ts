@@ -1,8 +1,9 @@
 /**
  * Registers the draft-only MCP tool surface (10 tools).
  *
- * Every tool maps to an existing Blockpress REST endpoint via `apiClient`, which injects
- * the draft-only `Authorization: ApiKey <key>` header. The server is intentionally missing
+ * Every tool maps to an existing Blockpress REST endpoint via the per-session `api` client,
+ * which forwards the client's draft-only key as `Authorization: ApiKey <key>`. The server is
+ * intentionally missing
  * any publish / status / delete affordance: there is NO publish tool, NO delete tool, and
  * the update tools deliberately omit the `status` field — so the agent can never form a
  * request to flip content to `published` or remove it. (If it somehow did via a raw call,
@@ -17,7 +18,7 @@
  */
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { apiClient, ApiClientError } from './api-client';
+import { ApiClientError, type ApiClient } from './api-client';
 import { validateContent } from './validate-content';
 
 // A SHALLOW, non-recursive stand-in for the Tiptap doc at the tool-input boundary.
@@ -127,7 +128,7 @@ const UPDATE_PAGE_DESCRIPTION = [
   ),
 ].join('\n');
 
-export function registerTools(server: McpServer): void {
+export function registerTools(server: McpServer, api: ApiClient): void {
   // ── list_works ──────────────────────────────────────────────────────────────
   server.registerTool(
     'list_works',
@@ -146,7 +147,7 @@ export function registerTools(server: McpServer): void {
       if (kind) params.set('kind', kind);
       if (status) params.set('status', status);
       const q = params.toString();
-      return run(() => apiClient.get(`/works${q ? `?${q}` : ''}`));
+      return run(() => api.get(`/works${q ? `?${q}` : ''}`));
     },
   );
 
@@ -160,7 +161,7 @@ export function registerTools(server: McpServer): void {
         id: z.string().describe('Work id.'),
       },
     },
-    async ({ id }) => run(() => apiClient.get(`/works/${seg(id)}`)),
+    async ({ id }) => run(() => api.get(`/works/${seg(id)}`)),
   );
 
   // ── create_work ─────────────────────────────────────────────────────────────
@@ -176,7 +177,7 @@ export function registerTools(server: McpServer): void {
         title: titleField,
       },
     },
-    async ({ kind, title }) => run(() => apiClient.post('/works', { kind, ...(title !== undefined ? { title } : {}) })),
+    async ({ kind, title }) => run(() => api.post('/works', { kind, ...(title !== undefined ? { title } : {}) })),
   );
 
   // ── update_work ─────────────────────────────────────────────────────────────
@@ -198,7 +199,7 @@ export function registerTools(server: McpServer): void {
         buyLink: httpUrlNullable.describe('External purchase URL (books only): absolute http(s) URL, <=2000 chars. null clears it.'),
       },
     },
-    async ({ id, ...patch }) => run(() => apiClient.patch(`/works/${seg(id)}`, patch)),
+    async ({ id, ...patch }) => run(() => api.patch(`/works/${seg(id)}`, patch)),
   );
 
   // ── add_chapter ─────────────────────────────────────────────────────────────
@@ -213,7 +214,7 @@ export function registerTools(server: McpServer): void {
       },
     },
     async ({ workId, title }) =>
-      run(() => apiClient.post(`/works/${seg(workId)}/chapters`, title !== undefined ? { title } : {})),
+      run(() => api.post(`/works/${seg(workId)}/chapters`, title !== undefined ? { title } : {})),
   );
 
   // ── update_chapter ──────────────────────────────────────────────────────────
@@ -228,7 +229,7 @@ export function registerTools(server: McpServer): void {
         order: z.number().int().min(0).optional().describe('New 0-based position among sibling chapters.'),
       },
     },
-    async ({ id, ...patch }) => run(() => apiClient.patch(`/chapters/${seg(id)}`, patch)),
+    async ({ id, ...patch }) => run(() => api.patch(`/chapters/${seg(id)}`, patch)),
   );
 
   // ── get_page ────────────────────────────────────────────────────────────────
@@ -243,7 +244,7 @@ export function registerTools(server: McpServer): void {
         id: z.string().describe('Page id.'),
       },
     },
-    async ({ id }) => run(() => apiClient.get(`/pages/${seg(id)}`)),
+    async ({ id }) => run(() => api.get(`/pages/${seg(id)}`)),
   );
 
   // ── add_page ────────────────────────────────────────────────────────────────
@@ -258,7 +259,7 @@ export function registerTools(server: McpServer): void {
       },
     },
     async ({ chapterId, title }) =>
-      run(() => apiClient.post(`/chapters/${seg(chapterId)}/pages`, title !== undefined ? { title } : {})),
+      run(() => api.post(`/chapters/${seg(chapterId)}/pages`, title !== undefined ? { title } : {})),
   );
 
   // ── update_page ─────────────────────────────────────────────────────────────
@@ -275,7 +276,7 @@ export function registerTools(server: McpServer): void {
         order: z.number().int().min(0).optional().describe('New 0-based position among sibling pages.'),
       },
     },
-    async ({ id, ...patch }) => run(() => apiClient.patch(`/pages/${seg(id)}`, patch)),
+    async ({ id, ...patch }) => run(() => api.patch(`/pages/${seg(id)}`, patch)),
   );
 
   // ── validate_content (local — no API call) ───────────────────────────────────

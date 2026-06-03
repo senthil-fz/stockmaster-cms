@@ -15,18 +15,21 @@ tools are the primary UX.
 
 ## 1. Configure the environment
 
-Copy `.env.example` and fill in the two variables (see [.env.example](./.env.example)):
+The server holds **no API key of its own** — see [Auth](#auth) below. Its only config:
 
 | Variable             | Meaning                                                              |
 | -------------------- | ------------------------------------------------------------------- |
 | `BLOCKPRESS_API_URL` | Base URL of the running NestJS API. `http://localhost:3001` on the host; `http://api:3001` from inside the docker network. |
-| `BLOCKPRESS_API_KEY` | The raw draft-only key (shown once at mint time). Begins with `bp_`. |
 | `MCP_HTTP_PORT`      | Port the Streamable HTTP server listens on (default `3002`).        |
 | `MCP_ALLOWED_HOSTS`  | *(optional, production)* comma-separated allowlist of `Host` headers; setting it enables DNS-rebinding protection, e.g. `mcp.example.com`. |
 
-The server sends `Authorization: ApiKey <BLOCKPRESS_API_KEY>` on **every** request. It never
-touches Postgres directly — all validation, serializers, word-count, and read-tracking run in
-the API.
+<a id="auth"></a>
+**Auth — the client brings the key.** The server holds no credential. Each client presents its
+own draft-only key as `Authorization: Bearer <bp_key>`; the server forwards it to the API as
+`Authorization: ApiKey <key>` on every request, and **rejects connections that present no key
+(401)**. A connection can therefore only do what its key allows — create/edit drafts, never
+publish or delete. The server never touches Postgres — all validation, serializers, word-count,
+and read-tracking run in the API.
 
 ## 2. Mint a draft-only API key
 
@@ -35,8 +38,8 @@ Two ways to mint one:
 
 **Web UI (recommended).** Sign in to the Blockpress web app → **API Keys** → **Create key**.
 Give it a name (e.g. `MCP draft agent`), keep the default scope `works:write`, optionally set
-an expiry. The raw key is shown **exactly once** — copy it immediately into `BLOCKPRESS_API_KEY`.
-It is never shown again (only its sha256 hash is stored).
+an expiry. The raw key is shown **exactly once** — copy it; you'll hand it to your MCP client in
+[§4](#4-connect-a-client). It is never shown again (only its sha256 hash is stored).
 
 **curl.** `/api-keys` is **JWT-only** (an ApiKey can never mint another key), so authenticate
 with a user **Bearer** token:
@@ -55,37 +58,36 @@ To revoke: `DELETE /api-keys/:id` (or the **Revoke** button) — the key then 40
 
 ## 3. Run it
 
-**Docker (recommended)** — runs as the `mcp` service alongside the API/web stack. Set
-`BLOCKPRESS_MCP_KEY` in the repo-root `.env` to your draft-only key, then:
+**Docker (recommended)** — runs as the `mcp` service alongside the API/web stack. No key to
+configure (clients bring their own):
 
 ```bash
 pnpm docker:up                        # docker compose --profile apps up -d --build
 curl http://localhost:3002/health     # { "ok": true, "transport": "streamable-http", ... }
 ```
 
-The compose `mcp` service reaches the API over the internal docker network (`api:3001`) and
-reads `BLOCKPRESS_MCP_KEY` from `.env`. The endpoint is then `http://localhost:3002/mcp`.
+The compose `mcp` service reaches the API over the internal docker network (`api:3001`); the
+endpoint is `http://localhost:3002/mcp`.
 
 **Standalone (no docker):**
 
 ```bash
 pnpm --filter @blockpress/editor-schema build   # apps/mcp consumes its dist
 pnpm --filter @blockpress/mcp build             # tsc → dist/
-MCP_HTTP_PORT=3002 \
-BLOCKPRESS_API_URL=http://localhost:3001 \
-BLOCKPRESS_API_KEY=bp_your-draft-only-key \
-node dist/server.js
+MCP_HTTP_PORT=3002 BLOCKPRESS_API_URL=http://localhost:3001 node dist/server.js
 ```
 
 ## 4. Connect a client
 
 The server is reachable by **URL** — no per-session process spawn. Point any MCP client at the
-Streamable HTTP endpoint `http://localhost:3002/mcp`.
+Streamable HTTP endpoint `http://localhost:3002/mcp` and pass your draft-only key as a
+`Authorization: Bearer <bp_key>` header.
 
 **Claude Code:**
 
 ```bash
-claude mcp add --transport http blockpress-draft http://localhost:3002/mcp
+claude mcp add --transport http blockpress-draft http://localhost:3002/mcp \
+  --header "Authorization: Bearer bp_your-draft-only-key"
 claude mcp list                       # verify it's connected
 # in a session, /mcp lists the tools
 ```
@@ -95,14 +97,19 @@ claude mcp list                       # verify it's connected
 ```json
 {
   "mcpServers": {
-    "blockpress-draft": { "type": "http", "url": "http://localhost:3002/mcp" }
+    "blockpress-draft": {
+      "type": "http",
+      "url": "http://localhost:3002/mcp",
+      "headers": { "Authorization": "Bearer bp_your-draft-only-key" }
+    }
   }
 }
 ```
 
 > The server uses **stateful** Streamable HTTP — it mints an `Mcp-Session-Id` on `initialize`
 > and clients carry it automatically. `POST /mcp` is the protocol endpoint; `GET /health` is a
-> liveness check; logs go to stderr.
+> liveness check; logs go to stderr. A connection with **no key is rejected (401)**; a connection
+> with a **bad key** initializes but every tool call returns the API's `Invalid API key`.
 
 ### Deploying behind a domain
 
@@ -112,16 +119,15 @@ In production, run the container and front it with a TLS reverse proxy:
 https://mcp.example.com  →  reverse proxy (nginx/Caddy/Traefik, TLS)  →  mcp container :3002
 ```
 
-Clients then use `https://mcp.example.com/mcp`
-(`claude mcp add --transport http blockpress https://mcp.example.com/mcp`).
+Clients then use `https://mcp.example.com/mcp` with their key header
+(`claude mcp add --transport http blockpress https://mcp.example.com/mcp --header "Authorization: Bearer <bp_key>"`).
 
-**Secure it first.** This endpoint carries one API key, so anyone who can reach the URL can use
-it. Before exposing it publicly:
+**Auth is already per-client** — the URL alone is useless without a valid draft-only key, and
+every key is scoped to drafts and individually revocable. Still, before exposing it publicly:
 
-- Put **auth in front of it** — a bearer token your proxy validates (clients pass it via a
-  header; Claude Code: `--header "Authorization: Bearer <token>"`), or OAuth.
+- Serve over **HTTPS only** (the key travels in a header — never send it over plain http off-box).
 - Set `MCP_ALLOWED_HOSTS=mcp.example.com` to enable **DNS-rebinding (Host header) protection**.
-- Serve over **HTTPS only**.
+- Treat the `bp_` keys as secrets; rotate/revoke via the API Keys UI if one leaks.
 
 ## 5. Tools
 
