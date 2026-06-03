@@ -23,16 +23,12 @@ export function WorkspaceSidebar({
   onTab: (t: string) => void;
   onOpenApiKeys: () => void;
 }) {
-  const drafts = works.filter((w) => w.status === 'draft').length;
   return (
     <Sidebar>
       <Sidebar.Brand />
       <Sidebar.Scroll>
         <Sidebar.SectionLabel>Workspace</Sidebar.SectionLabel>
         <Sidebar.NavItem icon="Library" label="Library" active={active === 'all'} count={works.length} onClick={() => onTab('all')} />
-        <Sidebar.NavItem icon="Pencil" label="Drafts" active={active === 'drafts'} count={drafts} onClick={() => onTab('drafts')} />
-        <Sidebar.NavItem icon="CheckCircle" label="Published" active={active === 'published'} onClick={() => onTab('published')} />
-        <Sidebar.NavItem icon="Trash" label="Trash" onClick={() => undefined} />
 
         <Sidebar.SectionLabel>General</Sidebar.SectionLabel>
         <Sidebar.NavItem icon="Chart" label="Reporting" active={active === 'reporting'} onClick={() => onTab('reporting')} />
