@@ -1326,10 +1326,23 @@
 .panel {
   border-left: 1px solid var(--border);
   background: var(--bg-sidebar);
+  overflow-x: hidden;
   overflow-y: auto;
 }
 .panel-inner {
   padding: 18px;
+}
+/* Cover thumbnail in the Book/Article details panel. Without this the generic
+   `.cover` class has no dimensions outside a `.work-card` and collapses to a
+   flush-left strip; fix the size and clip images to a book aspect ratio. */
+.panel .cover {
+  width: 56px;
+  height: 76px;
+  border-radius: 6px;
+  flex: none;
+  object-fit: cover;
+  box-shadow: var(--sh-sm);
+  background: var(--bg-subtle);
 }
 .panel-head {
   display: flex;
