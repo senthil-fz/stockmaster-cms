@@ -9,6 +9,10 @@ build/
 .turbo/
 *.tsbuildinfo
 
+# deploy bundle / CI staging output
+out/
+artifact/
+
 # env
 .env
 .env.local

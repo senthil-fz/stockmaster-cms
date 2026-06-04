@@ -16,6 +16,7 @@ import { PagesModule } from './pages/pages.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { StatsModule } from './stats/stats.module';
 import { ReaderModule } from './reader/reader.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { ReaderModule } from './reader/reader.module';
     UploadsModule,
     StatsModule,
     ReaderModule,
+    HealthModule,
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },
