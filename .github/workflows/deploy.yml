@@ -1,0 +1,154 @@
+name: Deploy (production)
+
+# Build the web SPA + NestJS API and deploy them to the Vultr box behind nginx.
+#   app.laabam.in  -> static SPA      (/var/www/app.laabam.in)
+#   api.laabam.in  -> NestJS via PM2  (127.0.0.1:3001, reverse-proxied)
+#
+# Secrets (repo Settings -> Secrets and variables -> Actions):
+#   DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY  (the vultr-deployments private key)
+#   DATABASE_URL, JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, MOBILE_APP_SECRET
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'apps/api/**'
+      - 'apps/web/**'
+      - 'packages/**'
+      - 'deploy/**'
+      - '.github/workflows/deploy.yml'
+      - 'pnpm-lock.yaml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04   # match the server (Ubuntu 24.04) so the Prisma engine target lines up
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Shared package must be built first: the API imports it and the API tests
+      # resolve @stockmaster/shared to its compiled dist.
+      - name: Build @stockmaster/shared
+        run: pnpm --filter @stockmaster/shared build
+
+      - name: Typecheck (all packages)
+        run: pnpm -r typecheck
+
+      - name: Test API (security-gate unit tests)
+        run: pnpm --filter @stockmaster/api test
+
+      - name: Build API
+        run: pnpm --filter @stockmaster/api build
+
+      - name: Build web (bake production API URL)
+        run: pnpm --filter @stockmaster/web build
+        env:
+          VITE_API_URL: https://api.laabam.in
+
+      # Self-contained Node bundle for the API (resolves the @stockmaster/shared
+      # workspace dep + ships node_modules incl. prisma CLI for migrations).
+      - name: Bundle API
+        run: pnpm --filter @stockmaster/api deploy --legacy --prod out/api
+
+      - name: Stage artifacts
+        run: |
+          rm -rf artifact && mkdir -p artifact/web artifact/api
+          cp -a apps/web/dist/. artifact/web/
+          cp -a out/api/. artifact/api/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: artifact
+          retention-days: 5
+          include-hidden-files: true
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - uses: actions/checkout@v4   # for deploy/ecosystem.config.cjs + deploy/remote-release.sh
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: artifact
+
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Write API env on server (from secrets)
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+          MOBILE_APP_SECRET: ${{ secrets.MOBILE_APP_SECRET }}
+        run: |
+          umask 077
+          # Unquoted heredoc expands the shell env vars above (NOT GitHub template
+          # interpolation), so secret values never touch the parsed command line.
+          cat > api.env <<EOF
+          NODE_ENV=production
+          DATABASE_URL=${DATABASE_URL}
+          JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
+          JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+          JWT_ACCESS_TTL=15m
+          JWT_REFRESH_TTL=7d
+          MOBILE_APP_SECRET=${MOBILE_APP_SECRET}
+          API_PORT=3001
+          WEB_ORIGIN=https://app.laabam.in
+          PUBLIC_API_URL=https://api.laabam.in
+          UPLOADS_DIR=/home/deploy/stockmaster/uploads
+          EOF
+          scp -i ~/.ssh/id_deploy api.env "$DEPLOY_USER@$DEPLOY_HOST:/home/deploy/stockmaster/api.env"
+          scp -i ~/.ssh/id_deploy deploy/ecosystem.config.cjs "$DEPLOY_USER@$DEPLOY_HOST:/home/deploy/stockmaster/ecosystem.config.cjs"
+          rm -f api.env
+
+      - name: Deploy web (static SPA)
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          rsync -az --delete -e "ssh -i ~/.ssh/id_deploy" \
+            artifact/web/ "$DEPLOY_USER@$DEPLOY_HOST:/var/www/app.laabam.in/"
+
+      - name: Deploy API bundle
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          rsync -az --delete -e "ssh -i ~/.ssh/id_deploy" \
+            artifact/api/ "$DEPLOY_USER@$DEPLOY_HOST:/var/www/api.laabam.in/"
+
+      - name: Migrate, reload PM2, health-check
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          ssh -i ~/.ssh/id_deploy "$DEPLOY_USER@$DEPLOY_HOST" 'bash -s' < deploy/remote-release.sh
