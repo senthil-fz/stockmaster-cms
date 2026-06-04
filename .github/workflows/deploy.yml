@@ -41,13 +41,14 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      # Shared package must be built first: the API imports it and the API tests
-      # resolve @stockmaster/shared to its compiled dist.
-      - name: Build @stockmaster/shared
-        run: pnpm --filter @stockmaster/shared build
+      # Library packages must be built first: the API/web import them (and the API
+      # tests resolve @stockmaster/shared to its compiled dist). web also depends
+      # on @stockmaster/editor-schema. mcp/extractor are not part of this deploy.
+      - name: Build workspace libraries
+        run: pnpm --filter @stockmaster/shared --filter @stockmaster/editor-schema build
 
-      - name: Typecheck (all packages)
-        run: pnpm -r typecheck
+      - name: Typecheck (deployed surface)
+        run: pnpm --filter @stockmaster/shared --filter @stockmaster/editor-schema --filter @stockmaster/api --filter @stockmaster/web typecheck
 
       - name: Test API (security-gate unit tests)
         run: pnpm --filter @stockmaster/api test
