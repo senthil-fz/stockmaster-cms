@@ -17,11 +17,16 @@ set -a
 . "$ENV_FILE"
 set +a
 
+# Invoke prisma via `node` (not the .bin shim): GitHub's upload/download-artifact
+# does not preserve Unix exec bits, so node_modules/.bin/prisma arrives without
+# +x. `node <file>` runs it regardless and ignores the shebang.
+PRISMA="node node_modules/prisma/build/index.js"
+
 echo "==> prisma generate (server-native engine)"
-./node_modules/.bin/prisma generate --schema=prisma/schema.prisma
+$PRISMA generate --schema=prisma/schema.prisma
 
 echo "==> prisma migrate deploy"
-./node_modules/.bin/prisma migrate deploy --schema=prisma/schema.prisma
+$PRISMA migrate deploy --schema=prisma/schema.prisma
 
 echo "==> pm2 startOrReload"
 pm2 startOrReload "$ECOSYSTEM" --env production --update-env
