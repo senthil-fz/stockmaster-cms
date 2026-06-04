@@ -23,7 +23,9 @@ services:
   # default `docker compose up` / `pnpm infra:up` stays infra-only.
   # ───────────────────────────────────────────────────────────────────────────
 
-  # One-shot: apply migrations + seed demo content, then exit.
+  # One-shot: apply migrations, then exit. Seeding is intentionally NOT run here —
+  # the demo user (sienna@stockmaster.io / password123) must never be auto-created
+  # on a server. Seed on demand only when a local login is wanted: `pnpm db:seed`.
   app-init:
     profiles: ["apps"]
     build:
@@ -37,7 +39,7 @@ services:
     environment:
       DATABASE_URL: "postgresql://stockmaster:stockmaster@postgres:5432/stockmaster?schema=public"
     command: >
-      sh -c "pnpm exec prisma generate && pnpm exec prisma migrate deploy && pnpm exec ts-node prisma/seed.ts"
+      sh -c "pnpm exec prisma generate && pnpm exec prisma migrate deploy"
     volumes:
       - .:/app
       - /app/node_modules

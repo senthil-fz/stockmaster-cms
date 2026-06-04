@@ -14,6 +14,7 @@
     "migrate:deploy": "dotenv -e ../../.env -- prisma migrate deploy",
     "studio": "dotenv -e ../../.env -- prisma studio",
     "seed": "dotenv -e ../../.env -- ts-node prisma/seed.ts",
+    "create-user": "dotenv -e ../../.env -- ts-node prisma/create-user.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {

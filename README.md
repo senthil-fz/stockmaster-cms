@@ -64,7 +64,17 @@ pnpm dev
 - Web: http://localhost:5173
 - API: http://localhost:3001
 
-**Demo login:** `sienna@stockmaster.io` / `password123`
+**Demo login:** `sienna@stockmaster.io` / `password123` (local dev only — created by `pnpm db:seed`)
+
+> **Server / production:** seeding is **not** run automatically (the compose `app-init` step
+> applies migrations only), so the demo user never lands on a server. Create the first real
+> account with `pnpm db:create-user` — it prompts for email / name / password, so it needs an
+> interactive terminal. In Docker, allocate a TTY:
+> ```bash
+> docker compose run -it --rm app-init pnpm -C apps/api create-user
+> ```
+> (Run without `-it`, it refuses with a clear error rather than doing nothing.) There is no
+> public self-signup — further accounts are added from the in-app Authors view.
 
 > Note: Postgres is mapped to host port **5433** (to avoid clashing with a local
 > Postgres on 5432). MinIO console is at http://localhost:9001 (`minioadmin` / `minioadmin`).
@@ -79,6 +89,7 @@ pnpm dev
 | `pnpm infra:up` / `infra:down` | Start / stop Postgres + MinIO |
 | `pnpm infra:reset` | Stop and wipe volumes |
 | `pnpm db:migrate` / `db:seed` / `db:studio` | Prisma migrate / seed / studio |
+| `pnpm db:create-user` | Create one account interactively (prompts for email / name / password, hidden) — used to bootstrap the first user on a server, where the demo seed is **not** run |
 
 ## Features
 

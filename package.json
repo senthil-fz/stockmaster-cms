@@ -19,6 +19,7 @@
     "docker:logs": "docker compose --profile apps logs -f api web",
     "db:migrate": "pnpm --filter @stockmaster/api run migrate",
     "db:seed": "pnpm --filter @stockmaster/api run seed",
+    "db:create-user": "pnpm --filter @stockmaster/api run create-user",
     "db:studio": "pnpm --filter @stockmaster/api run studio"
   },
   "devDependencies": {
