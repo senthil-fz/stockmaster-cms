@@ -200,6 +200,26 @@ const articleVersionDetailSchema = versionSummarySchema.extend({ snapshot: artic
 export type BookVersionDetail = z.infer<typeof bookVersionDetailSchema>;
 export type ArticleVersionDetail = z.infer<typeof articleVersionDetailSchema>;
 
+// The current working draft as a snapshot (not a stored version). Lets the explorer show
+// and diff "what I'm editing now" alongside the published versions.
+const bookDraftSchema = z.object({
+  id: z.literal('draft'),
+  wordCount: z.number().int(),
+  pageCount: z.number().int(),
+  createdAt: z.string(),
+  hasUnpublishedChanges: z.boolean(),
+  snapshot: bookSnapshotSchema,
+});
+const articleDraftSchema = z.object({
+  id: z.literal('draft'),
+  wordCount: z.number().int(),
+  createdAt: z.string(),
+  hasUnpublishedChanges: z.boolean(),
+  snapshot: articleSnapshotSchema,
+});
+export type BookDraft = z.infer<typeof bookDraftSchema>;
+export type ArticleDraft = z.infer<typeof articleDraftSchema>;
+
 export const booksApi = {
   list: (query: BooksQuery = {}) =>
     request(`${EDITOR_API}/books${qs({ status: query.status })}`, {
@@ -224,6 +244,8 @@ export const booksApi = {
     request(`${EDITOR_API}/books/${id}/versions`, { schema: z.array(versionSummarySchema) }),
   getVersion: (id: string, versionId: string) =>
     request(`${EDITOR_API}/books/${id}/versions/${versionId}`, { schema: bookVersionDetailSchema }),
+  getDraft: (id: string) =>
+    request(`${EDITOR_API}/books/${id}/draft`, { schema: bookDraftSchema }),
   restoreVersion: (id: string, versionId: string) =>
     request(`${EDITOR_API}/books/${id}/versions/${versionId}/restore`, { method: 'POST' }),
 };
@@ -247,6 +269,8 @@ export const articlesApi = {
     request(`${EDITOR_API}/articles/${id}/versions`, { schema: z.array(versionSummarySchema) }),
   getVersion: (id: string, versionId: string) =>
     request(`${EDITOR_API}/articles/${id}/versions/${versionId}`, { schema: articleVersionDetailSchema }),
+  getDraft: (id: string) =>
+    request(`${EDITOR_API}/articles/${id}/draft`, { schema: articleDraftSchema }),
   restoreVersion: (id: string, versionId: string) =>
     request(`${EDITOR_API}/articles/${id}/versions/${versionId}/restore`, { method: 'POST' }),
 };

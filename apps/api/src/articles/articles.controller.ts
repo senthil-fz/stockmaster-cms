@@ -69,6 +69,12 @@ export class ArticlesController {
     return this.articles.listVersions(id);
   }
 
+  @Get('articles/:id/draft')
+  @ContentRoute()
+  draft(@Param('id') id: string) {
+    return this.articles.draft(id);
+  }
+
   @Get('articles/:id/versions/:versionId')
   @ContentRoute()
   getVersion(@Param('id') id: string, @Param('versionId') versionId: string) {

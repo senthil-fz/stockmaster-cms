@@ -184,6 +184,23 @@ export class ArticlesService {
   }
 
   /**
+   * The CURRENT working draft as a snapshot (same shape a publish would produce). Lets the
+   * version explorer preview the live draft and diff it against any published version, even
+   * though the draft is not a stored version row.
+   */
+  async draft(id: string) {
+    const article = await this.prisma.article.findUnique({ where: { id } });
+    if (!article) throw new NotFoundException('Article not found');
+    return {
+      id: 'draft' as const,
+      wordCount: article.wordCount,
+      createdAt: article.updatedAt.toISOString(),
+      hasUnpublishedChanges: article.draftDirty,
+      snapshot: buildArticleSnapshot(article),
+    };
+  }
+
+  /**
    * Rollback — repoint the published pointer to an existing older version. The public
    * reverts atomically; the working draft (content + `draftDirty`) is left untouched.
    */

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { EditorContent } from '@tiptap/react';
-import type { TiptapDoc, VersionSummary } from '@stockmaster/shared';
-import { articlesApi, booksApi, type BookVersionDetail, type ArticleVersionDetail } from '../lib/api';
+import type { ArticleSnapshot, BookSnapshot, TiptapDoc, VersionSummary } from '@stockmaster/shared';
+import { articlesApi, booksApi, type ArticleDraft, type BookDraft } from '../lib/api';
 import { useBlockEditor } from '../editor/useBlockEditor';
 import {
   diffArticleSnapshots,
@@ -13,6 +13,9 @@ import {
 import { Icons } from './icons';
 import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
+
+/** Sentinel id for the live working draft (which is not a stored version row). */
+const DRAFT = 'draft';
 
 const fmtDateTime = (iso: string): string =>
   new Date(iso).toLocaleString(undefined, {
@@ -93,11 +96,21 @@ function LivePill() {
   );
 }
 
+/** A small "Unpublished changes" pill (the draft differs from what's published). */
+function ChangesPill() {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.06em] text-amber">
+      <span className="h-1.5 w-1.5 rounded-full bg-amber" />
+      Unpublished
+    </span>
+  );
+}
+
 /**
- * Full-screen version explorer: a timeline of every published version on the left, and a
- * Preview / Changes view of the selected version on the right. "Changes" diffs the selected
- * version against a chosen baseline (defaults to the immediately previous version), so you
- * can see exactly what each version changed. Works for books and articles.
+ * Full-screen version explorer: a timeline on the left (the live **Current draft** plus every
+ * published version) and a Preview / Changes view on the right. "Changes" diffs the selected
+ * entry against a chosen baseline (defaults to the previous version, or — for the draft — the
+ * currently-published version), so you can see exactly what changed. Works for books and articles.
  */
 export function VersionViewer({
   id,
@@ -117,26 +130,41 @@ export function VersionViewer({
   restoreBusy: boolean;
 }) {
   const detailKey = kind === 'book' ? 'book' : 'article';
-  // One typed fetcher — picking the api inline (booksApi | articlesApi) defeats react-query's
-  // TData inference, so wrap it in a function with a single explicit union return type.
-  const getVersion = (versionId: string): Promise<BookVersionDetail | ArticleVersionDetail> =>
-    kind === 'book' ? booksApi.getVersion(id, versionId) : articlesApi.getVersion(id, versionId);
+  const draftKey = [detailKey, id, DRAFT];
+  const fetchDraft = (): Promise<BookDraft | ArticleDraft> =>
+    kind === 'book' ? booksApi.getDraft(id) : articlesApi.getDraft(id);
+  // Resolve any timeline entry id → an object carrying `.snapshot` (draft or stored version).
+  const getDetail = (
+    entryId: string,
+  ): Promise<{ snapshot: BookSnapshot | ArticleSnapshot }> =>
+    entryId === DRAFT
+      ? fetchDraft()
+      : kind === 'book'
+        ? booksApi.getVersion(id, entryId)
+        : articlesApi.getVersion(id, entryId);
 
-  // Versions are passed newest-first. Selected = the version being viewed.
   const [selectedId, setSelectedId] = useState(initialVersionId);
   const [mode, setMode] = useState<'preview' | 'changes'>('preview');
 
-  const selected = versions.find((v) => v.id === selectedId) ?? versions[0];
-  // Default diff baseline: the version immediately before the selected one.
-  const previous = useMemo(
-    () => versions.find((v) => v.versionNumber === (selected?.versionNumber ?? 0) - 1) ?? null,
-    [versions, selected],
-  );
-  const [baselineId, setBaselineId] = useState<string | null>(previous?.id ?? null);
-  // Keep the baseline sensible when the selection changes.
+  // The live working draft (metadata for its timeline row + header; snapshot for preview/diff).
+  const draftQ = useQuery({ queryKey: draftKey, queryFn: fetchDraft });
+  const draft = draftQ.data;
+
+  const isDraftSel = selectedId === DRAFT;
+  const selectedVersion = versions.find((v) => v.id === selectedId);
+  const liveVersion = useMemo(() => versions.find((v) => v.isPublished) ?? null, [versions]);
+
+  // Default diff baseline: the draft compares to what's currently published; a version compares
+  // to the one immediately before it.
+  const defaultBaseline = useMemo(() => {
+    if (isDraftSel) return liveVersion?.id ?? null;
+    const prev = versions.find((v) => v.versionNumber === (selectedVersion?.versionNumber ?? 0) - 1);
+    return prev?.id ?? null;
+  }, [isDraftSel, liveVersion, versions, selectedVersion]);
+  const [baselineId, setBaselineId] = useState<string | null>(defaultBaseline);
   useEffect(() => {
-    setBaselineId(previous?.id ?? null);
-  }, [previous?.id]);
+    setBaselineId(defaultBaseline);
+  }, [defaultBaseline]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
@@ -145,22 +173,25 @@ export function VersionViewer({
   }, [onClose]);
 
   const selQ = useQuery({
-    queryKey: [detailKey, id, 'version', selectedId],
-    queryFn: () => getVersion(selectedId),
+    queryKey: isDraftSel ? draftKey : [detailKey, id, 'version', selectedId],
+    queryFn: () => getDetail(selectedId),
     enabled: !!selectedId,
   });
   const baseQ = useQuery({
-    queryKey: [detailKey, id, 'version', baselineId],
-    queryFn: () => getVersion(baselineId as string),
+    queryKey: baselineId === DRAFT ? draftKey : [detailKey, id, 'version', baselineId],
+    queryFn: () => getDetail(baselineId as string),
     enabled: mode === 'changes' && !!baselineId,
   });
 
-  const isLive = selected?.isPublished ?? false;
+  const isLive = !isDraftSel && (selectedVersion?.isPublished ?? false);
   const tab = (active: boolean) =>
     'mr-[22px] border-b-2 py-3 text-[13px] transition-colors ' +
     (active
       ? 'border-primary font-semibold text-fg'
       : 'border-transparent font-medium text-muted hover:text-fg');
+
+  const selSnap = selQ.data?.snapshot ?? null;
+  const baseSnap = baseQ.data?.snapshot ?? null;
 
   return (
     <div
@@ -183,6 +214,39 @@ export function VersionViewer({
           <ul className="relative m-0 list-none p-0 pl-3.5">
             {/* connector rail */}
             <span className="pointer-events-none absolute left-1 top-[18px] bottom-[18px] w-0.5 rounded bg-line-strong" />
+
+            {/* Current draft — the live working copy, always at the top. */}
+            {draft && (
+              <li className="relative">
+                <button
+                  className={
+                    'flex w-full flex-col gap-1 rounded-md border px-3 py-[11px] text-left transition-colors ' +
+                    (isDraftSel ? 'border-line-strong bg-canvas shadow-sm' : 'border-transparent hover:bg-hover')
+                  }
+                  onClick={() => setSelectedId(DRAFT)}
+                >
+                  <span
+                    className={
+                      'absolute -left-3.5 top-[15px] h-[11px] w-[11px] rounded-full border-2 ' +
+                      (draft.hasUnpublishedChanges
+                        ? 'border-amber bg-canvas ring-4 ring-amber/20'
+                        : isDraftSel
+                          ? 'border-primary bg-canvas'
+                          : 'border-line-strong bg-canvas')
+                    }
+                  />
+                  <span className="flex items-center gap-2">
+                    <strong className="text-[13.5px] tracking-[-0.01em]">Current draft</strong>
+                    {draft.hasUnpublishedChanges && <ChangesPill />}
+                  </span>
+                  <span className="text-[11px] tabular-nums tracking-[0.01em] text-faint">
+                    Edited {fmtDateTime(draft.createdAt)} · {draft.wordCount.toLocaleString()} words
+                    {'pageCount' in draft ? ` · ${draft.pageCount}p` : ''}
+                  </span>
+                </button>
+              </li>
+            )}
+
             {versions.map((v) => {
               const active = v.id === selectedId;
               return (
@@ -227,23 +291,20 @@ export function VersionViewer({
         <section className="flex min-w-0 flex-col overflow-hidden bg-canvas">
           <header className="flex items-start justify-between gap-3 border-b border-line px-6 pb-4 pt-5">
             <div>
-              <h3 className="m-0 flex items-center text-[19px] font-semibold tracking-[-0.02em]">
-                Version {selected?.versionNumber}
-                {isLive && (
-                  <span className="ml-2">
-                    <LivePill />
-                  </span>
-                )}
+              <h3 className="m-0 flex items-center gap-2 text-[19px] font-semibold tracking-[-0.02em]">
+                {isDraftSel ? 'Current draft' : `Version ${selectedVersion?.versionNumber ?? ''}`}
+                {isLive && <LivePill />}
+                {isDraftSel && draft?.hasUnpublishedChanges && <ChangesPill />}
               </h3>
-              {selected && <p className="m-0 mt-[3px] text-xs tabular-nums text-faint">{fmtDateTime(selected.createdAt)}</p>}
+              <p className="m-0 mt-[3px] text-xs tabular-nums text-faint">
+                {isDraftSel
+                  ? draft && `Edited ${fmtDateTime(draft.createdAt)}`
+                  : selectedVersion && fmtDateTime(selectedVersion.createdAt)}
+              </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              {!isLive && (
-                <Button
-                  variant="secondary"
-                  disabled={restoreBusy}
-                  onClick={() => onRestore(selectedId)}
-                >
+              {!isDraftSel && !isLive && selectedVersion && (
+                <Button variant="secondary" disabled={restoreBusy} onClick={() => onRestore(selectedId)}>
                   {restoreBusy ? 'Restoring…' : 'Restore this version'}
                 </Button>
               )}
@@ -269,12 +330,17 @@ export function VersionViewer({
                   onChange={(e) => setBaselineId(e.target.value || null)}
                 >
                   <option value="">Nothing (initial)</option>
+                  {draft && !isDraftSel && <option value={DRAFT}>Current draft</option>}
                   {versions
                     .filter((v) => v.id !== selectedId)
                     .map((v) => (
                       <option key={v.id} value={v.id}>
                         Version {v.versionNumber}
-                        {v.versionNumber === (selected?.versionNumber ?? 0) - 1 ? ' (previous)' : ''}
+                        {v.isPublished
+                          ? ' (live)'
+                          : !isDraftSel && v.versionNumber === (selectedVersion?.versionNumber ?? 0) - 1
+                            ? ' (previous)'
+                            : ''}
                       </option>
                     ))}
                 </select>
@@ -285,14 +351,14 @@ export function VersionViewer({
           <div className="max-w-[820px] flex-1 overflow-y-auto px-7 pb-9 pt-[22px]">
             {selQ.isLoading ? (
               <p className="text-muted">Loading…</p>
-            ) : !selQ.data ? (
-              <p className="text-muted">Could not load this version.</p>
+            ) : !selSnap ? (
+              <p className="text-muted">Could not load this {isDraftSel ? 'draft' : 'version'}.</p>
             ) : mode === 'preview' ? (
-              <PreviewBody kind={kind} detail={selQ.data} />
+              <PreviewBody kind={kind} snapshot={selSnap} />
             ) : baseQ.isLoading ? (
               <p className="text-muted">Loading comparison…</p>
             ) : (
-              <ChangesBody kind={kind} selected={selQ.data} baseline={baseQ.data ?? null} />
+              <ChangesBody kind={kind} snapshot={selSnap} baseline={baseSnap} />
             )}
           </div>
         </section>
@@ -303,13 +369,13 @@ export function VersionViewer({
 
 function PreviewBody({
   kind,
-  detail,
+  snapshot,
 }: {
   kind: 'book' | 'article';
-  detail: BookVersionDetail | ArticleVersionDetail;
+  snapshot: BookSnapshot | ArticleSnapshot;
 }) {
   if (kind === 'article') {
-    const snap = (detail as ArticleVersionDetail).snapshot;
+    const snap = snapshot as ArticleSnapshot;
     return (
       <article className="mb-[26px]">
         <h2 className="m-0 mb-2 text-[17px] font-semibold tracking-[-0.02em]">{snap.article.title || 'Untitled'}</h2>
@@ -317,7 +383,7 @@ function PreviewBody({
       </article>
     );
   }
-  const snap = (detail as BookVersionDetail).snapshot;
+  const snap = snapshot as BookSnapshot;
   if (snap.chapters.length === 0) return <p className="text-muted">This version has no published pages.</p>;
   return (
     <>
@@ -341,17 +407,17 @@ function PreviewBody({
 
 function ChangesBody({
   kind,
-  selected,
+  snapshot,
   baseline,
 }: {
   kind: 'book' | 'article';
-  selected: BookVersionDetail | ArticleVersionDetail;
-  baseline: BookVersionDetail | ArticleVersionDetail | null;
+  snapshot: BookSnapshot | ArticleSnapshot;
+  baseline: BookSnapshot | ArticleSnapshot | null;
 }) {
   if (kind === 'article') {
     const segs = diffArticleSnapshots(
-      baseline ? (baseline as ArticleVersionDetail).snapshot : null,
-      (selected as ArticleVersionDetail).snapshot,
+      baseline as ArticleSnapshot | null,
+      snapshot as ArticleSnapshot,
     );
     return (
       <div className="mb-[26px]">
@@ -361,10 +427,7 @@ function ChangesBody({
     );
   }
 
-  const diff = diffBookSnapshots(
-    baseline ? (baseline as BookVersionDetail).snapshot : null,
-    (selected as BookVersionDetail).snapshot,
-  );
+  const diff = diffBookSnapshots(baseline as BookSnapshot | null, snapshot as BookSnapshot);
 
   return (
     <>

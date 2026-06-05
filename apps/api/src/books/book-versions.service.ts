@@ -125,6 +125,34 @@ export class BookVersionsService {
     return versions.map((v) => this.toVersionSummary(v, book.publishedVersionId));
   }
 
+  /**
+   * The CURRENT working draft as a snapshot — the same shape a publish would produce
+   * (published-status pages, in reading order). Lets the version explorer preview the
+   * live draft and diff it against any published version, even though the draft is not a
+   * stored version row. `hasUnpublishedChanges` mirrors the book's draftDirty flag.
+   */
+  async draft(bookId: string) {
+    const book = await this.prisma.book.findUnique({ where: { id: bookId }, include: treeInclude });
+    if (!book) throw new NotFoundException('Book not found');
+    const snapshot = buildBookSnapshot(book);
+    let pageCount = 0;
+    let wordCount = 0;
+    for (const ch of snapshot.chapters) {
+      for (const pg of ch.pages) {
+        pageCount += 1;
+        wordCount += pg.wordCount;
+      }
+    }
+    return {
+      id: 'draft' as const,
+      wordCount,
+      pageCount,
+      createdAt: book.updatedAt.toISOString(),
+      hasUnpublishedChanges: book.draftDirty,
+      snapshot,
+    };
+  }
+
   /** One version's full snapshot (preview / diff). */
   async get(bookId: string, versionId: string) {
     const version = await this.prisma.bookVersion.findUnique({ where: { id: versionId } });

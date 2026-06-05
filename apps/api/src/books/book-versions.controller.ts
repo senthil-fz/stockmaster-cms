@@ -38,6 +38,12 @@ export class BookVersionsController {
     return this.versions.list(id);
   }
 
+  @Get('books/:id/draft')
+  @ContentRoute()
+  draft(@Param('id') id: string) {
+    return this.versions.draft(id);
+  }
+
   @Get('books/:id/versions/:versionId')
   @ContentRoute()
   detail(@Param('id') id: string, @Param('versionId') versionId: string) {

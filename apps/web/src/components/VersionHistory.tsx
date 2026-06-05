@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { VersionSummary } from '@stockmaster/shared';
-import { articlesApi, booksApi } from '../lib/api';
+import { articlesApi, booksApi, type ArticleDraft, type BookDraft } from '../lib/api';
 import { Panel } from './Panel';
 import { VersionViewer } from './VersionViewer';
 import { Button } from './ui/Button';
@@ -37,6 +37,11 @@ export function VersionHistory({
     queryFn: () => api.listVersions(id),
   });
 
+  // The live working draft — shown as the first entry so you can preview/compare it.
+  const fetchDraft = (): Promise<BookDraft | ArticleDraft> =>
+    kind === 'book' ? booksApi.getDraft(id) : articlesApi.getDraft(id);
+  const { data: draft } = useQuery({ queryKey: [detailKey, id, 'draft'], queryFn: fetchDraft });
+
   const restore = useMutation({
     mutationFn: (versionId: string) => api.restoreVersion(id, versionId),
     onSuccess: async () => {
@@ -57,7 +62,7 @@ export function VersionHistory({
         <Panel.Section>
           <p className="m-0 text-[13px] text-muted">Loading…</p>
         </Panel.Section>
-      ) : versions.length === 0 ? (
+      ) : versions.length === 0 && !draft ? (
         <Panel.Section>
           <p className="m-0 text-[13px] leading-normal text-muted">
             No versions yet. Publishing captures the current draft as version 1.
@@ -67,10 +72,45 @@ export function VersionHistory({
         <div className="relative px-0.5 pt-1.5 pb-1">
           {/* connector rail running through every node */}
           <span className="pointer-events-none absolute left-[5px] top-[18px] bottom-[22px] w-0.5 rounded bg-line-strong" />
+
+          {/* Current draft — the live working copy, always at the top. */}
+          {draft && (
+            <div className="relative py-3 pl-[22px]">
+              <span
+                className={
+                  'absolute left-0 top-[15px] h-3 w-3 rounded-full border-2 ' +
+                  (draft.hasUnpublishedChanges
+                    ? 'border-amber bg-canvas ring-4 ring-amber/20'
+                    : 'border-line-strong bg-canvas')
+                }
+              />
+              <div className="flex min-h-4 items-center gap-2">
+                <span className="whitespace-nowrap text-[13.5px] font-semibold tracking-[-0.01em] text-fg">
+                  Current draft
+                </span>
+                {draft.hasUnpublishedChanges && (
+                  <span className="inline-flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.06em] text-amber">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber" />
+                    Unpublished
+                  </span>
+                )}
+              </div>
+              <div className="mt-0.5 text-[11.5px] tabular-nums tracking-[0.01em] text-faint">
+                Edited {fmtDate(draft.createdAt)} · {draft.wordCount.toLocaleString()} words
+                {'pageCount' in draft ? ` · ${draft.pageCount}p` : ''}
+              </div>
+              <div className="mt-2.5 flex gap-1.5">
+                <Button variant="secondary" size="sm" onClick={() => setViewerVersionId('draft')}>
+                  View &amp; compare
+                </Button>
+              </div>
+            </div>
+          )}
+
           {versions.map((v: VersionSummary, i: number) => (
             <div
               key={v.id}
-              className={'relative py-3 pl-[22px]' + (i > 0 ? ' border-t border-line' : '')}
+              className={'relative py-3 pl-[22px]' + (draft || i > 0 ? ' border-t border-line' : '')}
             >
               {/* timeline node — hollow, or filled green for the live version */}
               <span
