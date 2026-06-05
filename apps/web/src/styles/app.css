@@ -1518,105 +1518,191 @@
   margin-top: 20px;
 }
 
-/* ── Version viewer (full-screen preview + diff) ───────────────────────────── */
+/* ── Version explorer ──────────────────────────────────────────────────────
+   A refined "time machine": a vertical timeline of versions on the left, a
+   preview / word-diff of the selected one on the right. Restrained to the
+   editorial palette — dots, hairlines, tabular numerals, one accent. */
 .btn-sm {
-  padding: 4px 10px;
+  padding: 5px 11px;
   font-size: 12.5px;
 }
+
+/* History-panel rows (entry point to the explorer). */
 .vh-row {
   display: block;
   width: 100%;
   text-align: left;
   background: transparent;
   border: none;
-  padding: 0;
+  padding: 4px 2px;
+  border-radius: var(--r-md);
   cursor: pointer;
+  transition: background 0.12s;
+}
+.vh-row:hover {
+  background: var(--bg-hover);
+}
+
+/* ── Modal shell ─────────────────────────────────────────────────────────── */
+.modal-overlay:has(.version-viewer) {
+  backdrop-filter: blur(3px);
+  animation: vv-fade 0.18s ease;
 }
 .modal.modal-xl {
-  width: min(1080px, 100%);
-  height: min(82vh, 820px);
+  width: min(1140px, 100%);
+  height: min(84vh, 840px);
   padding: 0;
   display: grid;
-  grid-template-columns: 248px 1fr;
+  grid-template-columns: 280px 1fr;
   overflow: hidden;
+  border-color: var(--border);
+  animation: vv-rise 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
+@keyframes vv-fade {
+  from { opacity: 0; }
+}
+@keyframes vv-rise {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+}
+
+/* ── Timeline (left) ─────────────────────────────────────────────────────── */
 .version-viewer .vv-timeline {
   border-right: 1px solid var(--border);
-  background: var(--bg-subtle);
+  background: linear-gradient(180deg, var(--bg-sidebar), var(--bg-subtle));
   overflow-y: auto;
-  padding: 12px;
+  padding: 18px 14px;
 }
 .vv-timeline-head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: 600;
+  gap: 7px;
+  font-size: 10.5px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.09em;
   color: var(--text-tertiary);
-  padding: 4px 6px 10px;
+  padding: 2px 8px 14px;
+}
+.vv-timeline-head svg {
+  width: 14px;
+  height: 14px;
 }
 .vv-timeline ul {
   list-style: none;
   margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  padding: 0 0 0 14px;
+  position: relative;
+}
+/* The connector rail running through every dot. */
+.vv-timeline ul::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 18px;
+  bottom: 18px;
+  width: 2px;
+  background: var(--border-strong);
+  border-radius: 2px;
+}
+.vv-timeline li {
+  position: relative;
 }
 .vv-item {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   width: 100%;
   text-align: left;
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--r-md);
-  padding: 9px 10px;
-  cursor: pointer;
+  padding: 11px 12px;
+  position: relative;
+  transition: background 0.12s, border-color 0.12s, box-shadow 0.12s;
+}
+/* Timeline node — hollow by default, filled green for the live version. */
+.vv-item::before {
+  content: '';
+  position: absolute;
+  left: -14px;
+  top: 15px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--bg-canvas);
+  border: 2px solid var(--border-strong);
+  transition: border-color 0.14s, background 0.14s, box-shadow 0.14s;
+  z-index: 1;
+}
+.vv-item[data-live]::before {
+  background: var(--green);
+  border-color: var(--green);
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--green) 18%, transparent);
 }
 .vv-item:hover {
-  background: var(--bg-canvas);
+  background: var(--bg-hover);
 }
 .vv-item.active {
   background: var(--bg-canvas);
   border-color: var(--border-strong);
+  box-shadow: var(--sh-sm);
+}
+.vv-item.active::before {
+  border-color: var(--primary);
+}
+.vv-item[data-live].active::before {
+  border-color: var(--green);
 }
 .vv-item-row {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.vv-item-meta,
+.vv-item-row strong {
+  font-size: 13.5px;
+  letter-spacing: -0.01em;
+}
+.vv-item-meta {
+  font-size: 11px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
 .vv-item-note {
   font-size: 11.5px;
-  line-height: 1.4;
+  line-height: 1.45;
+  font-style: italic;
 }
+
+/* ── Detail (right) ──────────────────────────────────────────────────────── */
 .vv-detail {
   display: flex;
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
+  background: var(--bg-canvas);
 }
 .vv-detail-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px 18px 12px;
+  padding: 20px 24px 16px;
   border-bottom: 1px solid var(--border);
 }
 .vv-detail-head h3 {
   margin: 0;
   display: flex;
   align-items: center;
-  font-size: 16px;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 .vv-detail-head p {
-  margin: 2px 0 0;
+  margin: 3px 0 0;
   font-size: 12px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
 }
 .vv-detail-actions {
   display: flex;
@@ -1624,21 +1710,29 @@
   gap: 8px;
   flex-shrink: 0;
 }
+
+/* Tabs + compare selector. */
 .vv-tabs {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 10px 18px 0;
+  gap: 0;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
 }
 .vv-tab {
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
-  padding: 6px 4px;
-  margin-right: 12px;
+  padding: 12px 2px;
+  margin-right: 22px;
   font-size: 13px;
+  font-weight: 500;
   color: var(--text-secondary);
   cursor: pointer;
+  transition: color 0.12s, border-color 0.12s;
+}
+.vv-tab:hover {
+  color: var(--text);
 }
 .vv-tab.active {
   color: var(--text);
@@ -1649,96 +1743,184 @@
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: 8px;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 .vv-compare select {
-  font-size: 12px;
-  padding: 3px 6px;
+  font-size: 12.5px;
+  text-transform: none;
+  letter-spacing: 0;
+  padding: 5px 26px 5px 10px;
   border: 1px solid var(--border-strong);
-  border-radius: var(--r-sm);
-  background: var(--bg-canvas);
+  border-radius: var(--r-md);
+  background: var(--bg-canvas)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 4l3 3 3-3' fill='none' stroke='%239a9a93' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E")
+    no-repeat right 9px center;
   color: var(--text);
+  font-weight: 500;
+  appearance: none;
+  cursor: pointer;
+  box-shadow: var(--sh-xs);
 }
+.vv-compare select:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+/* Body. */
 .vv-body {
   flex: 1;
   overflow-y: auto;
-  padding: 18px 22px 28px;
+  padding: 22px 28px 36px;
+  max-width: 820px;
 }
 .vv-summary {
-  font-size: 12.5px;
-  margin-bottom: 14px;
-}
-.vv-chapter-title {
-  margin: 18px 0 6px;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-tertiary);
-}
-.vv-page {
-  margin-bottom: 22px;
-}
-.vv-page h2 {
-  font-size: 16px;
-  margin: 0 0 6px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Diff legend (Changes mode). */
+.vv-legend {
+  display: flex;
+  gap: 16px;
+  margin: 0 0 18px;
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+}
+.vv-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.vv-legend i {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  display: inline-block;
+}
+.vv-legend .ins {
+  background: color-mix(in oklch, var(--green) 22%, transparent);
+}
+.vv-legend .del {
+  background: color-mix(in oklch, var(--red) 18%, transparent);
+}
+
+/* Preview — echo the reader's content typography. */
+.vv-chapter-title {
+  margin: 22px 0 10px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.vv-chapter-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.vv-page {
+  margin-bottom: 26px;
+}
+.vv-page > h2 {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
   flex-wrap: wrap;
 }
 .vv-title-changed {
   font-size: 12px;
   font-weight: 400;
+  font-style: italic;
 }
+
+/* Per-page change cards. */
+.vv-change {
+  border-left: 2px solid var(--border-strong);
+  padding-left: 16px;
+}
+.vv-change.vv-added { border-left-color: var(--green); }
+.vv-change.vv-removed { border-left-color: var(--red); }
+.vv-change.vv-changed { border-left-color: var(--amber); }
+.vv-change.vv-unchanged {
+  border-left-color: var(--border);
+  opacity: 0.6;
+}
+
 .vv-badge {
-  font-size: 10.5px;
-  font-weight: 600;
+  font-size: 9.5px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 2px 7px;
+  letter-spacing: 0.07em;
+  padding: 3px 8px;
   border-radius: var(--r-pill);
+  line-height: 1;
 }
 .vv-badge-added {
   background: color-mix(in oklch, var(--green) 16%, transparent);
-  color: var(--green);
+  color: color-mix(in oklch, var(--green) 76%, var(--text));
 }
 .vv-badge-removed {
-  background: color-mix(in oklch, #c0392b 12%, transparent);
-  color: #c0392b;
+  background: color-mix(in oklch, var(--red) 14%, transparent);
+  color: var(--red);
 }
 .vv-badge-changed {
-  background: color-mix(in oklch, var(--amber) 18%, transparent);
-  color: var(--amber);
+  background: color-mix(in oklch, var(--amber) 20%, transparent);
+  color: color-mix(in oklch, var(--amber) 80%, var(--text));
 }
 .vv-badge-unchanged {
   background: var(--bg-subtle);
   color: var(--text-tertiary);
 }
-.vv-change.vv-unchanged h2 {
-  opacity: 0.55;
-}
+
+/* Word diff. */
 .vv-diff {
-  font-size: 14px;
-  line-height: 1.7;
+  font-size: 15px;
+  line-height: 1.75;
   white-space: pre-wrap;
   margin: 0;
+  color: var(--text-secondary);
 }
 .vv-nochange {
   font-size: 13px;
+  font-style: italic;
   margin: 0;
 }
 .diff-ins {
-  background: color-mix(in oklch, var(--green) 16%, transparent);
-  color: color-mix(in oklch, var(--green) 70%, var(--text));
+  background: color-mix(in oklch, var(--green) 18%, transparent);
+  color: color-mix(in oklch, var(--green) 72%, var(--text));
   border-radius: 3px;
+  padding: 0 1px;
   text-decoration: none;
 }
 .diff-del {
-  background: color-mix(in oklch, #c0392b 12%, transparent);
-  color: #c0392b;
+  background: color-mix(in oklch, var(--red) 13%, transparent);
+  color: var(--red);
   border-radius: 3px;
+  padding: 0 1px;
   text-decoration: line-through;
+  text-decoration-color: color-mix(in oklch, var(--red) 55%, transparent);
 }
 
 /* Inline delete affordances (tree rows + work cards). */

@@ -48,6 +48,22 @@ const CHANGE_LABEL: Record<PageDiff['change'], string> = {
   unchanged: 'Unchanged',
 };
 
+/** Added / removed colour key for the diff view. */
+function DiffLegend() {
+  return (
+    <div className="vv-legend">
+      <span>
+        <i className="ins" />
+        Added
+      </span>
+      <span>
+        <i className="del" />
+        Removed
+      </span>
+    </div>
+  );
+}
+
 /**
  * Full-screen version explorer: a timeline of every published version on the left, and a
  * Preview / Changes view of the selected version on the right. "Changes" diffs the selected
@@ -132,6 +148,7 @@ export function VersionViewer({
               <li key={v.id}>
                 <button
                   className={'vv-item' + (v.id === selectedId ? ' active' : '')}
+                  data-live={v.isPublished || undefined}
                   onClick={() => setSelectedId(v.id)}
                 >
                   <span className="vv-item-row">
@@ -289,6 +306,7 @@ function ChangesBody({
     );
     return (
       <div className="vv-page">
+        <DiffLegend />
         <DiffText segments={segs} />
       </div>
     );
@@ -301,9 +319,10 @@ function ChangesBody({
 
   return (
     <>
-      <div className="vv-summary muted">
+      <DiffLegend />
+      <div className="vv-summary">
         {diff.changedCount === 0
-          ? 'No changes from the comparison version.'
+          ? 'No changes from the comparison version'
           : `${diff.changedCount} page${diff.changedCount === 1 ? '' : 's'} changed`}
         {diff.reordered ? ' · pages reordered' : ''}
       </div>
