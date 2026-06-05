@@ -11,10 +11,10 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@stockmaster/editor-schema": "workspace:*",
-    "@stockmaster/shared": "workspace:*",
     "@floating-ui/dom": "^1.7.0",
     "@hookform/resolvers": "^3.10.0",
+    "@stockmaster/editor-schema": "workspace:*",
+    "@stockmaster/shared": "workspace:*",
     "@tanstack/react-query": "^5.100.0",
     "@tanstack/react-router": "^1.170.0",
     "@tiptap/core": "^3.23.6",
@@ -29,6 +29,7 @@
     "@tiptap/starter-kit": "^3.23.6",
     "@tiptap/suggestion": "^3.23.6",
     "@tiptap/y-tiptap": "^3.0.4",
+    "diff": "^7.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.54.0",

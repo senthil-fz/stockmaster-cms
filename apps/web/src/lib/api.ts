@@ -2,9 +2,11 @@ import { z } from 'zod';
 import {
   apiKeySummarySchema,
   articleDetailSchema,
+  articleSnapshotSchema,
   articleSummarySchema,
   authResponseSchema,
   bookDetailSchema,
+  bookSnapshotSchema,
   bookStatDetailSchema,
   bookStatsResponseSchema,
   bookSummarySchema,
@@ -191,6 +193,13 @@ export const statsApi = {
     request(`${EDITOR_API}/stats/books/${id}${statsQs(q)}`, { schema: bookStatDetailSchema }),
 };
 
+// A single version's full detail = the history summary + its frozen snapshot. Used by the
+// version viewer to preview a past version and diff it against another.
+const bookVersionDetailSchema = versionSummarySchema.extend({ snapshot: bookSnapshotSchema });
+const articleVersionDetailSchema = versionSummarySchema.extend({ snapshot: articleSnapshotSchema });
+export type BookVersionDetail = z.infer<typeof bookVersionDetailSchema>;
+export type ArticleVersionDetail = z.infer<typeof articleVersionDetailSchema>;
+
 export const booksApi = {
   list: (query: BooksQuery = {}) =>
     request(`${EDITOR_API}/books${qs({ status: query.status })}`, {
@@ -213,6 +222,8 @@ export const booksApi = {
   unpublish: (id: string) => request(`${EDITOR_API}/books/${id}/unpublish`, { method: 'POST' }),
   listVersions: (id: string) =>
     request(`${EDITOR_API}/books/${id}/versions`, { schema: z.array(versionSummarySchema) }),
+  getVersion: (id: string, versionId: string) =>
+    request(`${EDITOR_API}/books/${id}/versions/${versionId}`, { schema: bookVersionDetailSchema }),
   restoreVersion: (id: string, versionId: string) =>
     request(`${EDITOR_API}/books/${id}/versions/${versionId}/restore`, { method: 'POST' }),
 };
@@ -234,6 +245,8 @@ export const articlesApi = {
   unpublish: (id: string) => request(`${EDITOR_API}/articles/${id}/unpublish`, { method: 'POST' }),
   listVersions: (id: string) =>
     request(`${EDITOR_API}/articles/${id}/versions`, { schema: z.array(versionSummarySchema) }),
+  getVersion: (id: string, versionId: string) =>
+    request(`${EDITOR_API}/articles/${id}/versions/${versionId}`, { schema: articleVersionDetailSchema }),
   restoreVersion: (id: string, versionId: string) =>
     request(`${EDITOR_API}/articles/${id}/versions/${versionId}/restore`, { method: 'POST' }),
 };
