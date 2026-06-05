@@ -21,6 +21,7 @@ import { Topbar, type SaveState } from '../components/Topbar';
 import { Panel } from '../components/Panel';
 import { PageSettings } from '../components/PageSettings';
 import { BookSettings } from '../components/BookSettings';
+import { VersionHistory } from '../components/VersionHistory';
 import { Icons } from '../components/icons';
 import { useBlockEditor } from '../editor/useBlockEditor';
 import { useActiveBlock } from '../editor/useActiveBlock';
@@ -214,7 +215,7 @@ function EditorWorkspace({
   const queryClient = useQueryClient();
   const [rightOpen, setRightOpen] = useState(true);
   const [showPageSettings, setShowPageSettings] = useState(true);
-  const [panelTab, setPanelTab] = useState<'page' | 'book'>('page');
+  const [panelTab, setPanelTab] = useState<'page' | 'book' | 'versions'>('page');
   const [saveState, setSaveState] = useState<SaveState>('saved');
   const [title, setTitle] = useState(page.title);
 
@@ -252,6 +253,8 @@ function EditorWorkspace({
   });
   const debouncedTitle = useDebouncedCallback((t: string) => saveTitle.mutate(t), 700);
 
+  // Page-level staging flag ("include this page on publish") — still writable, drives the
+  // PageSettings status control. Distinct from book-level publish/unpublish below.
   const setStatus = useMutation({
     mutationFn: (status: PublishStatus) => pagesApi.update(page.id, { status }),
     onSuccess: (updated) => {
@@ -259,6 +262,22 @@ function EditorWorkspace({
       invalidateTree();
     },
   });
+
+  // Book-level publish/unpublish — snapshot the draft to a live version, or pull the book
+  // from public. The response shape isn't pinned, so we refetch to read derived status.
+  const afterPublishChange = () => {
+    invalidateTree();
+    void queryClient.invalidateQueries({ queryKey: ['book', book.id, 'versions'] });
+  };
+  const publish = useMutation({
+    mutationFn: () => booksApi.publish(book.id),
+    onSuccess: afterPublishChange,
+  });
+  const unpublish = useMutation({
+    mutationFn: () => booksApi.unpublish(book.id),
+    onSuccess: afterPublishChange,
+  });
+  const publishBusy = publish.isPending || unpublish.isPending;
 
   const editor = useBlockEditor({
     content: page.content,
@@ -346,23 +365,41 @@ function EditorWorkspace({
           >
             <Icons.Eye />
           </button>
-          <button
-            className="btn btn-secondary"
-            onClick={() => {
-              flushPending();
-              setStatus.mutate('draft');
-            }}
-          >
-            Save as draft
-          </button>
+          {book.status === 'published' && book.hasUnpublishedChanges && (
+            <span className="status draft" title="The published book has edits not yet published">
+              <span className="led" />
+              Unpublished changes
+            </span>
+          )}
+          {book.status === 'published' && (
+            <button
+              className="btn btn-secondary"
+              disabled={publishBusy}
+              onClick={() => unpublish.mutate()}
+            >
+              Unpublish
+            </button>
+          )}
           <button
             className="btn btn-primary"
+            disabled={publishBusy}
             onClick={() => {
               flushPending();
-              setStatus.mutate('published');
+              publish.mutate();
             }}
           >
-            Publish changes
+            {book.status === 'published' ? 'Publish changes' : 'Publish'}
+          </button>
+          <button
+            className="icon-btn bordered"
+            title="Version history"
+            style={{ opacity: rightOpen && panelTab === 'versions' ? 1 : 0.6 }}
+            onClick={() => {
+              setRightOpen(true);
+              setPanelTab((t) => (t === 'versions' ? 'page' : 'versions'));
+            }}
+          >
+            <Icons.Clock />
           </button>
           <button
             className="icon-btn bordered"
@@ -414,7 +451,9 @@ function EditorWorkspace({
         </div>
 
         {rightOpen &&
-          (panelTab === 'book' ? (
+          (panelTab === 'versions' ? (
+              <VersionHistory id={book.id} kind="book" onClose={() => setPanelTab('page')} />
+            ) : panelTab === 'book' ? (
               <BookSettings book={book} onClose={() => setPanelTab('page')} />
             ) : showPageSettings || !active ? (
               <PageSettings

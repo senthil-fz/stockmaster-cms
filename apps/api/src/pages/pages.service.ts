@@ -72,7 +72,15 @@ export class PagesService {
     return { ok: true };
   }
 
+  /**
+   * Bump `updatedAt` and mark the draft dirty: every page mutation (create, update,
+   * delete) diverges the draft from the published snapshot, so it must flag
+   * `draftDirty` for the "unpublished changes" indicator. Publishing clears the flag.
+   */
   private async touchBook(bookId: string) {
-    await this.prisma.book.update({ where: { id: bookId }, data: { updatedAt: new Date() } });
+    await this.prisma.book.update({
+      where: { id: bookId },
+      data: { updatedAt: new Date(), draftDirty: true },
+    });
   }
 }

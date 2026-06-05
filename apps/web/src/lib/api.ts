@@ -14,6 +14,7 @@ import {
   uploadResponseSchema,
   userSchema,
   usersListResponseSchema,
+  versionSummarySchema,
   type ApiKeyScope,
   type ArticlesQuery,
   type BooksQuery,
@@ -203,6 +204,17 @@ export const booksApi = {
   addChapter: (bookId: string, body: CreateChapterInput) =>
     request(`${EDITOR_API}/books/${bookId}/chapters`, { method: 'POST', body, schema: chapterSchema }),
   removeChapter: (id: string) => request(`${EDITOR_API}/chapters/${id}`, { method: 'DELETE' }),
+  // Versioning — snapshot the draft → live version (publish), pull from public (unpublish),
+  // and roll the published pointer back to an existing version (restore). The mutating routes'
+  // response shape isn't pinned, so callers refetch the book to read derived status; only the
+  // history list has a pinned contract.
+  publish: (id: string, note?: string) =>
+    request(`${EDITOR_API}/books/${id}/publish`, { method: 'POST', body: note ? { note } : {} }),
+  unpublish: (id: string) => request(`${EDITOR_API}/books/${id}/unpublish`, { method: 'POST' }),
+  listVersions: (id: string) =>
+    request(`${EDITOR_API}/books/${id}/versions`, { schema: z.array(versionSummarySchema) }),
+  restoreVersion: (id: string, versionId: string) =>
+    request(`${EDITOR_API}/books/${id}/versions/${versionId}/restore`, { method: 'POST' }),
 };
 
 export const articlesApi = {
@@ -216,6 +228,14 @@ export const articlesApi = {
   update: (id: string, body: UpdateArticleInput) =>
     request(`${EDITOR_API}/articles/${id}`, { method: 'PATCH', body, schema: articleDetailSchema }),
   remove: (id: string) => request(`${EDITOR_API}/articles/${id}`, { method: 'DELETE' }),
+  // Versioning — see booksApi for the contract notes (article snapshots hold the single doc).
+  publish: (id: string, note?: string) =>
+    request(`${EDITOR_API}/articles/${id}/publish`, { method: 'POST', body: note ? { note } : {} }),
+  unpublish: (id: string) => request(`${EDITOR_API}/articles/${id}/unpublish`, { method: 'POST' }),
+  listVersions: (id: string) =>
+    request(`${EDITOR_API}/articles/${id}/versions`, { schema: z.array(versionSummarySchema) }),
+  restoreVersion: (id: string, versionId: string) =>
+    request(`${EDITOR_API}/articles/${id}/versions/${versionId}/restore`, { method: 'POST' }),
 };
 
 export const pagesApi = {

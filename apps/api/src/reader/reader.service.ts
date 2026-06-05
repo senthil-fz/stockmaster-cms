@@ -1,36 +1,31 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import type { BookSnapshot, BookSummary } from '@stockmaster/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { toBookSummary, toPage } from '../books/serializers';
 
-const PUBLISHED = 'published' as const;
-
-// Summary counts only published pages, so page/word counts match what a reader sees.
-const publishedSummaryInclude = {
-  chapters: {
-    include: { pages: { where: { status: PUBLISHED }, select: { id: true, wordCount: true } } },
-  },
+// The reader is served entirely from the published version: its snapshot blob (frozen
+// reading structure + book metadata) plus the version's denormalized count columns.
+const withPublishedVersion = {
+  publishedVersion: true,
 } satisfies Prisma.BookInclude;
 
-// Detail/page access need the published pages in reading order (chapter, then page).
-const publishedDetailInclude = {
-  chapters: {
-    orderBy: { order: 'asc' },
-    include: { pages: { where: { status: PUBLISHED }, orderBy: { order: 'asc' } } },
-  },
-} satisfies Prisma.BookInclude;
-
-type BookWithPages = Prisma.BookGetPayload<{ include: typeof publishedDetailInclude }>;
+type BookWithVersion = Prisma.BookGetPayload<{ include: typeof withPublishedVersion }>;
+// Narrowed to "has a published version" — the only books the reader ever serves.
+type PublishedBook = BookWithVersion & {
+  publishedVersion: NonNullable<BookWithVersion['publishedVersion']>;
+};
 
 /**
- * Read-only content access for the mobile app. Every query is scoped to
- * `status: 'published'` at the book AND page level — drafts and editorial-only
- * fields are never reachable through this surface.
+ * Read-only content access for the mobile app. Serves the **published snapshot**, never the
+ * live draft tree: a book is publicly visible iff `publishedVersionId != null`, and its
+ * content/structure/page-numbering come from `publishedVersion.snapshot` — frozen at publish
+ * time and immune to in-progress draft edits.
  *
- * Pages are addressed by a 1-based **page number** that runs across the whole book
- * (reading order: chapter order, then page order, skipping chapters with no published
- * pages). The same numbering is exposed on every page in the book detail so the app can
- * map a table-of-contents entry to `/v1/books/:id/pages/:pageno`.
+ * Pages are addressed by a 1-based **page number** that runs across the whole book (reading
+ * order: chapter order, then page order). `buildBookSnapshot` already froze that ordering and
+ * dropped chapters with no published page, so the numbering here is a plain sequential walk
+ * over `snapshot.chapters[*].pages` — identical to the pre-snapshot live-tree walk.
  */
 @Injectable()
 export class ReaderService {
@@ -38,23 +33,24 @@ export class ReaderService {
 
   async listBooks() {
     const books = await this.prisma.book.findMany({
-      where: { status: PUBLISHED },
+      where: { publishedVersionId: { not: null } },
       orderBy: { updatedAt: 'desc' },
-      include: publishedSummaryInclude,
+      include: withPublishedVersion,
     });
-    return books.map(toBookSummary);
+    return (books as PublishedBook[]).map((b) => this.toSummary(b));
   }
 
   async getBook(id: string) {
     const book = await this.prisma.book.findFirst({
-      where: { id, status: PUBLISHED },
-      include: publishedDetailInclude,
+      where: { id, publishedVersionId: { not: null } },
+      include: withPublishedVersion,
     });
-    if (!book) throw new NotFoundException('Book not found');
+    if (!book?.publishedVersion) throw new NotFoundException('Book not found');
 
-    const summary = toBookSummary(book);
+    const summary = this.toSummary(book as PublishedBook);
+    const snapshot = this.snapshotOf(book as PublishedBook);
     let pageNumber = 0;
-    const chapters = this.nonEmptyChapters(book).map((c) => ({
+    const chapters = snapshot.chapters.map((c) => ({
       id: c.id,
       title: c.title,
       order: c.order,
@@ -74,28 +70,86 @@ export class ReaderService {
       throw new NotFoundException('Page not found');
     }
     const book = await this.prisma.book.findFirst({
-      where: { id: bookId, status: PUBLISHED },
-      include: publishedDetailInclude,
+      where: { id: bookId, publishedVersionId: { not: null } },
+      include: withPublishedVersion,
     });
-    if (!book) throw new NotFoundException('Book not found');
+    if (!book?.publishedVersion) throw new NotFoundException('Book not found');
 
-    const pages = this.nonEmptyChapters(book).flatMap((c) => c.pages);
-    const page = pages[pageNumber - 1];
-    if (!page) throw new NotFoundException('Page not found');
+    const snapshot = this.snapshotOf(book as PublishedBook);
+    const located = this.locatePage(snapshot, pageNumber);
+    if (!located) throw new NotFoundException('Page not found');
+    const { chapterId, page, totalPages } = located;
 
+    // The snapshot preserves the real live Page.id, so read-tracking keeps keying off it.
     this.trackPageRead(bookId, page.id, client);
     return {
-      ...toPage(page),
+      // The snapshot page carries only the reading subset; rebuild the wire Page shape the
+      // app consumes. status is always 'published' (snapshots hold only published pages) and
+      // updatedAt is the version's publish time (no per-page timestamp is frozen).
+      ...toPage({
+        id: page.id,
+        chapterId,
+        title: page.title,
+        status: 'published',
+        order: page.order,
+        wordCount: page.wordCount,
+        updatedAt: book.publishedVersion.createdAt,
+        content: page.content,
+      }),
       pageNumber,
-      totalPages: pages.length,
+      totalPages,
       // Direct page numbers for the reader's pager; null at the first/last page.
       prevPage: pageNumber > 1 ? pageNumber - 1 : null,
-      nextPage: pageNumber < pages.length ? pageNumber + 1 : null,
+      nextPage: pageNumber < totalPages ? pageNumber + 1 : null,
     };
   }
 
-  private nonEmptyChapters(book: BookWithPages) {
-    return book.chapters.filter((c) => c.pages.length > 0);
+  /**
+   * Walk the snapshot's frozen reading order to the Nth page (1-based), tracking which
+   * chapter owns it (the app's Page shape needs chapterId) and the book-global total.
+   */
+  private locatePage(snapshot: BookSnapshot, pageNumber: number) {
+    let totalPages = 0;
+    for (const c of snapshot.chapters) totalPages += c.pages.length;
+
+    let counter = 0;
+    for (const c of snapshot.chapters) {
+      for (const page of c.pages) {
+        if (++counter === pageNumber) return { chapterId: c.id, page, totalPages };
+      }
+    }
+    return null;
+  }
+
+  /** Build the reader summary from the snapshot metadata + the version's count columns. */
+  private toSummary(book: PublishedBook): Omit<BookSummary, 'hasUnpublishedChanges'> {
+    const meta = this.snapshotOf(book).book;
+    const {
+      // `hasUnpublishedChanges` is editorial state — the reader contract is that drafts and
+      // editorial-only fields never reach this surface, so strip it from the public response.
+      hasUnpublishedChanges: _omit,
+      ...summary
+    } = toBookSummary({
+      // Snapshot metadata is frozen at publish time, so in-progress draft edits never leak.
+      ...book,
+      ...meta,
+      // Identity/state fields come from the live row, not the snapshot.
+      id: book.id,
+      publishedVersionId: book.publishedVersionId,
+      draftDirty: book.draftDirty,
+      createdAt: book.createdAt,
+      updatedAt: book.updatedAt,
+      chapters: [], // counts are overridden from the version columns below
+    });
+    return {
+      ...summary,
+      pageCount: book.publishedVersion.pageCount,
+      wordCount: book.publishedVersion.wordCount,
+    };
+  }
+
+  private snapshotOf(book: PublishedBook): BookSnapshot {
+    return book.publishedVersion.snapshot as unknown as BookSnapshot;
   }
 
   /**

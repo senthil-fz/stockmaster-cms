@@ -4,7 +4,6 @@ import {
   readingTimeMinutes,
   slugSchema,
   type ArticleDetail,
-  type PublishStatus,
   type UpdateArticleInput,
 } from '@stockmaster/shared';
 import { articlesApi, uploadsApi } from '../lib/api';
@@ -13,8 +12,9 @@ import { Panel } from './Panel';
 import { BookCover } from './ui/BookCover';
 
 /**
- * Article-level editor (right panel). Edits cover, subtitle/author/year, tags,
- * publish status and the URL slug (the title lives in the canvas editor surface).
+ * Article-level editor (right panel). Edits cover, subtitle/author/year, tags and the
+ * URL slug (the title lives in the canvas editor surface). Visibility is no longer set
+ * here — it changes only through Publish / Unpublish in the editor topbar.
  * Saves via articlesApi.update (text fields debounced, cover/slug saved on commit).
  * No buy link, no chapters — an article is a single page.
  */
@@ -143,19 +143,6 @@ export function ArticleSettings({
               setYear(e.target.value);
               debouncedSave({ year: e.target.value });
             }}
-          />
-        </Panel.Field>
-      </Panel.Section>
-
-      <Panel.Section label="Status">
-        <Panel.Field label="Publish status">
-          <Panel.Seg
-            value={article.status}
-            onChange={(status: PublishStatus) => save.mutate({ status })}
-            options={[
-              { value: 'draft', label: 'Draft' },
-              { value: 'published', label: 'Published' },
-            ]}
           />
         </Panel.Field>
       </Panel.Section>

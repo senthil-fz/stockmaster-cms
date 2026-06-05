@@ -38,7 +38,10 @@ interface BookScalars {
   coverTone: string;
   coverUrl: string | null;
   buyLink: string | null;
-  status: PublishStatus;
+  // `status` is no longer a column — it is derived from `publishedVersionId` below.
+  publishedVersionId: string | null;
+  // Drives `hasUnpublishedChanges`: the draft has edits not yet in a published version.
+  draftDirty: boolean;
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -95,7 +98,9 @@ export function toBookSummary(w: BookSummaryInput): BookSummary {
     coverTone: w.coverTone,
     coverUrl: w.coverUrl,
     buyLink: w.buyLink,
-    status: w.status,
+    // Published iff a live version exists; the pointer is the sole source of truth.
+    status: w.publishedVersionId ? 'published' : 'draft',
+    hasUnpublishedChanges: w.draftDirty,
     tags: w.tags,
     pageCount,
     wordCount,

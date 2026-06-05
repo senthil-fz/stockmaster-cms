@@ -3,6 +3,7 @@ export * from './words';
 export * from './auth';
 export * from './book';
 export * from './article';
+export * from './version';
 export * from './upload';
 export * from './stats';
 export * from './api-key';

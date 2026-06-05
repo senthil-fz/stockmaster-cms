@@ -12,6 +12,7 @@ import { Sidebar } from '../components/Sidebar';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Topbar, type SaveState } from '../components/Topbar';
 import { ArticleSettings } from '../components/ArticleSettings';
+import { VersionHistory } from '../components/VersionHistory';
 import { Icons } from '../components/icons';
 import { useBlockEditor } from '../editor/useBlockEditor';
 import { BlockEditor } from '../editor/BlockEditor';
@@ -100,7 +101,8 @@ export function ArticleEditorPage() {
 function ArticleWorkspace({ article }: { article: ArticleDetail }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [rightOpen, setRightOpen] = useState(true);
+  // Right panel: article settings, version history, or closed.
+  const [panel, setPanel] = useState<'settings' | 'versions' | null>('settings');
   const [saveState, setSaveState] = useState<SaveState>('saved');
   const [title, setTitle] = useState(article.title);
 
@@ -108,6 +110,23 @@ function ArticleWorkspace({ article }: { article: ArticleDetail }) {
     queryClient.setQueryData(articleQueryOptions(article.id).queryKey, updated);
     void queryClient.invalidateQueries({ queryKey: ['articles'] });
   };
+
+  // Publish/unpublish — snapshot the draft to a live version, or pull the article from
+  // public. The response shape isn't pinned, so we refetch to read derived status.
+  const afterPublishChange = () => {
+    void queryClient.invalidateQueries({ queryKey: ['article', article.id] });
+    void queryClient.invalidateQueries({ queryKey: ['article', article.id, 'versions'] });
+    void queryClient.invalidateQueries({ queryKey: ['articles'] });
+  };
+  const publish = useMutation({
+    mutationFn: () => articlesApi.publish(article.id),
+    onSuccess: afterPublishChange,
+  });
+  const unpublish = useMutation({
+    mutationFn: () => articlesApi.unpublish(article.id),
+    onSuccess: afterPublishChange,
+  });
+  const publishBusy = publish.isPending || unpublish.isPending;
 
   const saveContent = useMutation({
     mutationFn: (content: JSONContent) =>
@@ -168,27 +187,51 @@ function ArticleWorkspace({ article }: { article: ArticleDetail }) {
           >
             <Icons.Eye />
           </button>
+          {article.status === 'published' && article.hasUnpublishedChanges && (
+            <span className="status draft" title="The published article has edits not yet published">
+              <span className="led" />
+              Unpublished changes
+            </span>
+          )}
+          {article.status === 'published' && (
+            <button
+              className="btn btn-secondary"
+              disabled={publishBusy}
+              onClick={() => unpublish.mutate()}
+            >
+              Unpublish
+            </button>
+          )}
           <button
-            className="btn btn-secondary"
+            className="btn btn-primary"
+            disabled={publishBusy}
             onClick={() => {
               flushPending();
-              saveTitle.mutate(title);
+              publish.mutate();
             }}
           >
-            Save
+            {article.status === 'published' ? 'Publish changes' : 'Publish'}
+          </button>
+          <button
+            className="icon-btn bordered"
+            title="Version history"
+            style={{ opacity: panel === 'versions' ? 1 : 0.6 }}
+            onClick={() => setPanel((p) => (p === 'versions' ? null : 'versions'))}
+          >
+            <Icons.Clock />
           </button>
           <button
             className="icon-btn bordered"
             title="Article details"
-            style={{ opacity: rightOpen ? 1 : 0.6 }}
-            onClick={() => setRightOpen((o) => !o)}
+            style={{ opacity: panel === 'settings' ? 1 : 0.6 }}
+            onClick={() => setPanel((p) => (p === 'settings' ? null : 'settings'))}
           >
             <Icons.PanelLeft style={{ transform: 'scaleX(-1)' }} />
           </button>
         </Topbar.Actions>
       </Topbar>
 
-      <div className={'work-area' + (rightOpen ? ' with-panel' : '')}>
+      <div className={'work-area' + (panel ? ' with-panel' : '')}>
         <div className="canvas-scroll">
           <div className="editor-wrap">
             <div className="editor">
@@ -214,9 +257,11 @@ function ArticleWorkspace({ article }: { article: ArticleDetail }) {
           </div>
         </div>
 
-        {rightOpen && (
-          <ArticleSettings article={article} words={words} onClose={() => setRightOpen(false)} />
-        )}
+        {panel === 'versions' ? (
+          <VersionHistory id={article.id} kind="article" onClose={() => setPanel(null)} />
+        ) : panel === 'settings' ? (
+          <ArticleSettings article={article} words={words} onClose={() => setPanel(null)} />
+        ) : null}
       </div>
     </>
   );
