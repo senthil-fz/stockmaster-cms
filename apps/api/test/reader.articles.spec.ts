@@ -25,9 +25,13 @@ const snapshot = {
     coverTone: '#123456',
     coverUrl: 'http://x/c.png',
     tags: ['macro'],
-    slug: 'rbi-holds-rates',
+    // STALE on purpose: the slug was edited (live row → 'rbi-holds-rates') after this
+    // snapshot froze. The reader must serve the LIVE routing slug, never this frozen one.
+    slug: 'stale-old-slug',
   },
   content: { type: 'doc', content: [] },
+  // Articles read wordCount from the SNAPSHOT (not the version column) — see the diverging
+  // publishedVersion.wordCount below, which would win only if the contract were violated.
   wordCount: 800,
 };
 
@@ -42,7 +46,9 @@ const row = (over: Record<string, unknown> = {}) => ({
   publishedVersion: {
     id: 'v1',
     snapshot,
-    wordCount: 800,
+    // Diverges from snapshot.wordCount (800) on purpose: the article reader must read the
+    // SNAPSHOT field, so a 'harmonize with books' refactor that read this column → 999 fails.
+    wordCount: 999,
     createdAt: new Date('2026-06-05T00:00:00Z'),
   },
   ...over,
@@ -73,10 +79,12 @@ describe('ReaderService — articles', () => {
     // Editorial-only + body fields never reach the reader surface.
     expect('hasUnpublishedChanges' in out[0]).toBe(false);
     expect('content' in out[0]).toBe(false);
-    // Serves published-only, newest first.
+    // Serves published-only, newest first, with the published version included — dropping the
+    // include makes real Prisma return publishedVersion === undefined and 500s the whole feed.
     const args = findMany.mock.calls[0][0];
     expect(args.where).toEqual({ publishedVersionId: { not: null } });
     expect(args.orderBy).toEqual({ updatedAt: 'desc' });
+    expect(args.include).toEqual({ publishedVersion: true });
   });
 
   it('getArticle returns detail WITH content, queried by slug, scoped to published', async () => {
@@ -94,10 +102,12 @@ describe('ReaderService — articles', () => {
     expect('hasUnpublishedChanges' in out).toBe(false);
 
     // A non-uuid token is matched by slug, scoped to published (no uuid-cast on a slug column).
-    const where = findFirst.mock.calls[0][0].where;
-    expect(where.publishedVersionId).toEqual({ not: null });
-    expect(where.slug).toBe('rbi-holds-rates');
-    expect(where.id).toBeUndefined();
+    const args = findFirst.mock.calls[0][0];
+    expect(args.where.publishedVersionId).toEqual({ not: null });
+    expect(args.where.slug).toBe('rbi-holds-rates');
+    expect(args.where.id).toBeUndefined();
+    // The published version must be included — without it getArticle 404s every published row.
+    expect(args.include).toEqual({ publishedVersion: true });
   });
 
   it('getArticle matches by id when given a uuid-shaped token', async () => {
@@ -114,5 +124,12 @@ describe('ReaderService — articles', () => {
   it('getArticle throws NotFound when no published article matches', async () => {
     const svc = make({ findFirst: jest.fn().mockResolvedValue(null) });
     await expect(svc.getArticle('nope')).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('getArticle throws NotFound when the row is present but publishedVersion is missing', async () => {
+    // Pins the `!article?.publishedVersion` guard independently of the null-row path — this is
+    // exactly the state a dropped `include` produces (row found, publishedVersion absent).
+    const svc = make({ findFirst: jest.fn().mockResolvedValue(row({ publishedVersion: null })) });
+    await expect(svc.getArticle('rbi-holds-rates')).rejects.toBeInstanceOf(NotFoundException);
   });
 });

@@ -163,7 +163,11 @@ export class ReaderService {
     const { hasUnpublishedChanges: _omit, ...detail } = toArticleDetail({
       // Identity/state from the live row; everything else frozen in the snapshot.
       id: article.id,
-      slug: snap.article.slug,
+      // slug is a routing key (resolved against the live `Article.slug` column), not display
+      // metadata — serve the LIVE value so the list's advertised slug always re-fetches and the
+      // detail response's slug matches the requested token. The frozen snapshot slug can drift
+      // after a post-publish slug edit (update() repoints Article.slug without republishing).
+      slug: article.slug,
       title: snap.article.title,
       subtitle: snap.article.subtitle,
       author: snap.article.author,
