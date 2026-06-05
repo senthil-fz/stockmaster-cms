@@ -127,7 +127,7 @@ export function Authors({ currentUserId }: { currentUserId: string }) {
           <p className="text-[13px] text-muted">No authors yet. Add the first member to get started.</p>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table className="authors-table w-full border-collapse text-[13px]" aria-label="Authors">
+            <table className="w-full border-collapse text-[13px]" aria-label="Authors">
               <thead>
                 <tr>
                   <th scope="col" className={AUTHOR_TH}>
@@ -151,7 +151,7 @@ export function Authors({ currentUserId }: { currentUserId: string }) {
                   return (
                     <tr
                       key={u.id}
-                      className="hover:bg-hover"
+                      className="animate-author-row-in hover:bg-hover motion-reduce:animate-none"
                       style={{
                         animationDelay: `${Math.min(i, 12) * 40}ms`,
                         ...(suspended ? { opacity: 0.62 } : {}),

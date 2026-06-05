@@ -53,7 +53,7 @@ export const BlockEditor = memo(function BlockEditor({ editor }: { editor: Edito
         </div>
       </DragHandle>
 
-      <EditorContent editor={editor} className="bp-prose" />
+      <EditorContent editor={editor} className="relative" />
 
       <BubbleToolbar editor={editor} />
     </>

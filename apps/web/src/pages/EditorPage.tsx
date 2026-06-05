@@ -429,7 +429,7 @@ function EditorWorkspace({
         </Topbar.Actions>
       </Topbar>
 
-      <div className={'work-area' + (rightOpen ? ' with-panel' : '')}>
+      <div className={'grid min-h-0 flex-1 ' + (rightOpen ? 'grid-cols-[1fr_340px]' : 'grid-cols-[1fr]')}>
         <div className="canvas-scroll">
           <div className="pt-[30px] px-6 pb-[200px]">
             <div className="max-w-[var(--content-width)] mx-auto">
