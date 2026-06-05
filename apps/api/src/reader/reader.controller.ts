@@ -44,4 +44,17 @@ export class ReaderController {
   ) {
     return this.reader.getBookPage(id, Number(pageno), client ?? null);
   }
+
+  // Articles — single-page works served from the published snapshot. Summaries (no body)
+  // for the feed; full detail (incl. content) for the reader, resolved by id OR slug.
+  @Get('articles')
+  listArticles() {
+    return this.reader.listArticles();
+  }
+
+  @Get('articles/:idOrSlug')
+  @TrackRead('article_open')
+  getArticle(@Param('idOrSlug') idOrSlug: string) {
+    return this.reader.getArticle(idOrSlug);
+  }
 }
