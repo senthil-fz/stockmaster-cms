@@ -4,7 +4,8 @@ import { ContentRoute } from '../common/decorators/scopes.decorator';
 import { ArticlesService } from './articles.service';
 import { ArticlesQueryDto, CreateArticleDto, UpdateArticleDto } from './dto';
 
-@Controller()
+// Editor API namespace → /v1/admin/* (see books.controller.ts).
+@Controller('admin')
 export class ArticlesController {
   constructor(private readonly articles: ArticlesService) {}
 

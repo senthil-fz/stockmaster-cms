@@ -7,7 +7,10 @@ import { AuthService } from './auth.service';
 import { CreateUserDto, LoginDto, UpdateUserDto } from './dto';
 
 const REFRESH_COOKIE = 'bp_refresh';
-const REFRESH_PATH = '/auth/refresh';
+// MUST match the live route of the refresh endpoint (/v1 from URI versioning + /admin/auth
+// from this controller) — the browser only sends an httpOnly cookie back on requests whose
+// path is under this scope. If the auth route prefix changes, change this too.
+const REFRESH_PATH = '/v1/admin/auth/refresh';
 
 // Set and clear MUST share identical attributes (minus maxAge) or compliant browsers
 // won't delete the cookie on logout. Keep them in one place so they can't drift.
@@ -27,7 +30,7 @@ function setRefreshCookie(res: Response, token: string): void {
   });
 }
 
-@Controller('auth')
+@Controller('admin/auth')
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
 

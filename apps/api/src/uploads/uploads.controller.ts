@@ -4,7 +4,9 @@ import { memoryStorage } from 'multer';
 import { MAX_UPLOAD_BYTES } from '@stockmaster/shared';
 import { UploadsService } from './uploads.service';
 
-@Controller('uploads')
+// Editor API namespace → POST /v1/admin/uploads. (Static image serving stays at /uploads/*,
+// served by useStaticAssets in main.ts — unversioned and unaffected.)
+@Controller('admin/uploads')
 export class UploadsController {
   constructor(private readonly uploads: UploadsService) {}
 

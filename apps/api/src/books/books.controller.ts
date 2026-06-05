@@ -11,7 +11,9 @@ import {
   UpdateChapterDto,
 } from './dto';
 
-@Controller()
+// Editor API namespace: routes resolve under /v1/admin/* (URI versioning adds /v1, this
+// controller adds /admin). Distinct from the public reader's /v1/books.
+@Controller('admin')
 export class BooksController {
   constructor(private readonly books: BooksService) {}
 

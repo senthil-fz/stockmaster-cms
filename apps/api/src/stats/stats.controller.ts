@@ -3,7 +3,7 @@ import { StatsService } from './stats.service';
 import { StatsQueryDto } from './dto';
 
 // Read-analytics for the web Reporting dashboard. Protected by the global JwtAuthGuard.
-@Controller('stats')
+@Controller('admin/stats')
 export class StatsController {
   constructor(private readonly stats: StatsService) {}
 

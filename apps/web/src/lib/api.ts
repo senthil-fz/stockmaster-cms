@@ -31,6 +31,11 @@ import {
 } from '@stockmaster/shared';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+// Base path of the editor REST API: /v1 (URI versioning) + /admin (editor namespace).
+// Prepended to every endpoint path below so the version is an explicit part of each URL.
+// NOTE: uploaded-image URLs are returned ABSOLUTE by the API and served as static assets at
+// `${API_URL}/uploads/*` — those intentionally do NOT carry this prefix.
+const EDITOR_API = '/v1/admin';
 
 // Access token lives in memory; the refresh token is an httpOnly cookie the
 // browser sends to /auth/refresh automatically.
@@ -58,7 +63,7 @@ function refreshAccessToken(): Promise<boolean> {
   if (refreshInFlight) return refreshInFlight;
   refreshInFlight = (async () => {
     try {
-      const res = await fetch(`${API_URL}/auth/refresh`, { method: 'POST', credentials: 'include' });
+      const res = await fetch(`${API_URL}${EDITOR_API}/auth/refresh`, { method: 'POST', credentials: 'include' });
       if (!res.ok) {
         accessToken = null;
         return false;
@@ -101,7 +106,7 @@ async function request<T>(path: string, opts: RequestOptions<T> = {}): Promise<T
   let res = await doFetch();
 
   // Transparently refresh once on 401 (except for auth routes themselves).
-  if (res.status === 401 && !path.startsWith('/auth/')) {
+  if (res.status === 401 && !path.startsWith(`${EDITOR_API}/auth/`)) {
     const refreshed = await refreshAccessToken();
     if (refreshed) res = await doFetch();
   }
@@ -133,15 +138,15 @@ const meResponseSchema = z.object({ user: userSchema });
 
 export const authApi = {
   login: async (input: LoginInput) => {
-    const r = await request('/auth/login', { method: 'POST', body: input, schema: authResponseSchema });
+    const r = await request(`${EDITOR_API}/auth/login`, { method: 'POST', body: input, schema: authResponseSchema });
     setAccessToken(r.accessToken);
     return r;
   },
-  me: () => request('/auth/me', { schema: meResponseSchema }),
+  me: () => request(`${EDITOR_API}/auth/me`, { schema: meResponseSchema }),
   refresh: refreshAccessToken,
   logout: async () => {
     try {
-      await request('/auth/logout', { method: 'POST' });
+      await request(`${EDITOR_API}/auth/logout`, { method: 'POST' });
     } finally {
       setAccessToken(null);
     }
@@ -151,21 +156,21 @@ export const authApi = {
 // Authenticated user management. Creating a user does NOT touch the current session's
 // access token — the signed-in creator stays themselves; the new user signs in later.
 export const usersApi = {
-  list: () => request('/auth/users', { schema: usersListResponseSchema }).then((r) => r.users),
+  list: () => request(`${EDITOR_API}/auth/users`, { schema: usersListResponseSchema }).then((r) => r.users),
   create: (input: SignupInput) =>
-    request('/auth/users', { method: 'POST', body: input, schema: meResponseSchema }),
+    request(`${EDITOR_API}/auth/users`, { method: 'POST', body: input, schema: meResponseSchema }),
   update: (id: string, input: UpdateUserInput) =>
-    request(`/auth/users/${id}`, { method: 'PATCH', body: input, schema: meResponseSchema }),
-  remove: (id: string) => request(`/auth/users/${id}`, { method: 'DELETE' }),
+    request(`${EDITOR_API}/auth/users/${id}`, { method: 'PATCH', body: input, schema: meResponseSchema }),
+  remove: (id: string) => request(`${EDITOR_API}/auth/users/${id}`, { method: 'DELETE' }),
 };
 
 // Personal API keys for the MCP server (and other programmatic, draft-only callers).
 // Every call rides the existing Bearer-auth request() helper — the /api-keys routes are
 // JWT-only, so an ApiKey credential can never reach them.
 export const apiKeysApi = {
-  list: () => request('/api-keys', { schema: z.array(apiKeySummarySchema) }),
+  list: () => request(`${EDITOR_API}/api-keys`, { schema: z.array(apiKeySummarySchema) }),
   create: (name: string, scopes: ApiKeyScope[], expiresAt?: string) =>
-    request('/api-keys', {
+    request(`${EDITOR_API}/api-keys`, {
       method: 'POST',
       // `expiresAt` is omitted when never-expiring; when set it MUST be an absolute UTC/ISO
       // instant (see api-keys.tsx) so the server's future-date check can't skew by the client.
@@ -173,60 +178,60 @@ export const apiKeysApi = {
       schema: createApiKeyResponseSchema,
     }),
   // Revoke returns { ok: true } (HTTP 200, not 204) — no response schema needed.
-  revoke: (id: string) => request(`/api-keys/${id}`, { method: 'DELETE' }),
+  revoke: (id: string) => request(`${EDITOR_API}/api-keys/${id}`, { method: 'DELETE' }),
 };
 
 const statsQs = (q: StatsQuery): string => qs({ client: q.client, from: q.from, to: q.to });
 
 export const statsApi = {
   books: (q: StatsQuery = {}) =>
-    request(`/stats/books${statsQs(q)}`, { schema: bookStatsResponseSchema }),
+    request(`${EDITOR_API}/stats/books${statsQs(q)}`, { schema: bookStatsResponseSchema }),
   bookDetail: (id: string, q: StatsQuery = {}) =>
-    request(`/stats/books/${id}${statsQs(q)}`, { schema: bookStatDetailSchema }),
+    request(`${EDITOR_API}/stats/books/${id}${statsQs(q)}`, { schema: bookStatDetailSchema }),
 };
 
 export const booksApi = {
   list: (query: BooksQuery = {}) =>
-    request(`/books${qs({ status: query.status })}`, {
+    request(`${EDITOR_API}/books${qs({ status: query.status })}`, {
       schema: z.array(bookSummarySchema),
     }),
-  detail: (id: string) => request(`/books/${id}`, { schema: bookDetailSchema }),
-  create: (body: CreateBookInput) => request('/books', { method: 'POST', body, schema: bookSummarySchema }),
+  detail: (id: string) => request(`${EDITOR_API}/books/${id}`, { schema: bookDetailSchema }),
+  create: (body: CreateBookInput) => request(`${EDITOR_API}/books`, { method: 'POST', body, schema: bookSummarySchema }),
   update: (id: string, body: UpdateBookInput) =>
-    request(`/books/${id}`, { method: 'PATCH', body, schema: bookSummarySchema }),
-  remove: (id: string) => request(`/books/${id}`, { method: 'DELETE' }),
+    request(`${EDITOR_API}/books/${id}`, { method: 'PATCH', body, schema: bookSummarySchema }),
+  remove: (id: string) => request(`${EDITOR_API}/books/${id}`, { method: 'DELETE' }),
   addChapter: (bookId: string, body: CreateChapterInput) =>
-    request(`/books/${bookId}/chapters`, { method: 'POST', body, schema: chapterSchema }),
-  removeChapter: (id: string) => request(`/chapters/${id}`, { method: 'DELETE' }),
+    request(`${EDITOR_API}/books/${bookId}/chapters`, { method: 'POST', body, schema: chapterSchema }),
+  removeChapter: (id: string) => request(`${EDITOR_API}/chapters/${id}`, { method: 'DELETE' }),
 };
 
 export const articlesApi = {
   list: (query: ArticlesQuery = {}) =>
-    request(`/articles${qs({ status: query.status })}`, {
+    request(`${EDITOR_API}/articles${qs({ status: query.status })}`, {
       schema: z.array(articleSummarySchema),
     }),
-  detail: (idOrSlug: string) => request(`/articles/${idOrSlug}`, { schema: articleDetailSchema }),
+  detail: (idOrSlug: string) => request(`${EDITOR_API}/articles/${idOrSlug}`, { schema: articleDetailSchema }),
   create: (body: CreateArticleInput) =>
-    request('/articles', { method: 'POST', body, schema: articleSummarySchema }),
+    request(`${EDITOR_API}/articles`, { method: 'POST', body, schema: articleSummarySchema }),
   update: (id: string, body: UpdateArticleInput) =>
-    request(`/articles/${id}`, { method: 'PATCH', body, schema: articleDetailSchema }),
-  remove: (id: string) => request(`/articles/${id}`, { method: 'DELETE' }),
+    request(`${EDITOR_API}/articles/${id}`, { method: 'PATCH', body, schema: articleDetailSchema }),
+  remove: (id: string) => request(`${EDITOR_API}/articles/${id}`, { method: 'DELETE' }),
 };
 
 export const pagesApi = {
-  get: (id: string) => request(`/pages/${id}`, { schema: pageSchema }),
+  get: (id: string) => request(`${EDITOR_API}/pages/${id}`, { schema: pageSchema }),
   addPage: (chapterId: string, body: CreatePageInput) =>
-    request(`/chapters/${chapterId}/pages`, { method: 'POST', body, schema: pageSchema }),
+    request(`${EDITOR_API}/chapters/${chapterId}/pages`, { method: 'POST', body, schema: pageSchema }),
   update: (id: string, body: UpdatePageInput) =>
-    request(`/pages/${id}`, { method: 'PATCH', body, schema: pageSchema }),
-  remove: (id: string) => request(`/pages/${id}`, { method: 'DELETE' }),
+    request(`${EDITOR_API}/pages/${id}`, { method: 'PATCH', body, schema: pageSchema }),
+  remove: (id: string) => request(`${EDITOR_API}/pages/${id}`, { method: 'DELETE' }),
   /**
    * Fire-and-forget page update that survives page unload (tab close / refresh).
    * Uses `keepalive: true` so the browser completes the request after teardown.
    * No refresh-on-401 retry (the page is going away) and no response parsing.
    */
   updateOnUnload: (id: string, body: UpdatePageInput): void => {
-    void fetch(`${API_URL}/pages/${id}`, {
+    void fetch(`${API_URL}${EDITOR_API}/pages/${id}`, {
       method: 'PATCH',
       keepalive: true,
       credentials: 'include',
@@ -245,7 +250,7 @@ export const uploadsApi = {
     const form = new FormData();
     form.append('file', file);
     const doFetch = (): Promise<Response> =>
-      fetch(`${API_URL}/uploads`, {
+      fetch(`${API_URL}${EDITOR_API}/uploads`, {
         method: 'POST',
         credentials: 'include',
         // No Content-Type — the browser sets the multipart boundary.

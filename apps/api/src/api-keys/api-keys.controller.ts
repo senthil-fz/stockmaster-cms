@@ -7,7 +7,7 @@ import { CreateApiKeyDto } from './dto';
 // Every handler is @JwtOnly(): key management is a user-session-only concern. ScopeGuard
 // rejects ApiKey principals here (403) so a draft-only key can never mint, list, or
 // revoke keys — i.e. never escalate its own privileges.
-@Controller('api-keys')
+@Controller('admin/api-keys')
 export class ApiKeysController {
   constructor(private readonly apiKeys: ApiKeysService) {}
 
