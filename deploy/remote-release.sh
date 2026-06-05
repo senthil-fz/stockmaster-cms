@@ -28,8 +28,17 @@ $PRISMA generate --schema=prisma/schema.prisma
 echo "==> prisma migrate deploy"
 $PRISMA migrate deploy --schema=prisma/schema.prisma
 
-echo "==> pm2 startOrReload"
-pm2 startOrReload "$ECOSYSTEM" --env production --update-env
+# Clean restart (delete + start), NOT reload. `pm2 reload` respawns the process with the
+# environment PM2 captured at the ORIGINAL `pm2 start`, and Node's --env-file (set in the
+# ecosystem interpreter_args) cannot override an env var that is already present in that
+# inherited environment. The combined effect: a rotated secret in api.env (e.g.
+# MOBILE_APP_SECRET) silently never reaches the running process — every deploy rewrites
+# api.env to no effect. `pm2 delete` + `pm2 start` makes PM2 re-capture the api.env values
+# we sourced above, so the process actually picks up the current secrets. Only this app is
+# touched (the box's other PM2 apps are untouched) and the health check below gates the swap.
+echo "==> pm2 restart (clean env reseed)"
+pm2 delete stockmaster-api 2>/dev/null || true
+pm2 start "$ECOSYSTEM" --update-env
 pm2 save
 
 echo "==> health check (http://127.0.0.1:3001/health)"
