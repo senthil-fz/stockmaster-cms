@@ -4,7 +4,6 @@ import type { VersionSummary } from '@stockmaster/shared';
 import { articlesApi, booksApi } from '../lib/api';
 import { Panel } from './Panel';
 import { VersionViewer } from './VersionViewer';
-import { Icons } from './icons';
 
 const fmtDate = (iso: string): string =>
   new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
@@ -66,49 +65,40 @@ export function VersionHistory({
           </p>
         </Panel.Section>
       ) : (
-        versions.map((v: VersionSummary) => (
-          <Panel.Section key={v.id}>
-            <button
-              className="vh-row"
-              onClick={() => setViewerVersionId(v.id)}
-              title="View this version (preview + changes)"
-            >
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                <span style={{ fontWeight: 600 }}>Version {v.versionNumber}</span>
+        <div className="vh-list">
+          {versions.map((v: VersionSummary) => (
+            <div className="vh-item" data-live={v.isPublished || undefined} key={v.id}>
+              <div className="vh-item-head">
+                <span className="vh-vnum">Version {v.versionNumber}</span>
                 {v.isPublished && (
-                  <span className="status published" style={{ fontSize: 12 }}>
+                  <span className="vh-live">
                     <span className="led" />
                     Live
                   </span>
                 )}
-                <Icons.Eye style={{ marginLeft: 'auto', opacity: 0.6 }} />
               </div>
-              <div className="muted" style={{ fontSize: 12, margin: '4px 0 0', lineHeight: 1.5 }}>
+              <div className="vh-meta">
                 {fmtDate(v.createdAt)} · {v.wordCount.toLocaleString()} words
-                {v.pageCount != null ? ` · ${v.pageCount} pages` : ''}
+                {v.pageCount != null ? ` · ${v.pageCount}p` : ''}
               </div>
-              {v.note && (
-                <p className="muted" style={{ fontSize: 12, margin: '4px 0 0', lineHeight: 1.5 }}>
-                  {v.note}
-                </p>
-              )}
-            </button>
-            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-              <button className="btn btn-secondary btn-sm" onClick={() => setViewerVersionId(v.id)}>
-                View &amp; compare
-              </button>
-              {!v.isPublished && (
-                <button
-                  className="btn btn-secondary btn-sm"
-                  disabled={restore.isPending}
-                  onClick={() => restore.mutate(v.id)}
-                >
-                  Restore
+              {v.note && <div className="vh-note">{v.note}</div>}
+              <div className="vh-actions">
+                <button className="btn btn-secondary btn-sm" onClick={() => setViewerVersionId(v.id)}>
+                  View &amp; compare
                 </button>
-              )}
+                {!v.isPublished && (
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    disabled={restore.isPending}
+                    onClick={() => restore.mutate(v.id)}
+                  >
+                    Restore
+                  </button>
+                )}
+              </div>
             </div>
-          </Panel.Section>
-        ))
+          ))}
+        </div>
       )}
 
       {viewerVersionId && (
@@ -125,7 +115,7 @@ export function VersionHistory({
 
       {err && (
         <Panel.Section>
-          <p style={{ color: '#c0392b', fontSize: 12, margin: 0 }}>{err}</p>
+          <p style={{ color: 'var(--red)', fontSize: 12, margin: 0 }}>{err}</p>
         </Panel.Section>
       )}
     </Panel>
