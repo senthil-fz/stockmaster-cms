@@ -54,35 +54,49 @@ export function VersionHistory({
 
       {isLoading ? (
         <Panel.Section>
-          <p className="muted" style={{ fontSize: 13, margin: 0 }}>
-            Loading…
-          </p>
+          <p className="m-0 text-[13px] text-muted">Loading…</p>
         </Panel.Section>
       ) : versions.length === 0 ? (
         <Panel.Section>
-          <p className="muted" style={{ fontSize: 13, margin: 0, lineHeight: 1.5 }}>
+          <p className="m-0 text-[13px] leading-normal text-muted">
             No versions yet. Publishing captures the current draft as version 1.
           </p>
         </Panel.Section>
       ) : (
-        <div className="vh-list">
-          {versions.map((v: VersionSummary) => (
-            <div className="vh-item" data-live={v.isPublished || undefined} key={v.id}>
-              <div className="vh-item-head">
-                <span className="vh-vnum">Version {v.versionNumber}</span>
+        <div className="relative px-0.5 pt-1.5 pb-1">
+          {/* connector rail running through every node */}
+          <span className="pointer-events-none absolute left-[5px] top-[18px] bottom-[22px] w-0.5 rounded bg-line-strong" />
+          {versions.map((v: VersionSummary, i: number) => (
+            <div
+              key={v.id}
+              className={'relative py-3 pl-[22px]' + (i > 0 ? ' border-t border-line' : '')}
+            >
+              {/* timeline node — hollow, or filled green for the live version */}
+              <span
+                className={
+                  'absolute left-0 top-[15px] h-3 w-3 rounded-full border-2 ' +
+                  (v.isPublished
+                    ? 'border-green bg-green ring-4 ring-green/20'
+                    : 'border-line-strong bg-canvas')
+                }
+              />
+              <div className="flex min-h-4 items-center gap-2">
+                <span className="whitespace-nowrap text-[13.5px] font-semibold tracking-[-0.01em] text-fg">
+                  Version {v.versionNumber}
+                </span>
                 {v.isPublished && (
-                  <span className="vh-live">
-                    <span className="led" />
+                  <span className="inline-flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.06em] text-green">
+                    <span className="h-1.5 w-1.5 rounded-full bg-green" />
                     Live
                   </span>
                 )}
               </div>
-              <div className="vh-meta">
+              <div className="mt-0.5 text-[11.5px] tabular-nums tracking-[0.01em] text-faint">
                 {fmtDate(v.createdAt)} · {v.wordCount.toLocaleString()} words
                 {v.pageCount != null ? ` · ${v.pageCount}p` : ''}
               </div>
-              {v.note && <div className="vh-note">{v.note}</div>}
-              <div className="vh-actions">
+              {v.note && <div className="mt-1.5 text-[11.5px] italic leading-snug text-muted">{v.note}</div>}
+              <div className="mt-2.5 flex gap-1.5">
                 <button className="btn btn-secondary btn-sm" onClick={() => setViewerVersionId(v.id)}>
                   View &amp; compare
                 </button>
@@ -115,7 +129,7 @@ export function VersionHistory({
 
       {err && (
         <Panel.Section>
-          <p style={{ color: 'var(--red)', fontSize: 12, margin: 0 }}>{err}</p>
+          <p className="m-0 text-xs text-red">{err}</p>
         </Panel.Section>
       )}
     </Panel>

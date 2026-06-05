@@ -1,0 +1,73 @@
+/* Tailwind CSS v4 entry (latest, CSS-first config).
+ *
+ * The project's design tokens live in tokens.css as CSS variables, with a
+ * [data-theme='dark'] override block. We map those variables into Tailwind's
+ * theme with `@theme inline` so utilities (bg-canvas, text-muted, border-line,
+ * rounded-md, shadow-sm…) resolve to the SAME tokens — and dark mode keeps
+ * working automatically, because the utilities reference the live variables. */
+@import 'tailwindcss';
+
+/* The app toggles dark mode via a data attribute, not prefers-color-scheme. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@theme inline {
+  /* surfaces → bg-canvas / bg-app / bg-sidebar / bg-subtle / bg-hover */
+  --color-canvas: var(--bg-canvas);
+  --color-app: var(--bg-app);
+  --color-sidebar: var(--bg-sidebar);
+  --color-subtle: var(--bg-subtle);
+  --color-hover: var(--bg-hover);
+
+  /* text → text-fg / text-muted / text-faint / text-onprimary */
+  --color-fg: var(--text);
+  --color-muted: var(--text-secondary);
+  --color-faint: var(--text-tertiary);
+  --color-onprimary: var(--text-onprimary);
+
+  /* lines → border-line / border-line-strong / border-input */
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-input: var(--border-input);
+
+  /* brand + accent */
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-accent: var(--accent);
+
+  /* semantic */
+  --color-green: var(--green);
+  --color-red: var(--red);
+  --color-amber: var(--amber);
+  --color-blue: var(--blue-badge);
+
+  /* radii (override the default scale to our tokens) */
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+
+  /* shadows */
+  --shadow-xs: var(--sh-xs);
+  --shadow-sm: var(--sh-sm);
+  --shadow-md: var(--sh-md);
+  --shadow-lg: var(--sh-lg);
+
+  /* type */
+  --font-sans: var(--font-ui);
+
+  /* animations (version-explorer modal entrance) */
+  --animate-overlay-in: overlay-in 0.18s ease;
+  --animate-modal-in: modal-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+}

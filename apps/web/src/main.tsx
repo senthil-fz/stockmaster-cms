@@ -8,6 +8,7 @@ import { queryClient } from './lib/queryClient';
 import { router } from './router';
 import { Icons } from './components/icons';
 import './styles/tokens.css';
+import './styles/tailwind.css';
 import './styles/app.css';
 
 function InnerApp() {
