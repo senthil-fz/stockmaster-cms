@@ -47,19 +47,23 @@ export function ArticleEditorPage() {
         sidebar={() => (
           <Sidebar>
             <Sidebar.Brand />
-            <div className="book-head">
-              <button className="book-back" onClick={() => navigate({ to: '/' })} title="Back to library">
+            <div className="flex gap-2.5 items-center px-3.5 py-3 mb-1">
+              <button
+                className="border border-line bg-canvas w-[30px] h-[30px] rounded-[8px] flex-none grid place-items-center text-muted shadow-xs hover:bg-hover hover:text-fg [&_svg]:w-[18px] [&_svg]:h-[18px]"
+                onClick={() => navigate({ to: '/' })}
+                title="Back to library"
+              >
                 <Icons.ArrowLeft />
               </button>
               <div
-                className="book-cover-sm"
+                className="w-[34px] h-[46px] rounded-[4px] flex-none object-cover shadow-sm bg-subtle"
                 style={{ display: 'grid', placeItems: 'center', color: 'var(--text-tertiary)' }}
               >
                 <Icons.Doc />
               </div>
-              <div className="t">
+              <div className="min-w-0">
                 <div
-                  className="name"
+                  className="font-semibold text-sm tracking-[-0.01em] leading-[1.2]"
                   style={{
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
@@ -69,13 +73,13 @@ export function ArticleEditorPage() {
                 >
                   {article.title || 'Untitled'}
                 </div>
-                <div className="sub">
+                <div className="text-faint text-xs">
                   {article.author}
                   {article.year ? ` · ${article.year}` : ''}
                 </div>
               </div>
               <button
-                className="book-del"
+                className="self-start border-none bg-transparent text-faint w-[26px] h-[26px] rounded-[6px] grid place-items-center cursor-pointer flex-shrink-0 hover:bg-[color-mix(in_oklch,#c0392b_12%,transparent)] hover:text-[#c0392b] [&_svg]:w-[15px] [&_svg]:h-[15px]"
                 onClick={() => setConfirmDelete(true)}
                 title="Delete article"
                 aria-label={`Delete article ${article.title}`}
@@ -238,16 +242,16 @@ function ArticleWorkspace({ article }: { article: ArticleDetail }) {
 
       <div className={'work-area' + (panel ? ' with-panel' : '')}>
         <div className="canvas-scroll">
-          <div className="editor-wrap">
-            <div className="editor">
-              <div className="doc-meta-row">
-                <span className="kind-tag">
+          <div className="pt-[30px] px-6 pb-[200px]">
+            <div className="max-w-[var(--content-width)] mx-auto">
+              <div className="flex items-center gap-2.5 mb-3 text-faint text-[13px]">
+                <span className="mt-auto self-start inline-flex items-center gap-[5px] text-[11px] font-semibold uppercase tracking-[0.04em] text-muted bg-subtle border border-line rounded-full px-[9px] py-[3px] [&_svg]:w-[14px] [&_svg]:h-[14px]">
                   <Icons.Doc />
                   Article
                 </span>
               </div>
               <input
-                className="doc-title-input"
+                className="block w-full border-none bg-transparent text-fg font-[var(--font-content)] py-0.5 px-0 text-[34px] font-bold tracking-[-0.02em] leading-[1.12] outline-none placeholder:text-faint"
                 aria-label="Article title"
                 value={title}
                 placeholder="Untitled article"
@@ -256,7 +260,7 @@ function ArticleWorkspace({ article }: { article: ArticleDetail }) {
                   if (e.target.value.trim()) debouncedTitle(e.target.value);
                 }}
               />
-              <div className="doc-divider" />
+              <div className="h-px bg-line mt-[18px] mb-2" />
               {editor && <BlockEditor editor={editor} />}
             </div>
           </div>

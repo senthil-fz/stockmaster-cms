@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
 import { Button } from './ui/Button';
+import { Modal } from './ui/Modal';
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -26,37 +26,25 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !busy) onCancel();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, busy, onCancel]);
-
-  if (!open) return null;
-
   return (
-    <div className="modal-overlay" onClick={() => !busy && onCancel()}>
-      <div
-        className="modal"
-        role="alertdialog"
-        aria-modal="true"
-        aria-label={title}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3>{title}</h3>
-        <p>{message}</p>
-        <div className="modal-actions">
-          <Button variant="secondary" onClick={onCancel} disabled={busy}>
-            {cancelLabel}
-          </Button>
-          <Button variant="danger" onClick={onConfirm} disabled={busy}>
-            {busy ? 'Deleting…' : confirmLabel}
-          </Button>
-        </div>
-      </div>
-    </div>
+    <Modal
+      open={open}
+      onClose={() => {
+        if (!busy) onCancel();
+      }}
+      role="alertdialog"
+      aria-label={title}
+    >
+      <h3 className="m-0 mb-2 text-[16px] font-semibold tracking-[-0.01em] text-fg">{title}</h3>
+      <p className="m-0 text-[13.5px] leading-[1.5] text-muted">{message}</p>
+      <Modal.Actions>
+        <Button variant="secondary" onClick={onCancel} disabled={busy}>
+          {cancelLabel}
+        </Button>
+        <Button variant="danger" onClick={onConfirm} disabled={busy}>
+          {busy ? 'Deleting…' : confirmLabel}
+        </Button>
+      </Modal.Actions>
+    </Modal>
   );
 }

@@ -4,6 +4,7 @@ import type { VersionSummary } from '@stockmaster/shared';
 import { articlesApi, booksApi } from '../lib/api';
 import { Panel } from './Panel';
 import { VersionViewer } from './VersionViewer';
+import { Button } from './ui/Button';
 
 const fmtDate = (iso: string): string =>
   new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
@@ -97,17 +98,18 @@ export function VersionHistory({
               </div>
               {v.note && <div className="mt-1.5 text-[11.5px] italic leading-snug text-muted">{v.note}</div>}
               <div className="mt-2.5 flex gap-1.5">
-                <button className="btn btn-secondary btn-sm" onClick={() => setViewerVersionId(v.id)}>
+                <Button variant="secondary" size="sm" onClick={() => setViewerVersionId(v.id)}>
                   View &amp; compare
-                </button>
+                </Button>
                 {!v.isPublished && (
-                  <button
-                    className="btn btn-ghost btn-sm"
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     disabled={restore.isPending}
                     onClick={() => restore.mutate(v.id)}
                   >
                     Restore
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>

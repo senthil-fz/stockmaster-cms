@@ -137,7 +137,7 @@ function ApiKeysPage() {
             </header>
 
             {error ? (
-              <div className="auth-error">
+              <div className="my-1 rounded-md bg-[color-mix(in_oklch,#c0392b_10%,transparent)] px-3 py-[9px] text-[13px] text-[#c0392b]">
                 {error instanceof ApiError ? error.message : 'Could not load API keys.'}
               </div>
             ) : isLoading ? (
@@ -189,12 +189,9 @@ function ApiKeysPage() {
                         </td>
                         <td className="p-2.5 border-b border-line" style={{ textAlign: 'right' }}>
                           {!k.revokedAt && (
-                            <button
-                              className="btn btn-ghost danger-btn"
-                              onClick={() => setPendingRevoke(k)}
-                            >
+                            <Button variant="ghostDanger" onClick={() => setPendingRevoke(k)}>
                               <Icons.Trash /> Revoke
-                            </button>
+                            </Button>
                           )}
                         </td>
                       </tr>
@@ -327,7 +324,11 @@ function CreateKeyModal({
           </span>
         </div>
 
-        {serverError && <div className="auth-error">{serverError}</div>}
+        {serverError && (
+          <div className="my-1 rounded-md bg-[color-mix(in_oklch,#c0392b_10%,transparent)] px-3 py-[9px] text-[13px] text-[#c0392b]">
+            {serverError}
+          </div>
+        )}
       </div>
 
       <Modal.Actions>

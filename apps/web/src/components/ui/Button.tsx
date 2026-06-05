@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { cx } from './cx';
 
-export type ButtonVariant = 'secondary' | 'primary' | 'ghost' | 'danger';
+export type ButtonVariant = 'secondary' | 'primary' | 'ghost' | 'ghostDanger' | 'danger';
 export type ButtonSize = 'sm';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -33,6 +33,8 @@ const variants: Record<ButtonVariant, string> = {
     'disabled:opacity-60 disabled:cursor-default',
   // .btn-ghost
   ghost: 'bg-transparent text-muted hover:bg-hover hover:text-fg',
+  // .btn-ghost + .danger-btn — ghost geometry, danger-red text (hex untokenized in source).
+  ghostDanger: 'bg-transparent text-[#c0392b] hover:bg-hover hover:text-[#c0392b]',
   // .btn-danger (hardcoded hex in source — not tokenized, so matched literally)
   danger:
     'bg-[#c0392b] text-white shadow-xs hover:bg-[#a93226] ' +

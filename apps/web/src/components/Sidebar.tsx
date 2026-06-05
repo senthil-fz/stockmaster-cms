@@ -129,7 +129,7 @@ function BookHead({
   return (
     <div className="flex gap-2.5 items-center px-3.5 py-3 mb-1">
       <button
-        className="border border-line bg-canvas w-[30px] h-[30px] rounded-lg flex-none grid place-items-center text-muted shadow-xs hover:bg-hover hover:text-fg [&_svg]:w-[18px] [&_svg]:h-[18px]"
+        className="border border-line bg-canvas w-[30px] h-[30px] rounded-md flex-none grid place-items-center text-muted shadow-xs hover:bg-hover hover:text-fg [&_svg]:w-[18px] [&_svg]:h-[18px]"
         onClick={onBack}
         title="Back to library"
       >
@@ -137,7 +137,7 @@ function BookHead({
       </button>
       <BookCover
         book={book}
-        className="w-[34px] h-[46px] rounded-sm flex-none object-cover shadow-sm bg-subtle"
+        className="w-[34px] h-[46px] rounded-[4px] flex-none object-cover shadow-sm bg-subtle"
       />
       <div className="min-w-0">
         <div
@@ -153,7 +153,7 @@ function BookHead({
       </div>
       {onDelete && (
         <button
-          className="self-start border-none bg-transparent text-faint w-[26px] h-[26px] rounded-md grid place-items-center cursor-pointer flex-shrink-0 hover:bg-[color-mix(in_oklch,#c0392b_12%,transparent)] hover:text-[#c0392b] [&_svg]:w-[15px] [&_svg]:h-[15px]"
+          className="self-start border-none bg-transparent text-faint w-[26px] h-[26px] rounded-[6px] grid place-items-center cursor-pointer flex-shrink-0 hover:bg-[color-mix(in_oklch,#c0392b_12%,transparent)] hover:text-[#c0392b] [&_svg]:w-[15px] [&_svg]:h-[15px]"
           onClick={onDelete}
           title="Delete book"
           aria-label={`Delete book ${book.title}`}

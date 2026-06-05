@@ -16,6 +16,11 @@ import { Icons } from './icons';
 import { Button } from './ui/Button';
 import { Input, Field } from './ui/Input';
 import { Modal } from './ui/Modal';
+import { cx } from './ui/cx';
+
+const AUTHOR_TH =
+  'text-left text-faint font-semibold text-[11px] uppercase tracking-[0.04em] px-2.5 py-2 border-b border-line';
+const AUTHOR_TD = 'p-2.5 border-b border-line';
 
 const fmtJoined = (iso: string): string =>
   new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
@@ -122,13 +127,19 @@ export function Authors({ currentUserId }: { currentUserId: string }) {
           <p className="text-[13px] text-muted">No authors yet. Add the first member to get started.</p>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table className="report-table authors-table" aria-label="Authors">
+            <table className="authors-table w-full border-collapse text-[13px]" aria-label="Authors">
               <thead>
                 <tr>
-                  <th scope="col">Author</th>
-                  <th scope="col">Email</th>
-                  <th scope="col">Joined</th>
-                  <th scope="col" aria-label="Actions" />
+                  <th scope="col" className={AUTHOR_TH}>
+                    Author
+                  </th>
+                  <th scope="col" className={AUTHOR_TH}>
+                    Email
+                  </th>
+                  <th scope="col" className={AUTHOR_TH}>
+                    Joined
+                  </th>
+                  <th scope="col" aria-label="Actions" className={AUTHOR_TH} />
                 </tr>
               </thead>
               <tbody>
@@ -140,13 +151,13 @@ export function Authors({ currentUserId }: { currentUserId: string }) {
                   return (
                     <tr
                       key={u.id}
-                      className={suspended ? 'is-suspended' : undefined}
+                      className="hover:bg-hover"
                       style={{
                         animationDelay: `${Math.min(i, 12) * 40}ms`,
                         ...(suspended ? { opacity: 0.62 } : {}),
                       }}
                     >
-                      <td>
+                      <td className={AUTHOR_TD}>
                         <span className="flex items-center gap-2.5">
                           <Avatar name={u.name} color={u.avatarColor} size={32} />
                           <span className={suspended ? 'font-semibold text-faint' : 'font-semibold'}>
@@ -164,9 +175,9 @@ export function Authors({ currentUserId }: { currentUserId: string }) {
                           )}
                         </span>
                       </td>
-                      <td className="text-muted">{u.email}</td>
-                      <td className="text-muted">{fmtJoined(u.createdAt)}</td>
-                      <td>
+                      <td className={cx(AUTHOR_TD, 'text-muted')}>{u.email}</td>
+                      <td className={cx(AUTHOR_TD, 'text-muted')}>{fmtJoined(u.createdAt)}</td>
+                      <td className={AUTHOR_TD}>
                         <span className="flex justify-end gap-1 [&_button]:px-2 [&_button]:py-1 [&_button]:text-xs">
                           <Button
                             variant="ghost"

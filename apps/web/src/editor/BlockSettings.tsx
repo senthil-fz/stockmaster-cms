@@ -126,14 +126,14 @@ export function BlockSettings({
             />
           </Panel.Field>
           <Panel.Field label="Icon">
-            <div className="tag-row">
+            <div className="flex flex-wrap gap-[6px]">
               {CALLOUT_ICONS.map((name) => {
                 const on = attrs.icon === name;
                 const I = Icons[name];
                 return (
                   <button
                     key={name}
-                    className="tag"
+                    className="inline-flex items-center gap-[5px] rounded-full border border-solid text-[12px] font-medium"
                     style={{
                       padding: '6px 9px',
                       background: on ? 'var(--accent-soft)' : 'var(--bg-canvas)',
@@ -233,8 +233,7 @@ export function BlockSettings({
           <Icons.Copy /> Duplicate block
         </Button>
         <Button
-          variant="ghost"
-          className="danger-btn"
+          variant="ghostDanger"
           style={{ width: '100%', justifyContent: 'flex-start' }}
           onClick={deleteBlock}
         >

@@ -9,6 +9,11 @@ type RangeFilter = 'all' | '30d' | '7d';
 
 const RANGE_DAYS: Record<RangeFilter, number | null> = { all: null, '30d': 30, '7d': 7 };
 
+const REPORT_TH =
+  'text-left text-faint font-semibold text-[11px] uppercase tracking-[0.04em] px-2.5 py-2 border-b border-line';
+const REPORT_TD = 'p-2.5 border-b border-line';
+const REPORT_TD_NUM = `${REPORT_TD} text-right tabular-nums`;
+
 function relativeDate(iso: string | null): string {
   if (!iso) return '—';
   const d = new Date(iso);
@@ -74,16 +79,16 @@ export function ReportingDashboard() {
           app read one) and reads will appear here.
         </p>
       ) : (
-        <table className="report-table">
+        <table className="w-full border-collapse text-[13px]">
           <thead>
             <tr>
-              <th>#</th>
-              <th>Book</th>
-              <th className="num">Reads</th>
-              <th className="num">Opens</th>
-              <th className="num">Readers</th>
-              <th>Completion</th>
-              <th>Last read</th>
+              <th className={REPORT_TH}>#</th>
+              <th className={REPORT_TH}>Book</th>
+              <th className={cx(REPORT_TH, 'text-right tabular-nums')}>Reads</th>
+              <th className={cx(REPORT_TH, 'text-right tabular-nums')}>Opens</th>
+              <th className={cx(REPORT_TH, 'text-right tabular-nums')}>Readers</th>
+              <th className={REPORT_TH}>Completion</th>
+              <th className={REPORT_TH}>Last read</th>
             </tr>
           </thead>
           <tbody>
@@ -157,7 +162,7 @@ function BookRow({
 }) {
   return (
     <tr
-      className={'report-row' + (active ? ' active' : '')}
+      className={cx('cursor-pointer hover:bg-hover', active && 'bg-subtle')}
       onClick={onClick}
       role="button"
       tabIndex={0}
@@ -169,12 +174,12 @@ function BookRow({
         }
       }}
     >
-      <td className="num text-muted">{rank}</td>
-      <td className="font-semibold">{book.title}</td>
-      <td className="num">{book.reads.toLocaleString()}</td>
-      <td className="num">{book.opens.toLocaleString()}</td>
-      <td className="num">{book.uniqueReaders.toLocaleString()}</td>
-      <td>
+      <td className={cx(REPORT_TD_NUM, 'text-muted')}>{rank}</td>
+      <td className={cx(REPORT_TD, 'font-semibold')}>{book.title}</td>
+      <td className={REPORT_TD_NUM}>{book.reads.toLocaleString()}</td>
+      <td className={REPORT_TD_NUM}>{book.opens.toLocaleString()}</td>
+      <td className={REPORT_TD_NUM}>{book.uniqueReaders.toLocaleString()}</td>
+      <td className={REPORT_TD}>
         <div className="flex min-w-[120px] items-center gap-2">
           <div className="h-1.5 flex-1 overflow-hidden rounded-[3px] bg-subtle">
             <div
@@ -187,7 +192,7 @@ function BookRow({
           </span>
         </div>
       </td>
-      <td className="text-muted">{relativeDate(book.lastReadAt)}</td>
+      <td className={cx(REPORT_TD, 'text-muted')}>{relativeDate(book.lastReadAt)}</td>
     </tr>
   );
 }

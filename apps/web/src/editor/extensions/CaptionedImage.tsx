@@ -48,28 +48,40 @@ function ImageView({ node, updateAttributes, editor }: NodeViewProps) {
         ? 'upload failed — click to retry'
         : `click to upload an image ‹ ${label} ›`;
 
+  const isLeft = align === 'left';
+  const mediaMax = isLeft ? ' max-w-[60%]' : '';
   return (
-    <NodeViewWrapper className={'b-image align-' + align} data-drag-handle>
-      <figure>
+    <NodeViewWrapper data-drag-handle>
+      <figure className={'m-0' + (isLeft ? ' flex flex-col items-start' : '')}>
         {src ? (
           <img
             src={src}
             alt={caption || ''}
+            className={'block w-full rounded-lg border border-line' + mediaMax}
             onClick={() => editor.isEditable && inputRef.current?.click()}
             style={{ cursor: editor.isEditable ? 'pointer' : 'default' }}
           />
         ) : (
           <div
-            className={'ph' + (status === 'error' ? ' is-error' : '')}
+            className={
+              'relative overflow-hidden rounded-lg bg-subtle bg-[repeating-linear-gradient(45deg,transparent,transparent_11px,rgba(0,0,0,0.035)_11px,rgba(0,0,0,0.035)_12px)] border border-line aspect-video grid place-items-center text-faint cursor-pointer' +
+              mediaMax
+            }
             role="button"
             aria-busy={status === 'uploading'}
             onClick={() => editor.isEditable && status !== 'uploading' && inputRef.current?.click()}
             contentEditable={false}
           >
-            <span className="label">{placeholderLabel}</span>
+            <span className="[font-family:ui-monospace,'SF_Mono',Menlo,monospace] text-[12px] bg-canvas border border-line rounded-full px-3 py-[5px] shadow-xs">
+              {placeholderLabel}
+            </span>
           </div>
         )}
-        {caption && <figcaption contentEditable={false}>{caption}</figcaption>}
+        {caption && (
+          <figcaption className="text-center text-faint text-[13px] mt-2 font-sans" contentEditable={false}>
+            {caption}
+          </figcaption>
+        )}
       </figure>
       <input
         ref={inputRef}

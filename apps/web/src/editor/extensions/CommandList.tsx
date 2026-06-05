@@ -46,24 +46,29 @@ export const CommandList = forwardRef<CommandListHandle, CommandListProps>((prop
   }));
 
   return (
-    <div className="menu">
-      <div className="menu-label">{props.query ? `Blocks matching “${props.query}”` : 'Basic blocks'}</div>
+    <div className="z-[60] min-w-[280px] max-h-[340px] overflow-y-auto bg-canvas border border-line-strong rounded-lg shadow-lg p-1.5">
+      <div className="text-[11px] font-semibold tracking-[0.05em] uppercase text-faint px-2.5 pt-2 pb-1">
+        {props.query ? `Blocks matching “${props.query}”` : 'Basic blocks'}
+      </div>
       {props.items.length === 0 ? (
-        <div className="menu-empty">No blocks match “{props.query}”</div>
+        <div className="p-4 text-center text-faint text-[13px]">No blocks match “{props.query}”</div>
       ) : (
         props.items.map((item, i) => (
           <button
             key={item.key}
-            className={'menu-item' + (i === selected ? ' cursor' : '')}
+            className={
+              'flex items-center gap-3 w-full text-left px-2.5 py-2 rounded-[8px] border-none bg-transparent text-fg hover:bg-[color-mix(in_oklch,var(--accent)_12%,white)]' +
+              (i === selected ? ' bg-[color-mix(in_oklch,var(--accent)_12%,white)]' : '')
+            }
             onMouseEnter={() => setSelected(i)}
             onClick={() => pick(i)}
           >
-            <span className="m-ico">
+            <span className="w-[34px] h-[34px] rounded-[7px] flex-none grid place-items-center bg-subtle border border-line text-fg [&_svg]:w-[17px] [&_svg]:h-[17px]">
               <Icon name={item.icon} />
             </span>
-            <span className="m-txt">
-              <span className="m-title">{item.title}</span>
-              <span className="m-desc">{item.desc}</span>
+            <span className="min-w-0">
+              <span className="block text-[13px] font-semibold">{item.title}</span>
+              <span className="block text-[12px] text-faint">{item.desc}</span>
             </span>
           </button>
         ))

@@ -431,16 +431,16 @@ function EditorWorkspace({
 
       <div className={'work-area' + (rightOpen ? ' with-panel' : '')}>
         <div className="canvas-scroll">
-          <div className="editor-wrap">
-            <div className="editor">
-              <div className="doc-meta-row">
-                <span className="kind-tag">
+          <div className="pt-[30px] px-6 pb-[200px]">
+            <div className="max-w-[var(--content-width)] mx-auto">
+              <div className="flex items-center gap-2.5 mb-3 text-faint text-[13px]">
+                <span className="mt-auto self-start inline-flex items-center gap-[5px] text-[11px] font-semibold uppercase tracking-[0.04em] text-muted bg-subtle border border-line rounded-full px-[9px] py-[3px] [&_svg]:w-[14px] [&_svg]:h-[14px]">
                   <Icons.Book />
                   {chapter.title}
                 </span>
               </div>
               <input
-                className="doc-title-input"
+                className="block w-full border-none bg-transparent text-fg font-[var(--font-content)] py-0.5 px-0 text-[34px] font-bold tracking-[-0.02em] leading-[1.12] outline-none placeholder:text-faint"
                 aria-label="Page title"
                 value={title}
                 placeholder="Untitled page"
@@ -450,7 +450,7 @@ function EditorWorkspace({
                   debouncedTitle(e.target.value);
                 }}
               />
-              <div className="doc-divider" />
+              <div className="h-px bg-line mt-[18px] mb-2" />
               {editor && <BlockEditor editor={editor} />}
             </div>
           </div>

@@ -15,8 +15,8 @@ function InnerApp() {
   const auth = useAuth();
   if (auth.status === 'loading') {
     return (
-      <div className="splash">
-        <span className="splash-logo">
+      <div className="grid h-full place-items-center bg-app">
+        <span className="grid h-[44px] w-[44px] place-items-center rounded-lg bg-primary text-onprimary [&>svg]:h-6 [&>svg]:w-6">
           <Icons.Logo />
         </span>
       </div>

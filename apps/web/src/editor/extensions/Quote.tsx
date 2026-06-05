@@ -9,10 +9,13 @@ export const Quote = QuoteBase.extend({
 function QuoteView({ node }: NodeViewProps) {
   const cite = node.attrs.cite as string;
   return (
-    <NodeViewWrapper className="b-quote">
+    <NodeViewWrapper className="border-l-[3px] border-primary py-0.5 pl-[18px] text-[18px] leading-[1.55] italic text-fg">
       <NodeViewContent />
       {cite && (
-        <span className="cite" contentEditable={false}>
+        <span
+          className="block not-italic text-[13px] text-faint mt-2 font-sans"
+          contentEditable={false}
+        >
           {cite}
         </span>
       )}

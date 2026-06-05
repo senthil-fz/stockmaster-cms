@@ -43,13 +43,13 @@ export function LoginPage() {
         className="w-full max-w-[380px] rounded-xl border border-line bg-canvas p-7 shadow-md"
         onSubmit={onSubmit}
       >
-        <div className="auth-brand mb-[22px] flex items-center gap-2.5">
-          <span className="sb-logo">
+        <div className="mb-[22px] flex items-center gap-2.5">
+          <span className="grid h-[34px] w-[34px] flex-none place-items-center rounded-md bg-primary text-onprimary [&>svg]:h-4 [&>svg]:w-4">
             <Icons.Logo />
           </span>
-          <div className="sb-brand">
+          <div className="text-sm font-semibold tracking-[-0.01em]">
             StockMaster
-            <small>Editorial workspace</small>
+            <small className="block text-[11px] font-medium text-faint">Editorial workspace</small>
           </div>
         </div>
 

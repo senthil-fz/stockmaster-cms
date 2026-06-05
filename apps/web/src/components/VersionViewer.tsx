@@ -11,6 +11,8 @@ import {
   type PageDiff,
 } from '../lib/versionDiff';
 import { Icons } from './icons';
+import { Button } from './ui/Button';
+import { IconButton } from './ui/IconButton';
 
 const fmtDateTime = (iso: string): string =>
   new Date(iso).toLocaleString(undefined, {
@@ -237,17 +239,17 @@ export function VersionViewer({
             </div>
             <div className="flex shrink-0 items-center gap-2">
               {!isLive && (
-                <button
-                  className="btn btn-secondary"
+                <Button
+                  variant="secondary"
                   disabled={restoreBusy}
                   onClick={() => onRestore(selectedId)}
                 >
                   {restoreBusy ? 'Restoring…' : 'Restore this version'}
-                </button>
+                </Button>
               )}
-              <button className="icon-btn" aria-label="Close" title="Close" onClick={onClose}>
+              <IconButton aria-label="Close" title="Close" onClick={onClose}>
                 <Icons.X />
-              </button>
+              </IconButton>
             </div>
           </header>
 

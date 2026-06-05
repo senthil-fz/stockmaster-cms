@@ -7,6 +7,8 @@ export interface ModalProps {
   children: ReactNode;
   /** Accessible label for the dialog (maps to aria-label). */
   ['aria-label']?: string;
+  /** ARIA role — use 'alertdialog' for destructive confirmations. Defaults to 'dialog'. */
+  role?: 'dialog' | 'alertdialog';
   /** Extra classes merged onto the `.modal` panel. */
   className?: string;
 }
@@ -21,7 +23,7 @@ const panelCls =
   'w-[min(420px,100%)] rounded-lg border border-line-strong bg-canvas shadow-lg ' +
   'pt-[22px] px-[22px] pb-[18px]';
 
-function ModalRoot({ open, onClose, children, className, ...rest }: ModalProps) {
+function ModalRoot({ open, onClose, children, className, role = 'dialog', ...rest }: ModalProps) {
   const ariaLabel = rest['aria-label'];
 
   useEffect(() => {
@@ -39,7 +41,7 @@ function ModalRoot({ open, onClose, children, className, ...rest }: ModalProps) 
     <div className={overlayCls} onClick={onClose}>
       <div
         className={cx(panelCls, className)}
-        role="dialog"
+        role={role}
         aria-modal="true"
         aria-label={ariaLabel}
         onClick={(e) => e.stopPropagation()}
