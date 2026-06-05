@@ -237,8 +237,8 @@ importers:
         specifier: ^3.0.4
         version: 3.0.4(prosemirror-model@1.25.7)(prosemirror-state@1.4.4)(prosemirror-view@1.41.8)(y-protocols@1.0.7(yjs@13.6.31))(yjs@13.6.31)
       diff:
-        specifier: ^7.0.0
-        version: 7.0.0
+        specifier: ^8.0.3
+        version: 8.0.3
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -2545,12 +2545,8 @@ packages:
     resolution: {integrity: sha512-X07nttJQkwkfKfvTPG/KSnE2OMdcUCao6+eXF3wmnIQRn2aPAHH3VxDbDOdegkd6JbPsXqShpvEOHfAT+nCNwQ==}
     engines: {node: '>=0.3.1'}
 
-  diff@7.0.0:
-    resolution: {integrity: sha512-PJWHUb1RFevKCwaFA9RlG5tCd+FO5iRh9A8HEtkmBH2Li03iJriB6m6JIN4rGz3K3JLawI7/veA1xzRKP6ISBw==}
-    engines: {node: '>=0.3.1'}
-
-  diff@8.0.4:
-    resolution: {integrity: sha512-DPi0FmjiSU5EvQV0++GFDOJ9ASQUVFh5kD+OzOnYdi7n3Wpm9hWWGfB/O2blfHcMVTL5WkQXSnRiK9makhrcnw==}
+  diff@8.0.3:
+    resolution: {integrity: sha512-qejHi7bcSD4hQAZE0tNAawRK1ZtafHDmMTMkrrIGgSLl7hTnQHmKCeB45xAcbfTqK2zowkM3j3bHt/4b/ARbYQ==}
     engines: {node: '>=0.3.1'}
 
   dotenv-cli@8.0.0:
@@ -5660,7 +5656,7 @@ snapshots:
       '@babel/types': 7.29.7
       ansis: 4.3.0
       babel-dead-code-elimination: 1.0.12
-      diff: 8.0.4
+      diff: 8.0.3
       pathe: 2.0.3
       tinyglobby: 0.2.16
     transitivePeerDependencies:
@@ -6696,9 +6692,7 @@ snapshots:
 
   diff@4.0.4: {}
 
-  diff@7.0.0: {}
-
-  diff@8.0.4: {}
+  diff@8.0.3: {}
 
   dotenv-cli@8.0.0:
     dependencies:
