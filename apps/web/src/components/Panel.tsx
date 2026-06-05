@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
 import { Icon, Icons, type IconName } from './icons';
+import { IconButton } from './ui/IconButton';
 
 function Panel({ children }: { children: ReactNode }) {
   return (
-    <aside className="panel">
-      <div className="panel-inner">{children}</div>
+    <aside className="overflow-y-auto overflow-x-hidden border-l border-line bg-sidebar">
+      <div className="p-[18px]">{children}</div>
     </aside>
   );
 }
@@ -21,18 +22,20 @@ function Head({
   onClose?: () => void;
 }) {
   return (
-    <div className="panel-head">
-      <span className="ico">
+    <div className="mb-[6px] flex items-center gap-2">
+      <span className="grid h-[30px] w-[30px] place-items-center rounded-md border border-line bg-subtle text-fg [&>svg]:h-4 [&>svg]:w-4">
         <Icon name={icon} />
       </span>
-      <span className="t">
+      <span className="text-sm font-semibold">
         {title}
-        {subtitle && <small>{subtitle}</small>}
+        {subtitle && (
+          <small className="block text-xs font-medium text-faint">{subtitle}</small>
+        )}
       </span>
       {onClose && (
-        <button className="icon-btn" style={{ marginLeft: 'auto' }} title="Close" onClick={onClose}>
+        <IconButton className="ml-auto" title="Close" aria-label="Close" onClick={onClose}>
           <Icons.Chevron style={{ transform: 'scaleX(-1)' }} />
-        </button>
+        </IconButton>
       )}
     </div>
   );
@@ -40,8 +43,8 @@ function Head({
 
 function Section({ label, children }: { label?: string; children: ReactNode }) {
   return (
-    <div className="panel-section">
-      {label && <div className="ps-label">{label}</div>}
+    <div className="border-b border-line py-4 last:border-b-0">
+      {label && <div className="mb-[10px] text-xs font-semibold text-muted">{label}</div>}
       {children}
     </div>
   );
@@ -49,8 +52,8 @@ function Section({ label, children }: { label?: string; children: ReactNode }) {
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="field">
-      <label>{label}</label>
+    <div className="mb-3">
+      <label className="mb-1.5 block text-xs font-semibold text-muted">{label}</label>
       {children}
     </div>
   );
@@ -72,11 +75,15 @@ function Seg<T extends string | number>({
   onChange: (value: T) => void;
 }) {
   return (
-    <div className="seg">
+    <div className="flex gap-1 rounded-md border border-line bg-subtle p-[3px]">
       {options.map((o) => (
         <button
           key={String(o.value)}
-          className={value === o.value ? 'on' : ''}
+          type="button"
+          className={
+            'grid flex-1 place-items-center rounded-sm border-0 bg-transparent px-2 py-1.5 text-xs font-semibold [&>svg]:h-[15px] [&>svg]:w-[15px] ' +
+            (value === o.value ? 'bg-canvas text-fg shadow-xs' : 'text-muted')
+          }
           onClick={() => onChange(o.value)}
           title={o.label}
         >
@@ -89,9 +96,9 @@ function Seg<T extends string | number>({
 
 function Stat({ k, v }: { k: string; v: ReactNode }) {
   return (
-    <div className="kv">
-      <span className="k">{k}</span>
-      <span className="v">{v}</span>
+    <div className="flex items-center justify-between py-[7px] text-[13px]">
+      <span className="text-muted">{k}</span>
+      <span className="font-semibold text-fg [font-variant-numeric:tabular-nums]">{v}</span>
     </div>
   );
 }

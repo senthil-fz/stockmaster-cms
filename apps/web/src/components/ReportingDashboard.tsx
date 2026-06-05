@@ -2,11 +2,17 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { BookStat, StatsQuery } from '@stockmaster/shared';
 import { statsBookQueryOptions, statsBooksQueryOptions } from '../lib/queries';
+import { cx } from './ui/cx';
 
 type ClientFilter = 'all' | 'mobile' | 'web';
 type RangeFilter = 'all' | '30d' | '7d';
 
 const RANGE_DAYS: Record<RangeFilter, number | null> = { all: null, '30d': 30, '7d': 7 };
+
+const REPORT_TH =
+  'text-left text-faint font-semibold text-[11px] uppercase tracking-[0.04em] px-2.5 py-2 border-b border-line';
+const REPORT_TD = 'p-2.5 border-b border-line';
+const REPORT_TD_NUM = `${REPORT_TD} text-right tabular-nums`;
 
 function relativeDate(iso: string | null): string {
   if (!iso) return '—';
@@ -31,13 +37,13 @@ export function ReportingDashboard() {
   const { data, isLoading } = useQuery(statsBooksQueryOptions(query));
 
   return (
-    <div className="report">
-      <div className="report-head">
+    <div className="mx-auto max-w-[1040px] p-6">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="report-title">Reporting</h1>
-          <p className="report-sub">How your books are being read, by book.</p>
+          <h1 className="m-0 text-xl font-bold tracking-[-0.02em]">Reporting</h1>
+          <p className="mt-1 text-[13px] text-muted">How your books are being read, by book.</p>
         </div>
-        <div className="report-filters">
+        <div className="flex flex-wrap gap-2.5">
           <Segmented
             value={client}
             onChange={setClient}
@@ -59,30 +65,30 @@ export function ReportingDashboard() {
         </div>
       </div>
 
-      <div className="report-totals">
+      <div className="mb-5 grid grid-cols-3 gap-3">
         <Stat label="Reads" value={data?.totals.reads} />
         <Stat label="Unique readers" value={data?.totals.uniqueReaders} />
         <Stat label="Books read" value={data?.totals.books} />
       </div>
 
       {isLoading ? (
-        <p className="report-empty">Loading…</p>
+        <p className="py-8 text-center text-sm text-muted">Loading…</p>
       ) : !data || data.books.length === 0 ? (
-        <p className="report-empty">
+        <p className="py-8 text-center text-sm text-muted">
           No reads recorded for this filter yet. Open a book in the reader (or have the mobile
           app read one) and reads will appear here.
         </p>
       ) : (
-        <table className="report-table">
+        <table className="w-full border-collapse text-[13px]">
           <thead>
             <tr>
-              <th>#</th>
-              <th>Book</th>
-              <th className="num">Reads</th>
-              <th className="num">Opens</th>
-              <th className="num">Readers</th>
-              <th>Completion</th>
-              <th>Last read</th>
+              <th className={REPORT_TH}>#</th>
+              <th className={REPORT_TH}>Book</th>
+              <th className={cx(REPORT_TH, 'text-right tabular-nums')}>Reads</th>
+              <th className={cx(REPORT_TH, 'text-right tabular-nums')}>Opens</th>
+              <th className={cx(REPORT_TH, 'text-right tabular-nums')}>Readers</th>
+              <th className={REPORT_TH}>Completion</th>
+              <th className={REPORT_TH}>Last read</th>
             </tr>
           </thead>
           <tbody>
@@ -114,11 +120,15 @@ function Segmented<T extends string>({
   options: [T, string][];
 }) {
   return (
-    <div className="seg">
+    <div className="inline-flex rounded-full border border-line bg-subtle p-0.5">
       {options.map(([key, label]) => (
         <button
           key={key}
-          className={'seg-btn' + (value === key ? ' on' : '')}
+          type="button"
+          className={cx(
+            'cursor-pointer rounded-full px-3 py-[5px] text-xs font-semibold',
+            value === key ? 'bg-canvas text-fg shadow-xs' : 'bg-transparent text-muted',
+          )}
           onClick={() => onChange(key)}
         >
           {label}
@@ -130,9 +140,11 @@ function Segmented<T extends string>({
 
 function Stat({ label, value }: { label: string; value: number | undefined }) {
   return (
-    <div className="stat-card">
-      <div className="stat-value">{value != null ? value.toLocaleString() : '—'}</div>
-      <div className="stat-label">{label}</div>
+    <div className="rounded-lg border border-line bg-canvas p-4">
+      <div className="text-[26px] font-bold tracking-[-0.02em]">
+        {value != null ? value.toLocaleString() : '—'}
+      </div>
+      <div className="mt-0.5 text-xs text-muted">{label}</div>
     </div>
   );
 }
@@ -150,7 +162,7 @@ function BookRow({
 }) {
   return (
     <tr
-      className={'report-row' + (active ? ' active' : '')}
+      className={cx('cursor-pointer hover:bg-hover', active && 'bg-subtle')}
       onClick={onClick}
       role="button"
       tabIndex={0}
@@ -162,20 +174,25 @@ function BookRow({
         }
       }}
     >
-      <td className="num muted">{rank}</td>
-      <td className="report-bookname">{book.title}</td>
-      <td className="num">{book.reads.toLocaleString()}</td>
-      <td className="num">{book.opens.toLocaleString()}</td>
-      <td className="num">{book.uniqueReaders.toLocaleString()}</td>
-      <td>
-        <div className="bar-row">
-          <div className="bar-track">
-            <div className="bar-fill" style={{ width: `${Math.min(book.avgCompletionPct, 100)}%` }} />
+      <td className={cx(REPORT_TD_NUM, 'text-muted')}>{rank}</td>
+      <td className={cx(REPORT_TD, 'font-semibold')}>{book.title}</td>
+      <td className={REPORT_TD_NUM}>{book.reads.toLocaleString()}</td>
+      <td className={REPORT_TD_NUM}>{book.opens.toLocaleString()}</td>
+      <td className={REPORT_TD_NUM}>{book.uniqueReaders.toLocaleString()}</td>
+      <td className={REPORT_TD}>
+        <div className="flex min-w-[120px] items-center gap-2">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-[3px] bg-subtle">
+            <div
+              className="h-full rounded-[3px] bg-primary"
+              style={{ width: `${Math.min(book.avgCompletionPct, 100)}%` }}
+            />
           </div>
-          <span className="bar-pct">{book.avgCompletionPct.toFixed(0)}%</span>
+          <span className="w-[34px] text-right text-xs text-muted tabular-nums">
+            {book.avgCompletionPct.toFixed(0)}%
+          </span>
         </div>
       </td>
-      <td className="muted">{relativeDate(book.lastReadAt)}</td>
+      <td className={cx(REPORT_TD, 'text-muted')}>{relativeDate(book.lastReadAt)}</td>
     </tr>
   );
 }
@@ -187,39 +204,57 @@ function BookDetail({ bookId, query }: { bookId: string; query: StatsQuery }) {
   const dropMax = Math.max(1, ...data.dropoff.map((d) => d.readers));
 
   return (
-    <div className="report-detail">
-      <h2 className="report-detail-title">{data.title}</h2>
-      <p className="report-sub">
+    <div className="mt-6 rounded-lg border border-line bg-canvas p-5">
+      <h2 className="m-0 text-base font-bold">{data.title}</h2>
+      <p className="mt-1 text-[13px] text-muted">
         {data.pageCount} pages · {data.uniqueReaders} readers · {data.avgCompletionPct.toFixed(1)}%
         avg completion
       </p>
 
-      <div className="report-charts">
-        <div className="chart-block">
-          <div className="chart-label">Reads per day</div>
+      <div className="mt-4 grid grid-cols-2 gap-6">
+        <div>
+          <div className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-faint">
+            Reads per day
+          </div>
           {data.trend.length === 0 ? (
-            <p className="muted">No data.</p>
+            <p className="text-muted">No data.</p>
           ) : (
-            <div className="chart-bars">
+            <div className="flex h-[90px] items-end gap-[3px]">
               {data.trend.map((t) => (
-                <div key={t.date} className="cbar" title={`${t.date}: ${t.reads}`}>
-                  <div className="cbar-fill" style={{ height: `${(t.reads / trendMax) * 100}%` }} />
-                  <span className="cbar-x">{t.date.slice(5)}</span>
+                <div
+                  key={t.date}
+                  className="flex h-full min-w-[4px] flex-1 flex-col items-center justify-end gap-1"
+                  title={`${t.date}: ${t.reads}`}
+                >
+                  <div
+                    className="min-h-0.5 w-full rounded-t-[2px] bg-primary"
+                    style={{ height: `${(t.reads / trendMax) * 100}%` }}
+                  />
+                  <span className="whitespace-nowrap text-[9px] text-faint">{t.date.slice(5)}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        <div className="chart-block">
-          <div className="chart-label">Drop-off (readers reaching each page)</div>
+        <div>
+          <div className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-faint">
+            Drop-off (readers reaching each page)
+          </div>
           {data.dropoff.length === 0 ? (
-            <p className="muted">No data.</p>
+            <p className="text-muted">No data.</p>
           ) : (
-            <div className="chart-bars">
+            <div className="flex h-[90px] items-end gap-[3px]">
               {data.dropoff.map((d) => (
-                <div key={d.position} className="cbar" title={`Page ${d.position}: ${d.readers} readers`}>
-                  <div className="cbar-fill alt" style={{ height: `${(d.readers / dropMax) * 100}%` }} />
+                <div
+                  key={d.position}
+                  className="flex h-full min-w-[4px] flex-1 flex-col items-center justify-end gap-1"
+                  title={`Page ${d.position}: ${d.readers} readers`}
+                >
+                  <div
+                    className="min-h-0.5 w-full rounded-t-[2px] bg-accent"
+                    style={{ height: `${(d.readers / dropMax) * 100}%` }}
+                  />
                 </div>
               ))}
             </div>
@@ -227,10 +262,15 @@ function BookDetail({ bookId, query }: { bookId: string; query: StatsQuery }) {
         </div>
       </div>
 
-      <div className="report-clients">
-        <div className="chart-label">Reads by client</div>
+      <div className="mt-5">
+        <div className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-faint">
+          Reads by client
+        </div>
         {data.byClient.map((c) => (
-          <span key={c.client} className="client-chip">
+          <span
+            key={c.client}
+            className="mr-2 inline-block rounded-full border border-line bg-subtle px-2.5 py-1 text-xs text-muted"
+          >
             {c.client} <strong>{c.reads.toLocaleString()}</strong>
           </span>
         ))}

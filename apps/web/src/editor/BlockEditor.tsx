@@ -35,22 +35,25 @@ export const BlockEditor = memo(function BlockEditor({ editor }: { editor: Edito
           hovered.current = node ? { node, pos } : null;
         }}
       >
-        <div className="block-gutter">
+        <div className="flex gap-[2px]">
           <button
-            className="gutter-btn"
+            className="grid h-6 w-[22px] place-items-center rounded-[5px] bg-transparent p-0 text-faint hover:bg-hover hover:text-fg [&_svg]:h-4 [&_svg]:w-4"
             title="Add block below"
             onMouseDown={(e) => e.preventDefault()}
             onClick={addBelow}
           >
             <Icons.Plus />
           </button>
-          <button className="gutter-btn handle" title="Drag to reorder">
+          <button
+            className="grid h-6 w-[22px] cursor-grab place-items-center rounded-[5px] bg-transparent p-0 text-faint hover:bg-hover hover:text-fg active:cursor-grabbing [&_svg]:h-4 [&_svg]:w-4"
+            title="Drag to reorder"
+          >
             <Icons.Grip />
           </button>
         </div>
       </DragHandle>
 
-      <EditorContent editor={editor} className="bp-prose" />
+      <EditorContent editor={editor} className="relative" />
 
       <BubbleToolbar editor={editor} />
     </>

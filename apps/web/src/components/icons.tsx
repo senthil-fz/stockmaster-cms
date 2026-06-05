@@ -248,6 +248,11 @@ export const Icons = {
       <path d="M19 12H5M11 6l-6 6 6 6" />
     </Svg>
   ),
+  X: (p: IconProps) => (
+    <Svg {...p}>
+      <path d="M6 6l12 12M18 6L6 18" />
+    </Svg>
+  ),
   Logo: (p: IconProps) => (
     <Svg {...p}>
       <rect x={4} y={4} width={16} height={16} rx={4} />

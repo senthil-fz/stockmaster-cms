@@ -7,6 +7,12 @@ import { Icons } from '../components/icons';
  * editor state via useEditorState, so its active states stay live even though its
  * parent <BlockEditor> is memoized (and therefore doesn't re-render on selection).
  */
+const tbBtn = (on: boolean) =>
+  'grid h-[30px] w-[30px] place-items-center rounded-[6px] text-[14px] font-bold [&_svg]:h-4 [&_svg]:w-4 ' +
+  (on
+    ? 'bg-white/20 text-white'
+    : 'bg-transparent text-[#e9e9e4] hover:bg-white/[0.14] hover:text-white');
+
 export function BubbleToolbar({ editor }: { editor: Editor }) {
   const marks = useEditorState({
     editor,
@@ -45,30 +51,30 @@ export function BubbleToolbar({ editor }: { editor: Editor }) {
         return true;
       }}
     >
-      <div className="float-toolbar">
+      <div className="flex items-center gap-[2px] rounded-md bg-[#1f1f1d] p-1 text-white shadow-lg dark:bg-[#34342f]">
         <button
           onClick={() => editor.chain().focus().toggleBold().run()}
-          className={marks.bold ? 'on' : ''}
+          className={tbBtn(marks.bold)}
           title="Bold"
         >
           <Icons.Bold />
         </button>
         <button
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={marks.italic ? 'on' : ''}
+          className={tbBtn(marks.italic)}
           title="Italic"
         >
           <Icons.Italic />
         </button>
         <button
           onClick={() => editor.chain().focus().toggleUnderline().run()}
-          className={marks.underline ? 'on' : ''}
+          className={tbBtn(marks.underline)}
           title="Underline"
         >
           <Icons.Underline />
         </button>
-        <span className="sep" />
-        <button onClick={setLink} className={marks.link ? 'on' : ''} title="Link">
+        <span className="mx-[3px] h-[18px] w-px bg-white/[0.18]" />
+        <button onClick={setLink} className={tbBtn(marks.link)} title="Link">
           <Icons.Link />
         </button>
       </div>

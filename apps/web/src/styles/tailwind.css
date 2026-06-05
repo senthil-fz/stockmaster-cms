@@ -1,0 +1,204 @@
+/* Tailwind CSS v4 entry (latest, CSS-first config).
+ *
+ * The project's design tokens live in tokens.css as CSS variables, with a
+ * [data-theme='dark'] override block. We map those variables into Tailwind's
+ * theme with `@theme inline` so utilities (bg-canvas, text-muted, border-line,
+ * rounded-md, shadow-sm…) resolve to the SAME tokens — and dark mode keeps
+ * working automatically, because the utilities reference the live variables. */
+@import 'tailwindcss';
+
+/* The app toggles dark mode via a data attribute, not prefers-color-scheme. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@theme inline {
+  /* surfaces → bg-canvas / bg-app / bg-sidebar / bg-subtle / bg-hover */
+  --color-canvas: var(--bg-canvas);
+  --color-app: var(--bg-app);
+  --color-sidebar: var(--bg-sidebar);
+  --color-subtle: var(--bg-subtle);
+  --color-hover: var(--bg-hover);
+
+  /* text → text-fg / text-muted / text-faint / text-onprimary */
+  --color-fg: var(--text);
+  --color-muted: var(--text-secondary);
+  --color-faint: var(--text-tertiary);
+  --color-onprimary: var(--text-onprimary);
+
+  /* lines → border-line / border-line-strong / border-input */
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-input: var(--border-input);
+
+  /* brand + accent */
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-accent: var(--accent);
+
+  /* semantic */
+  --color-green: var(--green);
+  --color-red: var(--red);
+  --color-amber: var(--amber);
+  --color-blue: var(--blue-badge);
+
+  /* radii (override the default scale to our tokens) */
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+
+  /* shadows */
+  --shadow-xs: var(--sh-xs);
+  --shadow-sm: var(--sh-sm);
+  --shadow-md: var(--sh-md);
+  --shadow-lg: var(--sh-lg);
+
+  /* type */
+  --font-sans: var(--font-ui);
+
+  /* animations */
+  --animate-overlay-in: overlay-in 0.18s ease;
+  --animate-modal-in: modal-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-author-row-in: author-row-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+}
+@keyframes author-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * Irreducible CSS — cannot be utility classes:
+ *   • .bp-content — typography for HTML the TipTap editor/reader generate at
+ *     runtime (h1/p/ul/blockquote/table…), which never passes through JSX.
+ *   • .canvas-scroll — custom ::-webkit-scrollbar pseudo-elements.
+ * Everything else in the app is Tailwind utilities + the design tokens
+ * (tokens.css). This is the only hand-written component CSS that remains.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+/* Tiptap content surface (editor + read-only reader). */
+.bp-content {
+  outline: none;
+  font-family: var(--font-content);
+}
+.bp-content > * {
+  margin: 2px 0;
+}
+.bp-content > * + * {
+  margin-top: 8px;
+}
+.bp-content h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 18px 0 4px;
+}
+.bp-content h2 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  margin: 16px 0 4px;
+}
+.bp-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  margin: 12px 0 4px;
+}
+.bp-content p {
+  font-size: 16px;
+  line-height: 1.65;
+  color: #28281f;
+}
+[data-theme='dark'] .bp-content p {
+  color: var(--text);
+}
+.bp-content ul,
+.bp-content ol {
+  margin: 0;
+  padding-left: 24px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.bp-content li {
+  margin: 3px 0;
+}
+.bp-content li::marker {
+  color: var(--text-tertiary);
+}
+.bp-content a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.bp-content table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  margin: 8px 0;
+  table-layout: fixed;
+}
+.bp-content td,
+.bp-content th {
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  padding: 9px 12px;
+  text-align: left;
+  vertical-align: top;
+  position: relative;
+}
+.bp-content tr td:last-child,
+.bp-content tr th:last-child {
+  border-right: none;
+}
+.bp-content tr:last-child td {
+  border-bottom: none;
+}
+.bp-content thead th {
+  background: var(--bg-subtle);
+  font-weight: 600;
+}
+.bp-content .selectedCell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent-ring);
+  pointer-events: none;
+}
+
+/* Custom scrollbar (WebKit pseudo-elements have no utility equivalent). */
+.canvas-scroll {
+  overflow-y: auto;
+  min-width: 0;
+}
+.canvas-scroll::-webkit-scrollbar {
+  width: 12px;
+}
+.canvas-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 3px solid var(--bg-canvas);
+}

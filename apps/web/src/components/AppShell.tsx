@@ -25,9 +25,12 @@ export function AppShell({
   const state: AppShellState = { collapsed, setCollapsed };
   return (
     <AppShellContext.Provider value={state}>
-      <div className={'app' + (collapsed ? ' sidebar-collapsed' : '')}>
+      <div
+        className="grid h-full bg-app overflow-hidden"
+        style={{ gridTemplateColumns: `${collapsed ? '0px' : '264px'} 1fr` }}
+      >
         {sidebar(state)}
-        <div className="main">{children}</div>
+        <div className="flex flex-col min-w-0 bg-canvas overflow-hidden">{children}</div>
         <AppearancePanel />
       </div>
     </AppShellContext.Provider>

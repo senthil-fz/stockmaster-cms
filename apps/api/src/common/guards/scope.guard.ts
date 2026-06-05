@@ -4,7 +4,6 @@ import {
   ForbiddenException,
   Injectable,
   Logger,
-  NotFoundException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { publishStatusSchema } from '@stockmaster/shared';
@@ -15,15 +14,19 @@ import {
   IS_CONTENT_ROUTE,
   IS_JWT_ONLY,
 } from '../decorators/scopes.decorator';
-import { PrismaService } from '../../prisma/prisma.service';
 
 /**
  * Per-route scope enforcement, run AFTER JwtAuthGuard has populated
  * req.scopes / req.authType. It is DEFAULT-DENY for non-wildcard (ApiKey)
  * principals: anything not positively allowlisted with @ContentRoute is
- * forbidden, and even allowlisted content routes 403 on a publish-transition,
- * a delete, or an edit of already-published content unless the key holds the
- * matching scope.
+ * forbidden, and even allowlisted content routes 403 on a publish-transition
+ * or a delete unless the key holds the matching scope.
+ *
+ * Editing DRAFT content carries no extra check: under content versioning the
+ * live Book→Chapter→Page tree (and Article.content) is a PRIVATE working draft —
+ * the public is served the frozen published snapshot — so a content:write key
+ * editing it changes nothing public. Going live is the only gated transition,
+ * and that is the publish route (clause 5, content:publish).
  *
  * The decision order is FIXED and security-load-bearing — do not reorder:
  *  1. @Public route                        -> allow (mirrors JwtAuthGuard; never
@@ -34,19 +37,14 @@ import { PrismaService } from '../../prisma/prisma.service';
  *                                              key-management / user-creation).
  *  4. NOT a @ContentRoute                  -> 403 (DEFAULT-DENY).
  *  5. content route: publish/delete checks against content:publish / content:delete.
- *  6. PATCH on an already-published book/article/page without content:publish -> 403
- *     (no versioning exists; content:write means create + edit DRAFT rows only).
  */
 @Injectable()
 export class ScopeGuard implements CanActivate {
   private readonly logger = new Logger(ScopeGuard.name);
 
-  constructor(
-    private readonly reflector: Reflector,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly reflector: Reflector) {}
 
-  async canActivate(ctx: ExecutionContext): Promise<boolean> {
+  canActivate(ctx: ExecutionContext): boolean {
     const handler = ctx.getHandler();
     const cls = ctx.getClass();
 
@@ -100,10 +98,20 @@ export class ScopeGuard implements CanActivate {
         ? body.status
         : undefined;
     const parsedStatus = publishStatusSchema.safeParse(rawStatus);
+    // The dedicated versioning routes (POST …/publish, …/unpublish,
+    // …/versions/:versionId/restore) are the only publish path now that PATCH no
+    // longer accepts `status`; they must require content:publish. The legacy
+    // PATCH-with-status check is kept as defense-in-depth for any caller still
+    // sending the (now-ignored) field.
+    const routePath: string = req.route?.path ?? req.path ?? '';
+    const isVersionPublishRoute =
+      method === 'POST' &&
+      /\/(publish|unpublish|restore)$/.test(routePath);
     const wantsPublish =
-      method === 'PATCH' &&
-      parsedStatus.success &&
-      parsedStatus.data === 'published';
+      isVersionPublishRoute ||
+      (method === 'PATCH' &&
+        parsedStatus.success &&
+        parsedStatus.data === 'published');
     if (wantsPublish && !scopes.includes(CONTENT_PUBLISH)) {
       this.logger.warn(
         `Denied ${req.method} ${req.url}: missing scope ${CONTENT_PUBLISH} (publish)`,
@@ -117,53 +125,9 @@ export class ScopeGuard implements CanActivate {
       throw new ForbiddenException('draft-only key cannot delete');
     }
 
-    // (6) Published-row guard: a content:write (no content:publish) key must not
-    // mutate already-live content (no versioning exists). Only relevant for
-    // PATCH on a books/:id, articles/:id or pages/:id route; a content:publish
-    // key is exempt.
-    if (method === 'PATCH' && !scopes.includes(CONTENT_PUBLISH)) {
-      const routePath: string = req.route?.path ?? req.path ?? '';
-      const isBookRoute = routePath.includes('/books/');
-      const isArticleRoute = routePath.includes('/articles/');
-      const isPageRoute = routePath.includes('/pages/');
-      if (isBookRoute || isArticleRoute || isPageRoute) {
-        const id: string = req.params?.id;
-        const current = isBookRoute
-          ? await this.prisma.book.findUnique({
-              where: { id },
-              select: { status: true },
-            })
-          : isArticleRoute
-            ? await this.prisma.article.findUnique({
-                where: { id },
-                select: { status: true },
-              })
-            : await this.prisma.page.findUnique({
-                where: { id },
-                select: { status: true },
-              });
-        if (!current) {
-          // Match the service's not-found behavior so the guard does not mask a
-          // 404 as a 403.
-          throw new NotFoundException(
-            isBookRoute
-              ? 'Book not found'
-              : isArticleRoute
-                ? 'Article not found'
-                : 'Page not found',
-          );
-        }
-        if (current.status === 'published') {
-          this.logger.warn(
-            `Denied ${req.method} ${req.url}: missing scope ${CONTENT_PUBLISH} (edit published)`,
-          );
-          throw new ForbiddenException(
-            'draft-only key cannot edit published content',
-          );
-        }
-      }
-    }
-
+    // Editing draft content needs no further check — it is private under
+    // versioning (the public sees the frozen snapshot); publishing is the only
+    // gated transition and was handled at clause 5.
     return true;
   }
 }

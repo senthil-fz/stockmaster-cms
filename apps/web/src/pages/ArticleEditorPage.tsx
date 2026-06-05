@@ -12,6 +12,10 @@ import { Sidebar } from '../components/Sidebar';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Topbar, type SaveState } from '../components/Topbar';
 import { ArticleSettings } from '../components/ArticleSettings';
+import { Button } from '../components/ui/Button';
+import { IconButton } from '../components/ui/IconButton';
+import { Badge } from '../components/ui/Badge';
+import { VersionHistory } from '../components/VersionHistory';
 import { Icons } from '../components/icons';
 import { useBlockEditor } from '../editor/useBlockEditor';
 import { BlockEditor } from '../editor/BlockEditor';
@@ -43,19 +47,23 @@ export function ArticleEditorPage() {
         sidebar={() => (
           <Sidebar>
             <Sidebar.Brand />
-            <div className="book-head">
-              <button className="book-back" onClick={() => navigate({ to: '/' })} title="Back to library">
+            <div className="flex gap-2.5 items-center px-3.5 py-3 mb-1">
+              <button
+                className="border border-line bg-canvas w-[30px] h-[30px] rounded-[8px] flex-none grid place-items-center text-muted shadow-xs hover:bg-hover hover:text-fg [&_svg]:w-[18px] [&_svg]:h-[18px]"
+                onClick={() => navigate({ to: '/' })}
+                title="Back to library"
+              >
                 <Icons.ArrowLeft />
               </button>
               <div
-                className="book-cover-sm"
+                className="w-[34px] h-[46px] rounded-[4px] flex-none object-cover shadow-sm bg-subtle"
                 style={{ display: 'grid', placeItems: 'center', color: 'var(--text-tertiary)' }}
               >
                 <Icons.Doc />
               </div>
-              <div className="t">
+              <div className="min-w-0">
                 <div
-                  className="name"
+                  className="font-semibold text-sm tracking-[-0.01em] leading-[1.2]"
                   style={{
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
@@ -65,13 +73,13 @@ export function ArticleEditorPage() {
                 >
                   {article.title || 'Untitled'}
                 </div>
-                <div className="sub">
+                <div className="text-faint text-xs">
                   {article.author}
                   {article.year ? ` · ${article.year}` : ''}
                 </div>
               </div>
               <button
-                className="book-del"
+                className="self-start border-none bg-transparent text-faint w-[26px] h-[26px] rounded-[6px] grid place-items-center cursor-pointer flex-shrink-0 hover:bg-[color-mix(in_oklch,#c0392b_12%,transparent)] hover:text-[#c0392b] [&_svg]:w-[15px] [&_svg]:h-[15px]"
                 onClick={() => setConfirmDelete(true)}
                 title="Delete article"
                 aria-label={`Delete article ${article.title}`}
@@ -100,7 +108,8 @@ export function ArticleEditorPage() {
 function ArticleWorkspace({ article }: { article: ArticleDetail }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [rightOpen, setRightOpen] = useState(true);
+  // Right panel: article settings, version history, or closed.
+  const [panel, setPanel] = useState<'settings' | 'versions' | null>('settings');
   const [saveState, setSaveState] = useState<SaveState>('saved');
   const [title, setTitle] = useState(article.title);
 
@@ -108,6 +117,23 @@ function ArticleWorkspace({ article }: { article: ArticleDetail }) {
     queryClient.setQueryData(articleQueryOptions(article.id).queryKey, updated);
     void queryClient.invalidateQueries({ queryKey: ['articles'] });
   };
+
+  // Publish/unpublish — snapshot the draft to a live version, or pull the article from
+  // public. The response shape isn't pinned, so we refetch to read derived status.
+  const afterPublishChange = () => {
+    void queryClient.invalidateQueries({ queryKey: ['article', article.id] });
+    void queryClient.invalidateQueries({ queryKey: ['article', article.id, 'versions'] });
+    void queryClient.invalidateQueries({ queryKey: ['articles'] });
+  };
+  const publish = useMutation({
+    mutationFn: () => articlesApi.publish(article.id),
+    onSuccess: afterPublishChange,
+  });
+  const unpublish = useMutation({
+    mutationFn: () => articlesApi.unpublish(article.id),
+    onSuccess: afterPublishChange,
+  });
+  const publishBusy = publish.isPending || unpublish.isPending;
 
   const saveContent = useMutation({
     mutationFn: (content: JSONContent) =>
@@ -158,48 +184,74 @@ function ArticleWorkspace({ article }: { article: ArticleDetail }) {
         <Topbar.Spacer />
         <Topbar.Actions>
           <Topbar.SaveStatus state={saveState} />
-          <button
-            className="icon-btn bordered"
+          <IconButton
+            bordered
             title="Preview"
+            aria-label="Preview"
             onClick={() => {
               flushPending();
               navigate({ to: '/articles/$articleId/read', params: { articleId: article.id } });
             }}
           >
             <Icons.Eye />
-          </button>
-          <button
-            className="btn btn-secondary"
+          </IconButton>
+          {article.status === 'published' && article.hasUnpublishedChanges && (
+            <Badge tone="draft" title="The published article has edits not yet published">
+              Unpublished changes
+            </Badge>
+          )}
+          {article.status === 'published' && (
+            <Button
+              variant="secondary"
+              disabled={publishBusy}
+              onClick={() => unpublish.mutate()}
+            >
+              Unpublish
+            </Button>
+          )}
+          <Button
+            variant="primary"
+            disabled={publishBusy}
             onClick={() => {
               flushPending();
-              saveTitle.mutate(title);
+              publish.mutate();
             }}
           >
-            Save
-          </button>
-          <button
-            className="icon-btn bordered"
+            {article.status === 'published' ? 'Publish changes' : 'Publish'}
+          </Button>
+          <IconButton
+            bordered
+            title="Version history"
+            aria-label="Version history"
+            style={{ opacity: panel === 'versions' ? 1 : 0.6 }}
+            onClick={() => setPanel((p) => (p === 'versions' ? null : 'versions'))}
+          >
+            <Icons.Clock />
+          </IconButton>
+          <IconButton
+            bordered
             title="Article details"
-            style={{ opacity: rightOpen ? 1 : 0.6 }}
-            onClick={() => setRightOpen((o) => !o)}
+            aria-label="Article details"
+            style={{ opacity: panel === 'settings' ? 1 : 0.6 }}
+            onClick={() => setPanel((p) => (p === 'settings' ? null : 'settings'))}
           >
             <Icons.PanelLeft style={{ transform: 'scaleX(-1)' }} />
-          </button>
+          </IconButton>
         </Topbar.Actions>
       </Topbar>
 
-      <div className={'work-area' + (rightOpen ? ' with-panel' : '')}>
+      <div className={'grid min-h-0 flex-1 ' + (panel ? 'grid-cols-[1fr_340px]' : 'grid-cols-[1fr]')}>
         <div className="canvas-scroll">
-          <div className="editor-wrap">
-            <div className="editor">
-              <div className="doc-meta-row">
-                <span className="kind-tag">
+          <div className="pt-[30px] px-6 pb-[200px]">
+            <div className="max-w-[var(--content-width)] mx-auto">
+              <div className="flex items-center gap-2.5 mb-3 text-faint text-[13px]">
+                <span className="mt-auto self-start inline-flex items-center gap-[5px] text-[11px] font-semibold uppercase tracking-[0.04em] text-muted bg-subtle border border-line rounded-full px-[9px] py-[3px] [&_svg]:w-[14px] [&_svg]:h-[14px]">
                   <Icons.Doc />
                   Article
                 </span>
               </div>
               <input
-                className="doc-title-input"
+                className="block w-full border-none bg-transparent text-fg font-[var(--font-content)] py-0.5 px-0 text-[34px] font-bold tracking-[-0.02em] leading-[1.12] outline-none placeholder:text-faint"
                 aria-label="Article title"
                 value={title}
                 placeholder="Untitled article"
@@ -208,15 +260,17 @@ function ArticleWorkspace({ article }: { article: ArticleDetail }) {
                   if (e.target.value.trim()) debouncedTitle(e.target.value);
                 }}
               />
-              <div className="doc-divider" />
+              <div className="h-px bg-line mt-[18px] mb-2" />
               {editor && <BlockEditor editor={editor} />}
             </div>
           </div>
         </div>
 
-        {rightOpen && (
-          <ArticleSettings article={article} words={words} onClose={() => setRightOpen(false)} />
-        )}
+        {panel === 'versions' ? (
+          <VersionHistory id={article.id} kind="article" onClose={() => setPanel(null)} />
+        ) : panel === 'settings' ? (
+          <ArticleSettings article={article} words={words} onClose={() => setPanel(null)} />
+        ) : null}
       </div>
     </>
   );

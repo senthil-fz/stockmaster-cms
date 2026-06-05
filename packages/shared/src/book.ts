@@ -58,7 +58,10 @@ export const bookSummarySchema = z.object({
   coverUrl: z.string().nullable(),
   /** External purchase URL (books only). */
   buyLink: z.string().nullable(),
+  /** Derived from `publishedVersionId` (published when a live version exists, else draft). */
   status: publishStatusSchema,
+  /** True when the published book has draft edits not yet captured in a new version. */
+  hasUnpublishedChanges: z.boolean(),
   tags: z.array(z.string()),
   pageCount: z.number().int(),
   wordCount: z.number().int(),
@@ -89,7 +92,7 @@ export const updateBookSchema = z
     coverUrl: httpUrl.nullable(),
     buyLink: httpUrl.nullable(),
     slug: slugSchema,
-    status: publishStatusSchema,
+    // `status` is no longer writable — visibility changes only through publish/unpublish.
     tags: z.array(z.string().max(40)).max(20),
   })
   .partial();

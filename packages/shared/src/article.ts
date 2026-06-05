@@ -18,7 +18,10 @@ export const articleSummarySchema = z.object({
   year: z.string(),
   coverTone: z.string(),
   coverUrl: z.string().nullable(),
+  /** Derived from `publishedVersionId` (published when a live version exists, else draft). */
   status: publishStatusSchema,
+  /** True when the published article has draft edits not yet captured in a new version. */
+  hasUnpublishedChanges: z.boolean(),
   tags: z.array(z.string()),
   wordCount: z.number().int(),
   createdAt: z.string(),
@@ -48,7 +51,7 @@ export const updateArticleSchema = z
     coverUrl: httpUrl.nullable(),
     slug: slugSchema,
     content: tiptapDocSchema,
-    status: publishStatusSchema,
+    // `status` is no longer writable — visibility changes only through publish/unpublish.
     tags: z.array(z.string().max(40)).max(20),
   })
   .partial();

@@ -2,9 +2,11 @@ import { z } from 'zod';
 import {
   apiKeySummarySchema,
   articleDetailSchema,
+  articleSnapshotSchema,
   articleSummarySchema,
   authResponseSchema,
   bookDetailSchema,
+  bookSnapshotSchema,
   bookStatDetailSchema,
   bookStatsResponseSchema,
   bookSummarySchema,
@@ -14,6 +16,7 @@ import {
   uploadResponseSchema,
   userSchema,
   usersListResponseSchema,
+  versionSummarySchema,
   type ApiKeyScope,
   type ArticlesQuery,
   type BooksQuery,
@@ -190,6 +193,33 @@ export const statsApi = {
     request(`${EDITOR_API}/stats/books/${id}${statsQs(q)}`, { schema: bookStatDetailSchema }),
 };
 
+// A single version's full detail = the history summary + its frozen snapshot. Used by the
+// version viewer to preview a past version and diff it against another.
+const bookVersionDetailSchema = versionSummarySchema.extend({ snapshot: bookSnapshotSchema });
+const articleVersionDetailSchema = versionSummarySchema.extend({ snapshot: articleSnapshotSchema });
+export type BookVersionDetail = z.infer<typeof bookVersionDetailSchema>;
+export type ArticleVersionDetail = z.infer<typeof articleVersionDetailSchema>;
+
+// The current working draft as a snapshot (not a stored version). Lets the explorer show
+// and diff "what I'm editing now" alongside the published versions.
+const bookDraftSchema = z.object({
+  id: z.literal('draft'),
+  wordCount: z.number().int(),
+  pageCount: z.number().int(),
+  createdAt: z.string(),
+  hasUnpublishedChanges: z.boolean(),
+  snapshot: bookSnapshotSchema,
+});
+const articleDraftSchema = z.object({
+  id: z.literal('draft'),
+  wordCount: z.number().int(),
+  createdAt: z.string(),
+  hasUnpublishedChanges: z.boolean(),
+  snapshot: articleSnapshotSchema,
+});
+export type BookDraft = z.infer<typeof bookDraftSchema>;
+export type ArticleDraft = z.infer<typeof articleDraftSchema>;
+
 export const booksApi = {
   list: (query: BooksQuery = {}) =>
     request(`${EDITOR_API}/books${qs({ status: query.status })}`, {
@@ -203,6 +233,21 @@ export const booksApi = {
   addChapter: (bookId: string, body: CreateChapterInput) =>
     request(`${EDITOR_API}/books/${bookId}/chapters`, { method: 'POST', body, schema: chapterSchema }),
   removeChapter: (id: string) => request(`${EDITOR_API}/chapters/${id}`, { method: 'DELETE' }),
+  // Versioning — snapshot the draft → live version (publish), pull from public (unpublish),
+  // and roll the published pointer back to an existing version (restore). The mutating routes'
+  // response shape isn't pinned, so callers refetch the book to read derived status; only the
+  // history list has a pinned contract.
+  publish: (id: string, note?: string) =>
+    request(`${EDITOR_API}/books/${id}/publish`, { method: 'POST', body: note ? { note } : {} }),
+  unpublish: (id: string) => request(`${EDITOR_API}/books/${id}/unpublish`, { method: 'POST' }),
+  listVersions: (id: string) =>
+    request(`${EDITOR_API}/books/${id}/versions`, { schema: z.array(versionSummarySchema) }),
+  getVersion: (id: string, versionId: string) =>
+    request(`${EDITOR_API}/books/${id}/versions/${versionId}`, { schema: bookVersionDetailSchema }),
+  getDraft: (id: string) =>
+    request(`${EDITOR_API}/books/${id}/draft`, { schema: bookDraftSchema }),
+  restoreVersion: (id: string, versionId: string) =>
+    request(`${EDITOR_API}/books/${id}/versions/${versionId}/restore`, { method: 'POST' }),
 };
 
 export const articlesApi = {
@@ -216,6 +261,18 @@ export const articlesApi = {
   update: (id: string, body: UpdateArticleInput) =>
     request(`${EDITOR_API}/articles/${id}`, { method: 'PATCH', body, schema: articleDetailSchema }),
   remove: (id: string) => request(`${EDITOR_API}/articles/${id}`, { method: 'DELETE' }),
+  // Versioning — see booksApi for the contract notes (article snapshots hold the single doc).
+  publish: (id: string, note?: string) =>
+    request(`${EDITOR_API}/articles/${id}/publish`, { method: 'POST', body: note ? { note } : {} }),
+  unpublish: (id: string) => request(`${EDITOR_API}/articles/${id}/unpublish`, { method: 'POST' }),
+  listVersions: (id: string) =>
+    request(`${EDITOR_API}/articles/${id}/versions`, { schema: z.array(versionSummarySchema) }),
+  getVersion: (id: string, versionId: string) =>
+    request(`${EDITOR_API}/articles/${id}/versions/${versionId}`, { schema: articleVersionDetailSchema }),
+  getDraft: (id: string) =>
+    request(`${EDITOR_API}/articles/${id}/draft`, { schema: articleDraftSchema }),
+  restoreVersion: (id: string, versionId: string) =>
+    request(`${EDITOR_API}/articles/${id}/versions/${versionId}/restore`, { method: 'POST' }),
 };
 
 export const pagesApi = {

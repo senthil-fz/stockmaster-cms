@@ -19,8 +19,12 @@ import { Sidebar } from '../components/Sidebar';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Topbar, type SaveState } from '../components/Topbar';
 import { Panel } from '../components/Panel';
+import { Button } from '../components/ui/Button';
+import { IconButton } from '../components/ui/IconButton';
+import { Badge } from '../components/ui/Badge';
 import { PageSettings } from '../components/PageSettings';
 import { BookSettings } from '../components/BookSettings';
+import { VersionHistory } from '../components/VersionHistory';
 import { Icons } from '../components/icons';
 import { useBlockEditor } from '../editor/useBlockEditor';
 import { useActiveBlock } from '../editor/useActiveBlock';
@@ -214,7 +218,7 @@ function EditorWorkspace({
   const queryClient = useQueryClient();
   const [rightOpen, setRightOpen] = useState(true);
   const [showPageSettings, setShowPageSettings] = useState(true);
-  const [panelTab, setPanelTab] = useState<'page' | 'book'>('page');
+  const [panelTab, setPanelTab] = useState<'page' | 'book' | 'versions'>('page');
   const [saveState, setSaveState] = useState<SaveState>('saved');
   const [title, setTitle] = useState(page.title);
 
@@ -252,6 +256,8 @@ function EditorWorkspace({
   });
   const debouncedTitle = useDebouncedCallback((t: string) => saveTitle.mutate(t), 700);
 
+  // Page-level staging flag ("include this page on publish") — still writable, drives the
+  // PageSettings status control. Distinct from book-level publish/unpublish below.
   const setStatus = useMutation({
     mutationFn: (status: PublishStatus) => pagesApi.update(page.id, { status }),
     onSuccess: (updated) => {
@@ -259,6 +265,22 @@ function EditorWorkspace({
       invalidateTree();
     },
   });
+
+  // Book-level publish/unpublish — snapshot the draft to a live version, or pull the book
+  // from public. The response shape isn't pinned, so we refetch to read derived status.
+  const afterPublishChange = () => {
+    invalidateTree();
+    void queryClient.invalidateQueries({ queryKey: ['book', book.id, 'versions'] });
+  };
+  const publish = useMutation({
+    mutationFn: () => booksApi.publish(book.id),
+    onSuccess: afterPublishChange,
+  });
+  const unpublish = useMutation({
+    mutationFn: () => booksApi.unpublish(book.id),
+    onSuccess: afterPublishChange,
+  });
+  const publishBusy = publish.isPending || unpublish.isPending;
 
   const editor = useBlockEditor({
     content: page.content,
@@ -333,9 +355,10 @@ function EditorWorkspace({
         <Topbar.Spacer />
         <Topbar.Actions>
           <Topbar.SaveStatus state={saveState} />
-          <button
-            className="icon-btn bordered"
+          <IconButton
+            bordered
             title="Preview"
+            aria-label="Preview"
             onClick={() => {
               flushPending();
               navigate({
@@ -345,28 +368,47 @@ function EditorWorkspace({
             }}
           >
             <Icons.Eye />
-          </button>
-          <button
-            className="btn btn-secondary"
+          </IconButton>
+          {book.status === 'published' && book.hasUnpublishedChanges && (
+            <Badge tone="draft" title="The published book has edits not yet published">
+              Unpublished changes
+            </Badge>
+          )}
+          {book.status === 'published' && (
+            <Button
+              variant="secondary"
+              disabled={publishBusy}
+              onClick={() => unpublish.mutate()}
+            >
+              Unpublish
+            </Button>
+          )}
+          <Button
+            variant="primary"
+            disabled={publishBusy}
             onClick={() => {
               flushPending();
-              setStatus.mutate('draft');
+              publish.mutate();
             }}
           >
-            Save as draft
-          </button>
-          <button
-            className="btn btn-primary"
+            {book.status === 'published' ? 'Publish changes' : 'Publish'}
+          </Button>
+          <IconButton
+            bordered
+            title="Version history"
+            aria-label="Version history"
+            style={{ opacity: rightOpen && panelTab === 'versions' ? 1 : 0.6 }}
             onClick={() => {
-              flushPending();
-              setStatus.mutate('published');
+              setRightOpen(true);
+              setPanelTab((t) => (t === 'versions' ? 'page' : 'versions'));
             }}
           >
-            Publish changes
-          </button>
-          <button
-            className="icon-btn bordered"
+            <Icons.Clock />
+          </IconButton>
+          <IconButton
+            bordered
             title="Book details"
+            aria-label="Book details"
             style={{ opacity: rightOpen && panelTab === 'book' ? 1 : 0.6 }}
             onClick={() => {
               setRightOpen(true);
@@ -374,30 +416,31 @@ function EditorWorkspace({
             }}
           >
             <Icons.Book />
-          </button>
-          <button
-            className="icon-btn bordered"
+          </IconButton>
+          <IconButton
+            bordered
             title="Toggle settings"
+            aria-label="Toggle settings"
             style={{ opacity: rightOpen ? 1 : 0.6 }}
             onClick={() => setRightOpen((o) => !o)}
           >
             <Icons.PanelLeft style={{ transform: 'scaleX(-1)' }} />
-          </button>
+          </IconButton>
         </Topbar.Actions>
       </Topbar>
 
-      <div className={'work-area' + (rightOpen ? ' with-panel' : '')}>
+      <div className={'grid min-h-0 flex-1 ' + (rightOpen ? 'grid-cols-[1fr_340px]' : 'grid-cols-[1fr]')}>
         <div className="canvas-scroll">
-          <div className="editor-wrap">
-            <div className="editor">
-              <div className="doc-meta-row">
-                <span className="kind-tag">
+          <div className="pt-[30px] px-6 pb-[200px]">
+            <div className="max-w-[var(--content-width)] mx-auto">
+              <div className="flex items-center gap-2.5 mb-3 text-faint text-[13px]">
+                <span className="mt-auto self-start inline-flex items-center gap-[5px] text-[11px] font-semibold uppercase tracking-[0.04em] text-muted bg-subtle border border-line rounded-full px-[9px] py-[3px] [&_svg]:w-[14px] [&_svg]:h-[14px]">
                   <Icons.Book />
                   {chapter.title}
                 </span>
               </div>
               <input
-                className="doc-title-input"
+                className="block w-full border-none bg-transparent text-fg font-[var(--font-content)] py-0.5 px-0 text-[34px] font-bold tracking-[-0.02em] leading-[1.12] outline-none placeholder:text-faint"
                 aria-label="Page title"
                 value={title}
                 placeholder="Untitled page"
@@ -407,14 +450,16 @@ function EditorWorkspace({
                   debouncedTitle(e.target.value);
                 }}
               />
-              <div className="doc-divider" />
+              <div className="h-px bg-line mt-[18px] mb-2" />
               {editor && <BlockEditor editor={editor} />}
             </div>
           </div>
         </div>
 
         {rightOpen &&
-          (panelTab === 'book' ? (
+          (panelTab === 'versions' ? (
+              <VersionHistory id={book.id} kind="book" onClose={() => setPanelTab('page')} />
+            ) : panelTab === 'book' ? (
               <BookSettings book={book} onClose={() => setPanelTab('page')} />
             ) : showPageSettings || !active ? (
               <PageSettings

@@ -13,6 +13,7 @@ import { Authors } from '../components/Authors';
 import { ReportingDashboard } from '../components/ReportingDashboard';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Icons } from '../components/icons';
+import { Button } from '../components/ui/Button';
 
 /** Library sidebar tabs that can be deep-linked via the URL hash (e.g. /#drafts). */
 const HASH_TABS = ['all', 'drafts', 'published', 'reporting', 'authors'];
@@ -143,12 +144,12 @@ export function LibraryPage() {
           ) : (
             <Library>
               <Library.Hero>
-                <button className="btn btn-secondary" onClick={() => createArticle.mutate()}>
+                <Button variant="secondary" onClick={() => createArticle.mutate()}>
                   <Icons.Doc /> New article
-                </button>
-                <button className="btn btn-primary" onClick={() => createBook.mutate()}>
+                </Button>
+                <Button variant="primary" onClick={() => createBook.mutate()}>
                   <Icons.Plus /> New book
-                </button>
+                </Button>
               </Library.Hero>
               <Library.Tabs tabs={tabs} active={tab} onSelect={setTab} />
               {isEmpty ? (

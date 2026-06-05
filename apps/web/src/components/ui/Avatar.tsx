@@ -15,7 +15,6 @@ export function Avatar({ name, color, size = 36 }: { name: string; color?: strin
     : 'linear-gradient(135deg,#c9b79c,#7d8b6a)';
   return (
     <div
-      className="avatar"
       style={{
         width: size,
         height: size,

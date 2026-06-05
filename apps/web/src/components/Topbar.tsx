@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Icons } from './icons';
+import { IconButton } from './ui/IconButton';
 import { useAppShell } from './AppShell';
 
 export type SaveState = 'saved' | 'saving' | 'dirty';
@@ -7,11 +8,11 @@ export type SaveState = 'saved' | 'saving' | 'dirty';
 function Topbar({ children }: { children: ReactNode }) {
   const { collapsed, setCollapsed } = useAppShell();
   return (
-    <div className="topbar">
+    <div className="flex items-center gap-3 px-6 py-[14px] border-b border-line bg-canvas flex-none">
       {collapsed && (
-        <button className="icon-btn bordered" title="Expand sidebar" onClick={() => setCollapsed(false)}>
+        <IconButton bordered title="Expand sidebar" onClick={() => setCollapsed(false)}>
           <Icons.PanelLeft />
-        </button>
+        </IconButton>
       )}
       {children}
     </div>
@@ -19,7 +20,7 @@ function Topbar({ children }: { children: ReactNode }) {
 }
 
 function Crumbs({ children }: { children: ReactNode }) {
-  return <div className="crumbs">{children}</div>;
+  return <div className="flex items-center gap-1 min-w-0">{children}</div>;
 }
 
 function Crumb({
@@ -31,9 +32,17 @@ function Crumb({
   current?: boolean;
   onClick?: () => void;
 }) {
-  if (current) return <span className="crumb current">{children}</span>;
+  if (current)
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-[7px] text-[13px] font-semibold text-fg bg-subtle whitespace-nowrap">
+        {children}
+      </span>
+    );
   return (
-    <button className="crumb" onClick={onClick}>
+    <button
+      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-[7px] text-[13px] font-medium text-muted bg-transparent border-none whitespace-nowrap hover:bg-hover hover:text-fg"
+      onClick={onClick}
+    >
       {children}
     </button>
   );
@@ -41,26 +50,26 @@ function Crumb({
 
 function Sep() {
   return (
-    <span className="crumb-sep">
+    <span className="text-faint grid place-items-center [&_svg]:w-4 [&_svg]:h-4">
       <Icons.Chevron />
     </span>
   );
 }
 
 function Spacer() {
-  return <div className="topbar-spacer" />;
+  return <div className="flex-1" />;
 }
 
 function Actions({ children }: { children: ReactNode }) {
-  return <div className="topbar-actions">{children}</div>;
+  return <div className="flex items-center gap-2.5">{children}</div>;
 }
 
 function SaveStatus({ state }: { state: SaveState }) {
   return (
-    <span className="muted" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, marginRight: 2 }}>
+    <span className="text-muted" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, marginRight: 2 }}>
       {state === 'saving' ? (
         <>
-          <Icons.Clock className="spin" style={{ width: 14, height: 14 }} /> Saving…
+          <Icons.Clock className="animate-spin" style={{ width: 14, height: 14 }} /> Saving…
         </>
       ) : state === 'dirty' ? (
         'Unsaved changes'

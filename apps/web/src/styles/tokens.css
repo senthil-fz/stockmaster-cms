@@ -36,6 +36,7 @@
   /* semantic */
   --amber: #e8a13a;
   --green: #3f9b6b;
+  --red: #c0392b;
   --blue-badge: #2f7bf6;
 
   /* radii */
@@ -79,6 +80,8 @@
   --primary: #f2f1ec;
   --primary-hover: #e4e3dc;
   --text-onprimary: #1a1a18;
+  /* A lighter red reads better than the light-theme #c0392b on dark surfaces. */
+  --red: #e0685c;
   --sh-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --sh-md: 0 4px 14px -2px rgba(0, 0, 0, 0.5);
   --sh-lg: 0 18px 44px -8px rgba(0, 0, 0, 0.6);

@@ -13,6 +13,14 @@ import { usersQueryOptions, queryKeys } from '../lib/queries';
 import { Avatar } from './ui/Avatar';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Icons } from './icons';
+import { Button } from './ui/Button';
+import { Input, Field } from './ui/Input';
+import { Modal } from './ui/Modal';
+import { cx } from './ui/cx';
+
+const AUTHOR_TH =
+  'text-left text-faint font-semibold text-[11px] uppercase tracking-[0.04em] px-2.5 py-2 border-b border-line';
+const AUTHOR_TD = 'p-2.5 border-b border-line';
 
 const fmtJoined = (iso: string): string =>
   new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
@@ -63,20 +71,20 @@ export function Authors({ currentUserId }: { currentUserId: string }) {
 
   return (
     <>
-      <div className="member-panel" style={{ maxWidth: 880 }}>
-        <header className="member-head">
-          <span className="member-icon">
+      <div className="mx-auto my-6 px-6" style={{ maxWidth: 880 }}>
+        <header className="mb-5 flex items-start gap-[14px]">
+          <span className="grid h-10 w-10 flex-none place-items-center rounded-md bg-subtle text-muted">
             <Icons.Users />
           </span>
           <div style={{ flex: 1 }}>
-            <h1 className="member-title">Authors</h1>
-            <p className="member-sub">
+            <h1 className="m-0 text-xl font-bold tracking-[-0.02em]">Authors</h1>
+            <p className="mt-1 text-sm text-muted">
               Everyone with an account in this workspace. Add members, reset their details, or
               suspend access — they sign in with the email and password set here.
             </p>
           </div>
-          <button
-            className="btn btn-primary"
+          <Button
+            variant="primary"
             style={{ flex: 'none' }}
             onClick={() => {
               setActionError(null);
@@ -84,42 +92,54 @@ export function Authors({ currentUserId }: { currentUserId: string }) {
             }}
           >
             <Icons.Plus /> Add a member
-          </button>
+          </Button>
         </header>
 
         {justCreated && (
-          <div className="member-ok" role="status" aria-live="polite">
+          <div
+            className="mb-4 flex items-center gap-2 rounded-md bg-[color-mix(in_oklch,var(--green)_12%,transparent)] px-3 py-2.5 text-[13px] text-green [&_svg]:h-[18px] [&_svg]:w-[18px] [&_svg]:flex-none"
+            role="status"
+            aria-live="polite"
+          >
             <Icons.Check /> Created <strong>{justCreated.name}</strong> ({justCreated.email}). They
             can sign in now.
           </div>
         )}
         {actionError && (
-          <div className="auth-error" role="alert">
+          <div
+            className="my-1 rounded-md bg-[color-mix(in_oklch,#c0392b_10%,transparent)] px-3 py-[9px] text-[13px] text-[#c0392b]"
+            role="alert"
+          >
             {actionError}
           </div>
         )}
 
         {error ? (
-          <div className="auth-error" role="alert">
+          <div
+            className="my-1 rounded-md bg-[color-mix(in_oklch,#c0392b_10%,transparent)] px-3 py-[9px] text-[13px] text-[#c0392b]"
+            role="alert"
+          >
             {error instanceof ApiError ? error.message : 'Could not load authors.'}
           </div>
         ) : isLoading ? (
-          <p className="muted" style={{ fontSize: 13 }}>
-            Loading authors…
-          </p>
+          <p className="text-[13px] text-muted">Loading authors…</p>
         ) : users.length === 0 ? (
-          <p className="muted" style={{ fontSize: 13 }}>
-            No authors yet. Add the first member to get started.
-          </p>
+          <p className="text-[13px] text-muted">No authors yet. Add the first member to get started.</p>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table className="report-table authors-table" aria-label="Authors">
+            <table className="w-full border-collapse text-[13px]" aria-label="Authors">
               <thead>
                 <tr>
-                  <th scope="col">Author</th>
-                  <th scope="col">Email</th>
-                  <th scope="col">Joined</th>
-                  <th scope="col" aria-label="Actions" />
+                  <th scope="col" className={AUTHOR_TH}>
+                    Author
+                  </th>
+                  <th scope="col" className={AUTHOR_TH}>
+                    Email
+                  </th>
+                  <th scope="col" className={AUTHOR_TH}>
+                    Joined
+                  </th>
+                  <th scope="col" aria-label="Actions" className={AUTHOR_TH} />
                 </tr>
               </thead>
               <tbody>
@@ -131,36 +151,46 @@ export function Authors({ currentUserId }: { currentUserId: string }) {
                   return (
                     <tr
                       key={u.id}
-                      className={suspended ? 'is-suspended' : undefined}
+                      className="animate-author-row-in hover:bg-hover motion-reduce:animate-none"
                       style={{
                         animationDelay: `${Math.min(i, 12) * 40}ms`,
                         ...(suspended ? { opacity: 0.62 } : {}),
                       }}
                     >
-                      <td>
-                        <span className="author-cell">
+                      <td className={AUTHOR_TD}>
+                        <span className="flex items-center gap-2.5">
                           <Avatar name={u.name} color={u.avatarColor} size={32} />
-                          <span className="name">{u.name}</span>
-                          {isSelf && <span className="you-badge">You</span>}
-                          {suspended && <span className="status-suspended">Suspended</span>}
+                          <span className={suspended ? 'font-semibold text-faint' : 'font-semibold'}>
+                            {u.name}
+                          </span>
+                          {isSelf && (
+                            <span className="inline-flex items-center rounded-full border border-[color-mix(in_oklch,var(--accent)_32%,transparent)] bg-[color-mix(in_oklch,var(--accent)_16%,transparent)] px-2 py-px text-[11px] font-semibold tracking-[0.02em] text-accent">
+                              You
+                            </span>
+                          )}
+                          {suspended && (
+                            <span className="inline-flex items-center rounded-full border border-[color-mix(in_oklch,var(--amber)_32%,transparent)] bg-[color-mix(in_oklch,var(--amber)_14%,transparent)] px-2 py-px text-[11px] font-semibold tracking-[0.02em] text-amber">
+                              Suspended
+                            </span>
+                          )}
                         </span>
                       </td>
-                      <td className="muted">{u.email}</td>
-                      <td className="muted">{fmtJoined(u.createdAt)}</td>
-                      <td>
-                        <span className="author-actions">
-                          <button
-                            className="btn btn-ghost"
+                      <td className={cx(AUTHOR_TD, 'text-muted')}>{u.email}</td>
+                      <td className={cx(AUTHOR_TD, 'text-muted')}>{fmtJoined(u.createdAt)}</td>
+                      <td className={AUTHOR_TD}>
+                        <span className="flex justify-end gap-1 [&_button]:px-2 [&_button]:py-1 [&_button]:text-xs">
+                          <Button
+                            variant="ghost"
                             onClick={() => {
                               setActionError(null);
                               setEditing(u);
                             }}
                           >
                             <Icons.Pencil /> Edit
-                          </button>
+                          </Button>
                           {!isSelf && (
-                            <button
-                              className="btn btn-ghost"
+                            <Button
+                              variant="ghost"
                               disabled={suspendToggle.isPending}
                               onClick={() => {
                                 setActionError(null);
@@ -168,11 +198,14 @@ export function Authors({ currentUserId }: { currentUserId: string }) {
                               }}
                             >
                               {suspended ? 'Reactivate' : 'Suspend'}
-                            </button>
+                            </Button>
                           )}
                           {!isSelf && (
+                            // Ghost+danger (red text, red-tint hover) has no primitive variant —
+                            // built inline to avoid colliding with ghost's text/hover utilities.
                             <button
-                              className="btn btn-ghost danger-btn"
+                              type="button"
+                              className="inline-flex items-center gap-2 whitespace-nowrap rounded-md border border-transparent bg-transparent px-2 py-1 text-xs font-semibold tracking-[-0.01em] text-[#c0392b] transition-[background-color,border-color,box-shadow,opacity] duration-[120ms] hover:bg-[color-mix(in_oklch,#c0392b_10%,transparent)] [&_svg]:size-4"
                               onClick={() => {
                                 setActionError(null);
                                 setPendingDelete(u);
@@ -188,7 +221,7 @@ export function Authors({ currentUserId }: { currentUserId: string }) {
                 })}
               </tbody>
             </table>
-            <p className="muted" style={{ fontSize: 12, marginTop: 12 }}>
+            <p className="mt-3 text-xs text-muted">
               {users.length} {users.length === 1 ? 'author' : 'authors'}
             </p>
           </div>
@@ -255,70 +288,70 @@ function AddAuthorModal({
   });
 
   return (
-    <div className="modal-overlay" onClick={() => !create.isPending && onClose()}>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Add a member"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3>Add a member</h3>
-        <p>
-          Create an account for someone on your team. They sign in with the email and temporary
-          password you set here — creating them does not change who is logged in.
-        </p>
+    <Modal
+      open
+      onClose={() => !create.isPending && onClose()}
+      aria-label="Add a member"
+    >
+      <h3 className="m-0 mb-2 text-base font-semibold tracking-[-0.01em] text-fg">Add a member</h3>
+      <p className="m-0 text-[13.5px] leading-[1.5] text-muted">
+        Create an account for someone on your team. They sign in with the email and temporary
+        password you set here — creating them does not change who is logged in.
+      </p>
 
-        <form className="member-form" style={{ marginTop: 16 }} onSubmit={onSubmit}>
-          <div className="field">
-            <label htmlFor="m-name">Name</label>
-            <input id="m-name" className="input" placeholder="Jane Author" autoFocus {...register('name')} />
-            {errors.name && <span className="field-error">{errors.name.message}</span>}
-          </div>
-
-          <div className="field">
-            <label htmlFor="m-email">Email</label>
-            <input
-              id="m-email"
-              className="input"
-              type="email"
-              autoComplete="off"
-              placeholder="jane@example.com"
-              {...register('email')}
-            />
-            {errors.email && <span className="field-error">{errors.email.message}</span>}
-          </div>
-
-          <div className="field">
-            <label htmlFor="m-password">Temporary password</label>
-            <input
-              id="m-password"
-              className="input"
-              type="password"
-              autoComplete="new-password"
-              placeholder="At least 8 characters"
-              {...register('password')}
-            />
-            {errors.password && <span className="field-error">{errors.password.message}</span>}
-          </div>
-
-          {serverError && (
-            <div className="auth-error" role="alert">
-              {serverError}
-            </div>
+      <form className="mt-4 flex flex-col gap-[14px]" onSubmit={onSubmit}>
+        <Field label="Name" htmlFor="m-name">
+          <Input id="m-name" placeholder="Jane Author" autoFocus {...register('name')} />
+          {errors.name && (
+            <span className="mt-[5px] block text-xs text-[#c0392b]">{errors.name.message}</span>
           )}
+        </Field>
 
-          <div className="modal-actions" style={{ marginTop: 4 }}>
-            <button type="button" className="btn btn-secondary" onClick={onClose} disabled={isSubmitting}>
-              Cancel
-            </button>
-            <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
-              <Icons.Plus /> {isSubmitting ? 'Creating…' : 'Create member'}
-            </button>
+        <Field label="Email" htmlFor="m-email">
+          <Input
+            id="m-email"
+            type="email"
+            autoComplete="off"
+            placeholder="jane@example.com"
+            {...register('email')}
+          />
+          {errors.email && (
+            <span className="mt-[5px] block text-xs text-[#c0392b]">{errors.email.message}</span>
+          )}
+        </Field>
+
+        <Field label="Temporary password" htmlFor="m-password">
+          <Input
+            id="m-password"
+            type="password"
+            autoComplete="new-password"
+            placeholder="At least 8 characters"
+            {...register('password')}
+          />
+          {errors.password && (
+            <span className="mt-[5px] block text-xs text-[#c0392b]">{errors.password.message}</span>
+          )}
+        </Field>
+
+        {serverError && (
+          <div
+            className="my-1 rounded-md bg-[color-mix(in_oklch,#c0392b_10%,transparent)] px-3 py-[9px] text-[13px] text-[#c0392b]"
+            role="alert"
+          >
+            {serverError}
           </div>
-        </form>
-      </div>
-    </div>
+        )}
+
+        <Modal.Actions style={{ marginTop: 4 }}>
+          <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button variant="primary" type="submit" disabled={isSubmitting}>
+            <Icons.Plus /> {isSubmitting ? 'Creating…' : 'Create member'}
+          </Button>
+        </Modal.Actions>
+      </form>
+    </Modal>
   );
 }
 
@@ -353,78 +386,63 @@ function EditAuthorModal({
   const canSubmit = name.trim().length > 0 && email.trim().length > 0 && !save.isPending;
 
   return (
-    <div className="modal-overlay" onClick={() => !save.isPending && onClose()}>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label={`Edit ${user.name}`}
-        onClick={(e) => e.stopPropagation()}
+    <Modal open onClose={() => !save.isPending && onClose()} aria-label={`Edit ${user.name}`}>
+      <h3 className="m-0 mb-2 text-base font-semibold tracking-[-0.01em] text-fg">Edit member</h3>
+      <p className="m-0 text-[13.5px] leading-[1.5] text-muted">
+        Update this member's details. Leave the password blank to keep their current one.
+      </p>
+
+      <form
+        className="mt-4 flex flex-col gap-[14px]"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setServerError(null);
+          if (canSubmit) save.mutate();
+        }}
       >
-        <h3>Edit member</h3>
-        <p>Update this member's details. Leave the password blank to keep their current one.</p>
+        <Field label="Name" htmlFor="e-name">
+          <Input id="e-name" value={name} autoFocus onChange={(e) => setName(e.target.value)} />
+        </Field>
 
-        <form
-          className="member-form"
-          style={{ marginTop: 16 }}
-          onSubmit={(e) => {
-            e.preventDefault();
-            setServerError(null);
-            if (canSubmit) save.mutate();
-          }}
-        >
-          <div className="field">
-            <label htmlFor="e-name">Name</label>
-            <input
-              id="e-name"
-              className="input"
-              value={name}
-              autoFocus
-              onChange={(e) => setName(e.target.value)}
-            />
+        <Field label="Email" htmlFor="e-email">
+          <Input
+            id="e-email"
+            type="email"
+            autoComplete="off"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </Field>
+
+        <Field label="New password" htmlFor="e-password">
+          <Input
+            id="e-password"
+            type="password"
+            autoComplete="new-password"
+            placeholder="Leave blank to keep current"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </Field>
+
+        {serverError && (
+          <div
+            className="my-1 rounded-md bg-[color-mix(in_oklch,#c0392b_10%,transparent)] px-3 py-[9px] text-[13px] text-[#c0392b]"
+            role="alert"
+          >
+            {serverError}
           </div>
+        )}
 
-          <div className="field">
-            <label htmlFor="e-email">Email</label>
-            <input
-              id="e-email"
-              className="input"
-              type="email"
-              autoComplete="off"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-
-          <div className="field">
-            <label htmlFor="e-password">New password</label>
-            <input
-              id="e-password"
-              className="input"
-              type="password"
-              autoComplete="new-password"
-              placeholder="Leave blank to keep current"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-
-          {serverError && (
-            <div className="auth-error" role="alert">
-              {serverError}
-            </div>
-          )}
-
-          <div className="modal-actions" style={{ marginTop: 4 }}>
-            <button type="button" className="btn btn-secondary" onClick={onClose} disabled={save.isPending}>
-              Cancel
-            </button>
-            <button className="btn btn-primary" type="submit" disabled={!canSubmit}>
-              {save.isPending ? 'Saving…' : 'Save changes'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <Modal.Actions style={{ marginTop: 4 }}>
+          <Button variant="secondary" onClick={onClose} disabled={save.isPending}>
+            Cancel
+          </Button>
+          <Button variant="primary" type="submit" disabled={!canSubmit}>
+            {save.isPending ? 'Saving…' : 'Save changes'}
+          </Button>
+        </Modal.Actions>
+      </form>
+    </Modal>
   );
 }

@@ -66,7 +66,6 @@ async function main(): Promise<void> {
         year: book.work.year,
         coverTone: book.work.coverTone,
         tags: book.work.tags,
-        status: book.work.status,
         content: content as unknown as Prisma.InputJsonValue,
         wordCount,
         createdById: creator?.id ?? null,
@@ -86,7 +85,6 @@ async function main(): Promise<void> {
       author: book.work.author,
       year: book.work.year,
       coverTone: book.work.coverTone,
-      status: book.work.status,
       tags: book.work.tags,
       createdById: creator?.id ?? null,
       chapters: {

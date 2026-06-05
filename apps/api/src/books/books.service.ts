@@ -42,8 +42,13 @@ export class BooksService {
   constructor(private readonly prisma: PrismaService) {}
 
   async list(query: BooksQuery) {
+    // `status` is derived from `publishedVersionId`, so the filter translates to a
+    // null-ness check on the pointer: published → set, draft → null, undefined → all.
+    const where: Prisma.BookWhereInput = {};
+    if (query.status === 'published') where.publishedVersionId = { not: null };
+    else if (query.status === 'draft') where.publishedVersionId = null;
     const books = await this.prisma.book.findMany({
-      where: { status: query.status },
+      where,
       orderBy: { updatedAt: 'desc' },
       include: summaryInclude,
     });
@@ -98,8 +103,11 @@ export class BooksService {
       coverTone: input.coverTone,
       coverUrl: input.coverUrl,
       buyLink: input.buyLink,
-      status: input.status,
       tags: input.tags,
+      // A metadata edit diverges the draft from the published snapshot (which freezes
+      // title/subtitle/etc.), so mark it dirty. This path does its own update rather
+      // than calling touchBook, so the dirty flag is set inline here.
+      draftDirty: true,
     };
     if (input.slug !== undefined) {
       // A manually-supplied slug is validated and made unique (excluding self).
@@ -191,7 +199,16 @@ export class BooksService {
     }
   }
 
+  /**
+   * Bump `updatedAt` and mark the draft dirty: every draft mutation (chapter/page
+   * create, update, delete, reorder) diverges the draft from the published snapshot,
+   * so it must flag `draftDirty` for the "unpublished changes" indicator. The publish
+   * transaction clears the flag.
+   */
   private async touchBook(bookId: string) {
-    await this.prisma.book.update({ where: { id: bookId }, data: { updatedAt: new Date() } });
+    await this.prisma.book.update({
+      where: { id: bookId },
+      data: { updatedAt: new Date(), draftDirty: true },
+    });
   }
 }

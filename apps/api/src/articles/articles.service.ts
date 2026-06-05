@@ -4,13 +4,15 @@ import {
   blankDoc,
   countWordsInDoc,
   slugSchema,
+  SNAPSHOT_SCHEMA_VERSION,
   type ArticlesQuery,
   type CreateArticleInput,
   type TiptapDoc,
   type UpdateArticleInput,
 } from '@stockmaster/shared';
+import { buildArticleSnapshot } from '../common/versioning/snapshot';
 import { PrismaService } from '../prisma/prisma.service';
-import { toArticleDetail, toArticleSummary } from './serializers';
+import { toArticleDetail, toArticleSummary, toVersionSummary } from './serializers';
 
 /** RFC-4122 textual uuid (the shape of an Article PK). */
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -35,8 +37,13 @@ export class ArticlesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async list(query: ArticlesQuery) {
+    // `status` is derived from the published pointer (no stored column): a status filter
+    // becomes a null-ness filter on `publishedVersionId`; no filter returns all.
+    const where: Prisma.ArticleWhereInput = {};
+    if (query.status === 'published') where.publishedVersionId = { not: null };
+    else if (query.status === 'draft') where.publishedVersionId = null;
     const articles = await this.prisma.article.findMany({
-      where: { status: query.status },
+      where,
       orderBy: { updatedAt: 'desc' },
     });
     return articles.map(toArticleSummary);
@@ -78,7 +85,6 @@ export class ArticlesService {
     if (input.year !== undefined) data.year = input.year;
     if (input.coverTone !== undefined) data.coverTone = input.coverTone;
     if (input.coverUrl !== undefined) data.coverUrl = input.coverUrl;
-    if (input.status !== undefined) data.status = input.status;
     if (input.tags !== undefined) data.tags = input.tags;
     if (input.content !== undefined) {
       data.content = input.content as Prisma.InputJsonValue;
@@ -89,6 +95,8 @@ export class ArticlesService {
       const parsed = slugSchema.parse(input.slug);
       data.slug = await this.uniqueSlug(parsed, id);
     }
+    // Every draft edit dirties the working draft until the next publish captures it.
+    data.draftDirty = true;
 
     const article = await this.prisma.article.update({ where: { id }, data });
     // Return the full detail (with content) — the web client parses the update
@@ -100,6 +108,115 @@ export class ArticlesService {
     await this.ensureArticle(id);
     await this.prisma.article.delete({ where: { id } });
     return { ok: true };
+  }
+
+  // ─── Versioning ──────────────────────────────────────────────────────────────
+
+  /**
+   * Publish the current draft: snapshot it → insert a new immutable version with the next
+   * `versionNumber` → repoint `publishedVersionId` → clear `draftDirty`. One transaction,
+   * so the public swap is atomic. Returns the refreshed article detail.
+   */
+  async publish(id: string, userId: string, note?: string) {
+    const article = await this.prisma.article.findUnique({ where: { id } });
+    if (!article) throw new NotFoundException('Article not found');
+
+    const snapshot = buildArticleSnapshot(article);
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const agg = await tx.articleVersion.aggregate({
+        where: { articleId: id },
+        _max: { versionNumber: true },
+      });
+      const versionNumber = (agg._max.versionNumber ?? 0) + 1;
+      const version = await tx.articleVersion.create({
+        data: {
+          articleId: id,
+          versionNumber,
+          snapshot: snapshot as unknown as Prisma.InputJsonValue,
+          schemaVersion: SNAPSHOT_SCHEMA_VERSION,
+          wordCount: article.wordCount,
+          note: note ?? null,
+          createdById: userId,
+        },
+      });
+      return tx.article.update({
+        where: { id },
+        data: { publishedVersionId: version.id, draftDirty: false },
+      });
+    });
+    return toArticleDetail(updated);
+  }
+
+  /** Pull the article from the public: clear the pointer. The draft is left untouched. */
+  async unpublish(id: string) {
+    await this.ensureArticle(id);
+    const article = await this.prisma.article.update({
+      where: { id },
+      data: { publishedVersionId: null },
+    });
+    return toArticleDetail(article);
+  }
+
+  /** Version history (metadata only, newest first) — no full snapshot. */
+  async listVersions(id: string) {
+    const article = await this.prisma.article.findUnique({
+      where: { id },
+      select: { publishedVersionId: true },
+    });
+    if (!article) throw new NotFoundException('Article not found');
+    const versions = await this.prisma.articleVersion.findMany({
+      where: { articleId: id },
+      orderBy: { versionNumber: 'desc' },
+    });
+    return versions.map((v) => toVersionSummary(v, article.publishedVersionId));
+  }
+
+  /** One version's full snapshot (preview / diff). 404 unless it belongs to the article. */
+  async getVersion(id: string, versionId: string) {
+    const version = await this.prisma.articleVersion.findUnique({
+      where: { id: versionId },
+    });
+    if (!version || version.articleId !== id) {
+      throw new NotFoundException('Version not found');
+    }
+    return { ...toVersionSummary(version, null), snapshot: version.snapshot };
+  }
+
+  /**
+   * The CURRENT working draft as a snapshot (same shape a publish would produce). Lets the
+   * version explorer preview the live draft and diff it against any published version, even
+   * though the draft is not a stored version row.
+   */
+  async draft(id: string) {
+    const article = await this.prisma.article.findUnique({ where: { id } });
+    if (!article) throw new NotFoundException('Article not found');
+    return {
+      id: 'draft' as const,
+      wordCount: article.wordCount,
+      createdAt: article.updatedAt.toISOString(),
+      hasUnpublishedChanges: article.draftDirty,
+      snapshot: buildArticleSnapshot(article),
+    };
+  }
+
+  /**
+   * Rollback — repoint the published pointer to an existing older version. The public
+   * reverts atomically; the working draft (content + `draftDirty`) is left untouched.
+   */
+  async restoreVersion(id: string, versionId: string) {
+    const version = await this.prisma.articleVersion.findUnique({
+      where: { id: versionId },
+      select: { id: true, articleId: true },
+    });
+    if (!version || version.articleId !== id) {
+      throw new NotFoundException('Version not found');
+    }
+    const article = await this.prisma.article.update({
+      where: { id },
+      data: { publishedVersionId: version.id },
+    });
+    return toArticleDetail(article);
   }
 
   // ─── Helpers ─────────────────────────────────────────────────────────────────

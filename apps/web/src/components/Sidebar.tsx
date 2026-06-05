@@ -6,21 +6,27 @@ import { BookCover } from './ui/BookCover';
 import { useAppShell } from './AppShell';
 
 function Sidebar({ children }: { children: ReactNode }) {
-  return <aside className="sidebar">{children}</aside>;
+  return (
+    <aside className="bg-sidebar border-r border-line flex flex-col min-w-0 overflow-hidden">{children}</aside>
+  );
 }
 
 function Brand() {
   const { collapsed, setCollapsed } = useAppShell();
   return (
-    <div className="sb-top">
-      <div className="sb-logo">
+    <div className="flex items-center gap-2.5 px-4 pt-4 pb-3">
+      <div className="w-[30px] h-[30px] rounded-lg bg-primary grid place-items-center text-onprimary flex-none [&_svg]:w-4 [&_svg]:h-4">
         <Icons.Logo />
       </div>
-      <div className="sb-brand">
+      <div className="font-semibold text-sm tracking-[-0.01em]">
         StockMaster
-        <small>Editorial workspace</small>
+        <small className="block text-faint font-medium text-[11px]">Editorial workspace</small>
       </div>
-      <button className="sb-collapse" title="Collapse sidebar" onClick={() => setCollapsed(!collapsed)}>
+      <button
+        className="ml-auto border-none bg-transparent text-faint w-7 h-7 rounded-md grid place-items-center hover:bg-hover hover:text-muted"
+        title="Collapse sidebar"
+        onClick={() => setCollapsed(!collapsed)}
+      >
         <Icons.PanelLeft />
       </button>
     </div>
@@ -29,14 +35,18 @@ function Brand() {
 
 function Scroll({ children, style }: { children: ReactNode; style?: React.CSSProperties }) {
   return (
-    <div className="sb-scroll" style={style}>
+    <div className="flex-1 overflow-y-auto px-3 pt-1 pb-3" style={style}>
       {children}
     </div>
   );
 }
 
 function SectionLabel({ children }: { children: ReactNode }) {
-  return <div className="sb-section-label">{children}</div>;
+  return (
+    <div className="text-[11px] font-semibold tracking-[0.06em] uppercase text-faint px-2 pt-[14px] pb-1.5">
+      {children}
+    </div>
+  );
 }
 
 function NavItem({
@@ -53,10 +63,22 @@ function NavItem({
   onClick?: () => void;
 }) {
   return (
-    <button className={'nav-item' + (active ? ' active' : '')} onClick={onClick}>
+    <button
+      className={
+        'flex items-center gap-2.5 w-full text-left px-2.5 py-2 rounded-lg border text-sm font-medium transition-colors [&_svg]:w-[18px] [&_svg]:h-[18px] [&_svg]:flex-none [&_svg]:text-current [&_svg]:opacity-85 ' +
+        (active
+          ? 'bg-[var(--bg-active)] text-fg border-line shadow-xs'
+          : 'bg-transparent border-transparent text-muted hover:bg-hover hover:text-fg')
+      }
+      onClick={onClick}
+    >
       <Icon name={icon} />
-      <span>{label}</span>
-      {count != null && <span className="count">{count}</span>}
+      <span className="whitespace-nowrap overflow-hidden text-ellipsis">{label}</span>
+      {count != null && (
+        <span className="ml-auto text-xs font-semibold text-muted bg-subtle border border-line rounded-full px-2 py-px min-w-[22px] text-center">
+          {count}
+        </span>
+      )}
     </button>
   );
 }
@@ -64,14 +86,16 @@ function NavItem({
 function UserCard({ user, onClick }: { user: User; onClick?: () => void }) {
   // The card doubles as the entry point to account settings (API keys) when given an
   // onClick — the ChevUpDown affordance already signals it's interactive.
+  const cardClass =
+    'mx-3 mt-2 mb-3.5 p-2.5 flex items-center gap-2.5 border border-line rounded-xl bg-canvas shadow-xs';
   const content = (
     <>
       <Avatar name={user.name} color={user.avatarColor} />
-      <div className="meta">
-        <div className="name">{user.name}</div>
-        <div className="email">{user.email}</div>
+      <div className="min-w-0">
+        <div className="font-semibold text-[13px]">{user.name}</div>
+        <div className="text-faint text-xs whitespace-nowrap overflow-hidden text-ellipsis">{user.email}</div>
       </div>
-      <span className="chev">
+      <span className="ml-auto text-faint [&_svg]:w-[18px] [&_svg]:h-[18px]">
         <Icons.ChevUpDown />
       </span>
     </>
@@ -81,7 +105,7 @@ function UserCard({ user, onClick }: { user: User; onClick?: () => void }) {
     // identical to the static card (the .sb-user margin/border styling is shared).
     return (
       <button
-        className="sb-user"
+        className={cardClass}
         onClick={onClick}
         title="API keys & settings"
         style={{ width: 'calc(100% - 24px)', textAlign: 'left', cursor: 'pointer' }}
@@ -90,7 +114,7 @@ function UserCard({ user, onClick }: { user: User; onClick?: () => void }) {
       </button>
     );
   }
-  return <div className="sb-user">{content}</div>;
+  return <div className={cardClass}>{content}</div>;
 }
 
 function BookHead({
@@ -103,26 +127,33 @@ function BookHead({
   onDelete?: () => void;
 }) {
   return (
-    <div className="book-head">
-      <button className="book-back" onClick={onBack} title="Back to library">
+    <div className="flex gap-2.5 items-center px-3.5 py-3 mb-1">
+      <button
+        className="border border-line bg-canvas w-[30px] h-[30px] rounded-md flex-none grid place-items-center text-muted shadow-xs hover:bg-hover hover:text-fg [&_svg]:w-[18px] [&_svg]:h-[18px]"
+        onClick={onBack}
+        title="Back to library"
+      >
         <Icons.ArrowLeft />
       </button>
-      <BookCover book={book} className="book-cover-sm" />
-      <div className="t">
+      <BookCover
+        book={book}
+        className="w-[34px] h-[46px] rounded-[4px] flex-none object-cover shadow-sm bg-subtle"
+      />
+      <div className="min-w-0">
         <div
-          className="name"
+          className="font-semibold text-sm tracking-[-0.01em] leading-[1.2]"
           style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
         >
           {book.title}
         </div>
-        <div className="sub">
+        <div className="text-faint text-xs">
           {book.author}
           {book.year ? ` · ${book.year}` : ''}
         </div>
       </div>
       {onDelete && (
         <button
-          className="book-del"
+          className="self-start border-none bg-transparent text-faint w-[26px] h-[26px] rounded-[6px] grid place-items-center cursor-pointer flex-shrink-0 hover:bg-[color-mix(in_oklch,#c0392b_12%,transparent)] hover:text-[#c0392b] [&_svg]:w-[15px] [&_svg]:h-[15px]"
           onClick={onDelete}
           title="Delete book"
           aria-label={`Delete book ${book.title}`}
@@ -135,7 +166,7 @@ function BookHead({
 }
 
 function Tree({ children }: { children: ReactNode }) {
-  return <div className="tree">{children}</div>;
+  return <div className="px-2.5 pt-0.5 pb-2.5">{children}</div>;
 }
 
 function ChapterNode({
@@ -155,14 +186,22 @@ function ChapterNode({
 }) {
   const [collapsed, setCollapsed] = useState(false);
   return (
-    <div className="chapter">
-      <div className={'chapter-row' + (collapsed ? ' collapsed' : '')} onClick={() => setCollapsed((c) => !c)}>
-        <span className="twirl">
+    <div className="mb-0.5">
+      <div
+        className="group flex items-center gap-1.5 px-2 py-[7px] rounded-lg cursor-pointer text-muted font-semibold text-[13px] hover:bg-hover hover:text-fg"
+        onClick={() => setCollapsed((c) => !c)}
+      >
+        <span
+          className={
+            'w-4 h-4 grid place-items-center text-faint transition-transform flex-none [&_svg]:w-4 [&_svg]:h-4' +
+            (collapsed ? ' -rotate-90' : '')
+          }
+        >
           <Icons.ChevronDown />
         </span>
-        <span className="ch-name">{chapter.title}</span>
+        <span className="whitespace-nowrap overflow-hidden text-ellipsis">{chapter.title}</span>
         <button
-          className="ch-add"
+          className="ml-auto opacity-0 group-hover:opacity-100 border-none bg-transparent text-faint w-[22px] h-[22px] rounded-md grid place-items-center hover:bg-[var(--bg-active)] hover:text-fg hover:shadow-xs [&_svg]:w-[15px] [&_svg]:h-[15px]"
           title="Add page"
           onClick={(e) => {
             e.stopPropagation();
@@ -173,7 +212,7 @@ function ChapterNode({
         </button>
         {onDeleteChapter && (
           <button
-            className="row-del"
+            className="opacity-0 group-hover:opacity-100 border-none bg-transparent text-faint w-[22px] h-[22px] rounded-md grid place-items-center cursor-pointer hover:bg-[color-mix(in_oklch,#c0392b_12%,transparent)] hover:text-[#c0392b] [&_svg]:w-[14px] [&_svg]:h-[14px]"
             title="Delete chapter"
             aria-label={`Delete chapter ${chapter.title}`}
             onClick={(e) => {
@@ -186,18 +225,23 @@ function ChapterNode({
         )}
       </div>
       {!collapsed && (
-        <div className="pages">
+        <div className="mt-px mb-1 ml-[15px] pl-[14px] border-l border-line">
           {chapter.pages.map((pg) => (
             <div
               key={pg.id}
-              className={'page-row' + (pg.id === activePageId ? ' active' : '')}
+              className={
+                'group flex items-center gap-2 px-2 py-1.5 rounded-[7px] cursor-pointer text-[13px] font-medium border border-transparent [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:flex-none [&_svg]:opacity-70 ' +
+                (pg.id === activePageId
+                  ? 'bg-[var(--bg-active)] text-fg border-line shadow-xs'
+                  : 'text-muted hover:bg-hover hover:text-fg')
+              }
               onClick={() => onOpenPage(chapter.id, pg.id)}
             >
               <Icons.Doc />
-              <span className="pg-name">{pg.title || 'Untitled'}</span>
+              <span className="whitespace-nowrap overflow-hidden text-ellipsis">{pg.title || 'Untitled'}</span>
               {onDeletePage && (
                 <button
-                  className="row-del"
+                  className="ml-auto opacity-0 group-hover:opacity-100 border-none bg-transparent text-faint w-[22px] h-[22px] rounded-md grid place-items-center cursor-pointer hover:bg-[color-mix(in_oklch,#c0392b_12%,transparent)] hover:text-[#c0392b] [&_svg]:w-[14px] [&_svg]:h-[14px]"
                   title="Delete page"
                   aria-label={`Delete page ${pg.title || 'Untitled'}`}
                   onClick={(e) => {
@@ -210,7 +254,11 @@ function ChapterNode({
               )}
             </div>
           ))}
-          <button className="tree-add" style={{ marginTop: 2 }} onClick={() => onAddPage(chapter.id)}>
+          <button
+            className="flex items-center gap-2 w-full mt-0.5 px-2.5 py-[7px] rounded-lg border border-dashed border-line-strong bg-transparent text-faint text-[13px] font-medium hover:text-fg hover:border-faint hover:bg-hover [&_svg]:w-[15px] [&_svg]:h-[15px]"
+            style={{ marginTop: 2 }}
+            onClick={() => onAddPage(chapter.id)}
+          >
             <Icons.Plus /> Add page
           </button>
         </div>
@@ -221,7 +269,10 @@ function ChapterNode({
 
 function TreeAdd({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button className="tree-add" onClick={onClick}>
+    <button
+      className="flex items-center gap-2 w-full mt-1 px-2.5 py-[7px] rounded-lg border border-dashed border-line-strong bg-transparent text-faint text-[13px] font-medium hover:text-fg hover:border-faint hover:bg-hover [&_svg]:w-[15px] [&_svg]:h-[15px]"
+      onClick={onClick}
+    >
       <Icons.Plus /> {label}
     </button>
   );
