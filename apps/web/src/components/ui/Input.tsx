@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, LabelHTMLAttributes, ReactNode } from 'react';
+import { forwardRef, type InputHTMLAttributes, type LabelHTMLAttributes, type ReactNode } from 'react';
 import { cx } from './cx';
 
 /* `.input`: full width, 1px input border, canvas bg, md radius, padding 8px 10px,
@@ -12,9 +12,14 @@ const inputCls =
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {}
 
-export function Input({ type = 'text', className, ...rest }: InputProps) {
-  return <input type={type} className={cx(inputCls, className)} {...rest} />;
-}
+// forwardRef so libraries that need the DOM node (react-hook-form's register, focus
+// management) work — without it the ref is silently dropped and forms don't register.
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
+  { type = 'text', className, ...rest },
+  ref,
+) {
+  return <input ref={ref} type={type} className={cx(inputCls, className)} {...rest} />;
+});
 
 export interface FieldProps extends LabelHTMLAttributes<HTMLLabelElement> {
   /** The field label text rendered above the control (`.field > label`). */
