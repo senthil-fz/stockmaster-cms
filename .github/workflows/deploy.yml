@@ -66,11 +66,17 @@ jobs:
       - name: Bundle API
         run: pnpm --filter @stockmaster/api deploy --legacy --prod out/api
 
+      # The API bundle is a pnpm node_modules tree wired together by symlinks
+      # into node_modules/.pnpm. actions/upload-artifact DEREFERENCES symlinks
+      # (and drops Unix exec bits) when it zips, which destroys that wiring —
+      # transitive deps like tslib and @prisma/engines become unreachable and
+      # the app crashes with MODULE_NOT_FOUND at runtime. Tar preserves symlinks
+      # and exec bits, so ship the API as an opaque tarball and extract on deploy.
       - name: Stage artifacts
         run: |
-          rm -rf artifact && mkdir -p artifact/web artifact/api
+          rm -rf artifact && mkdir -p artifact/web
           cp -a apps/web/dist/. artifact/web/
-          cp -a out/api/. artifact/api/
+          tar -czf artifact/api.tar.gz -C out/api .
 
       - uses: actions/upload-artifact@v4
         with:
@@ -143,8 +149,13 @@ jobs:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         run: |
+          # Extract the symlink-preserving tarball, then rsync the real tree.
+          # rsync -a keeps symlinks as symlinks (no -L), so pnpm's .pnpm wiring
+          # arrives intact on the server.
+          rm -rf api_bundle && mkdir -p api_bundle
+          tar -xzf artifact/api.tar.gz -C api_bundle
           rsync -az --delete -e "ssh -i ~/.ssh/id_deploy" \
-            artifact/api/ "$DEPLOY_USER@$DEPLOY_HOST:/var/www/api.laabam.in/"
+            api_bundle/ "$DEPLOY_USER@$DEPLOY_HOST:/var/www/api.laabam.in/"
 
       - name: Migrate, reload PM2, health-check
         env:
