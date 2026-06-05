@@ -5,6 +5,8 @@ import { booksApi, uploadsApi } from '../lib/api';
 import { useDebouncedCallback } from '../lib/useDebouncedCallback';
 import { Panel } from './Panel';
 import { BookCover } from './ui/BookCover';
+import { Button } from './ui/Button';
+import { Input } from './ui/Input';
 
 /**
  * Book-level editor (right panel). Edits cover, title/author/subtitle/year, and a
@@ -93,10 +95,13 @@ export function BookSettings({ book, onClose }: { book: BookDetail; onClose: () 
       <Panel.Head icon="Book" title="Book details" subtitle={book.title} onClose={onClose} />
 
       <Panel.Section label="Cover">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>
-          <BookCover book={book} className="cover" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
-            <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
+        <div className="flex flex-col items-start gap-[10px]">
+          <BookCover
+            book={book}
+            className="h-[176px] w-[128px] flex-none rounded-md bg-subtle object-cover shadow-sm"
+          />
+          <div className="flex flex-col items-start gap-1.5">
+            <label className="inline-flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-md border border-line-strong bg-canvas px-3.5 py-2 text-[13px] font-semibold tracking-[-0.01em] text-fg shadow-xs transition-[background-color,border-color,box-shadow,opacity] duration-[120ms] hover:bg-hover">
               {uploading ? 'Uploading…' : book.coverUrl ? 'Replace cover' : 'Upload cover'}
               <input
                 type="file"
@@ -106,9 +111,9 @@ export function BookSettings({ book, onClose }: { book: BookDetail; onClose: () 
               />
             </label>
             {book.coverUrl && (
-              <button className="btn btn-ghost" onClick={() => save.mutate({ coverUrl: null })}>
+              <Button variant="ghost" onClick={() => save.mutate({ coverUrl: null })}>
                 Remove cover
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -116,8 +121,7 @@ export function BookSettings({ book, onClose }: { book: BookDetail; onClose: () 
 
       <Panel.Section label="Details">
         <Panel.Field label="Title">
-          <input
-            className="input"
+          <Input
             value={title}
             onChange={(e) => {
               setTitle(e.target.value);
@@ -126,8 +130,7 @@ export function BookSettings({ book, onClose }: { book: BookDetail; onClose: () 
           />
         </Panel.Field>
         <Panel.Field label="Author">
-          <input
-            className="input"
+          <Input
             value={author}
             onChange={(e) => {
               setAuthor(e.target.value);
@@ -136,8 +139,7 @@ export function BookSettings({ book, onClose }: { book: BookDetail; onClose: () 
           />
         </Panel.Field>
         <Panel.Field label="Subtitle">
-          <input
-            className="input"
+          <Input
             value={subtitle}
             onChange={(e) => {
               setSubtitle(e.target.value);
@@ -146,8 +148,7 @@ export function BookSettings({ book, onClose }: { book: BookDetail; onClose: () 
           />
         </Panel.Field>
         <Panel.Field label="Year">
-          <input
-            className="input"
+          <Input
             value={year}
             onChange={(e) => {
               setYear(e.target.value);
@@ -159,37 +160,35 @@ export function BookSettings({ book, onClose }: { book: BookDetail; onClose: () 
 
       <Panel.Section label="Web address">
         <Panel.Field label="URL slug">
-          <input
-            className="input"
+          <Input
             value={slug}
             placeholder="my-book-title"
             onChange={(e) => setSlug(e.target.value)}
             onBlur={commitSlug}
           />
         </Panel.Field>
-        <p className="muted" style={{ fontSize: 12, margin: '4px 0 0', lineHeight: 1.4 }}>
+        <p className="m-0 mt-1 text-xs leading-[1.4] text-faint">
           Lowercase letters, digits and hyphens — used for clean book URLs.
         </p>
       </Panel.Section>
 
       <Panel.Section label="Buy link">
         <Panel.Field label="Purchase URL">
-          <input
-            className="input"
+          <Input
             value={buyLink}
             placeholder="https://…"
             onChange={(e) => setBuyLink(e.target.value)}
             onBlur={commitBuyLink}
           />
         </Panel.Field>
-        <p className="muted" style={{ fontSize: 12, margin: '4px 0 0', lineHeight: 1.4 }}>
+        <p className="m-0 mt-1 text-xs leading-[1.4] text-faint">
           Shown as a “Buy” button on the book card and reader.
         </p>
       </Panel.Section>
 
       {err && (
         <Panel.Section>
-          <p style={{ color: '#c0392b', fontSize: 12, margin: 0 }}>{err}</p>
+          <p className="m-0 text-xs text-[#c0392b]">{err}</p>
         </Panel.Section>
       )}
     </Panel>

@@ -1,6 +1,7 @@
 import { readingTimeMinutes, type PublishStatus } from '@stockmaster/shared';
 import { Panel } from './Panel';
 import { Icons } from './icons';
+import { Input } from './ui/Input';
 
 export function PageSettings({
   chapterTitle,
@@ -29,8 +30,7 @@ export function PageSettings({
 
       <Panel.Section>
         <Panel.Field label="Page title">
-          <input
-            className="input"
+          <Input
             value={title}
             onChange={(e) => onTitle(e.target.value)}
             placeholder="Untitled page"
@@ -54,15 +54,18 @@ export function PageSettings({
         <Panel.Stat k="Reading time" v={`${readingTimeMinutes(words)} min`} />
         <Panel.Stat
           k="Last edited"
-          v={<span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{updatedLabel}</span>}
+          v={<span className="font-medium text-muted">{updatedLabel}</span>}
         />
       </Panel.Section>
 
       {tags.length > 0 && (
         <Panel.Section label="Book tags">
-          <div className="tag-row">
+          <div className="flex flex-wrap gap-1.5">
             {tags.map((t) => (
-              <span key={t} className="tag">
+              <span
+                key={t}
+                className="inline-flex items-center gap-[5px] rounded-full border border-line bg-canvas px-2.5 py-1 text-xs font-medium text-muted"
+              >
                 {t}
               </span>
             ))}
@@ -71,8 +74,12 @@ export function PageSettings({
       )}
 
       <Panel.Section label="Tip">
-        <p className="muted" style={{ fontSize: 13, lineHeight: 1.5, margin: 0 }}>
-          Press <kbd className="kbd">/</kbd> on an empty line for blocks, drag the{' '}
+        <p className="m-0 text-[13px] leading-[1.5] text-faint">
+          Press{' '}
+          <kbd className="rounded-[4px] border border-line bg-canvas px-1.5 py-px font-mono text-xs">
+            /
+          </kbd>{' '}
+          on an empty line for blocks, drag the{' '}
           <Icons.Grip style={{ width: 14, height: 14, verticalAlign: '-2px' }} /> handle to reorder,
           or select text for formatting.
         </p>

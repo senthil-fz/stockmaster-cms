@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Button } from './ui/Button';
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -48,12 +49,12 @@ export function ConfirmDialog({
         <h3>{title}</h3>
         <p>{message}</p>
         <div className="modal-actions">
-          <button className="btn btn-secondary" onClick={onCancel} disabled={busy}>
+          <Button variant="secondary" onClick={onCancel} disabled={busy}>
             {cancelLabel}
-          </button>
-          <button className="btn btn-danger" onClick={onConfirm} disabled={busy}>
+          </Button>
+          <Button variant="danger" onClick={onConfirm} disabled={busy}>
             {busy ? 'Deleting…' : confirmLabel}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

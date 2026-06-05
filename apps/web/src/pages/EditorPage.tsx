@@ -19,6 +19,9 @@ import { Sidebar } from '../components/Sidebar';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Topbar, type SaveState } from '../components/Topbar';
 import { Panel } from '../components/Panel';
+import { Button } from '../components/ui/Button';
+import { IconButton } from '../components/ui/IconButton';
+import { Badge } from '../components/ui/Badge';
 import { PageSettings } from '../components/PageSettings';
 import { BookSettings } from '../components/BookSettings';
 import { VersionHistory } from '../components/VersionHistory';
@@ -352,9 +355,10 @@ function EditorWorkspace({
         <Topbar.Spacer />
         <Topbar.Actions>
           <Topbar.SaveStatus state={saveState} />
-          <button
-            className="icon-btn bordered"
+          <IconButton
+            bordered
             title="Preview"
+            aria-label="Preview"
             onClick={() => {
               flushPending();
               navigate({
@@ -364,24 +368,23 @@ function EditorWorkspace({
             }}
           >
             <Icons.Eye />
-          </button>
+          </IconButton>
           {book.status === 'published' && book.hasUnpublishedChanges && (
-            <span className="status draft" title="The published book has edits not yet published">
-              <span className="led" />
+            <Badge tone="draft" title="The published book has edits not yet published">
               Unpublished changes
-            </span>
+            </Badge>
           )}
           {book.status === 'published' && (
-            <button
-              className="btn btn-secondary"
+            <Button
+              variant="secondary"
               disabled={publishBusy}
               onClick={() => unpublish.mutate()}
             >
               Unpublish
-            </button>
+            </Button>
           )}
-          <button
-            className="btn btn-primary"
+          <Button
+            variant="primary"
             disabled={publishBusy}
             onClick={() => {
               flushPending();
@@ -389,10 +392,11 @@ function EditorWorkspace({
             }}
           >
             {book.status === 'published' ? 'Publish changes' : 'Publish'}
-          </button>
-          <button
-            className="icon-btn bordered"
+          </Button>
+          <IconButton
+            bordered
             title="Version history"
+            aria-label="Version history"
             style={{ opacity: rightOpen && panelTab === 'versions' ? 1 : 0.6 }}
             onClick={() => {
               setRightOpen(true);
@@ -400,10 +404,11 @@ function EditorWorkspace({
             }}
           >
             <Icons.Clock />
-          </button>
-          <button
-            className="icon-btn bordered"
+          </IconButton>
+          <IconButton
+            bordered
             title="Book details"
+            aria-label="Book details"
             style={{ opacity: rightOpen && panelTab === 'book' ? 1 : 0.6 }}
             onClick={() => {
               setRightOpen(true);
@@ -411,15 +416,16 @@ function EditorWorkspace({
             }}
           >
             <Icons.Book />
-          </button>
-          <button
-            className="icon-btn bordered"
+          </IconButton>
+          <IconButton
+            bordered
             title="Toggle settings"
+            aria-label="Toggle settings"
             style={{ opacity: rightOpen ? 1 : 0.6 }}
             onClick={() => setRightOpen((o) => !o)}
           >
             <Icons.PanelLeft style={{ transform: 'scaleX(-1)' }} />
-          </button>
+          </IconButton>
         </Topbar.Actions>
       </Topbar>
 

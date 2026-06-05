@@ -1,6 +1,8 @@
 import type { Editor } from '@tiptap/react';
 import { NodeSelection } from '@tiptap/pm/state';
 import { Panel } from '../components/Panel';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
 import { Icons, type IconName } from '../components/icons';
 import { type CalloutTone } from '@stockmaster/editor-schema';
 import { CALLOUT_ICONS } from './extensions/Callout';
@@ -100,8 +102,7 @@ export function BlockSettings({
       {active.type === 'quote' && (
         <Panel.Section label="Citation">
           <Panel.Field label="Attribution">
-            <input
-              className="input"
+            <Input
               value={(attrs.cite as string) ?? ''}
               onChange={(e) => setAttrs({ cite: e.target.value })}
               placeholder="Author, year"
@@ -153,8 +154,7 @@ export function BlockSettings({
       {active.type === 'captionedImage' && (
         <Panel.Section label="Image">
           <Panel.Field label="Source URL">
-            <input
-              className="input"
+            <Input
               value={(attrs.src as string) ?? ''}
               onChange={(e) => setAttrs({ src: e.target.value })}
               placeholder="https://…"
@@ -171,8 +171,7 @@ export function BlockSettings({
             />
           </Panel.Field>
           <Panel.Field label="Caption">
-            <input
-              className="input"
+            <Input
               value={(attrs.caption as string) ?? ''}
               onChange={(e) => setAttrs({ caption: e.target.value })}
               placeholder="Figure caption"
@@ -184,62 +183,63 @@ export function BlockSettings({
       {active.type === 'table' && (
         <Panel.Section label="Table">
           <Panel.Field label="Header row">
-            <button
-              className="btn btn-secondary"
+            <Button
+              variant="secondary"
               style={{ width: '100%', justifyContent: 'center' }}
               onClick={() => editor.chain().focus().toggleHeaderRow().run()}
             >
               Toggle header row
-            </button>
+            </Button>
           </Panel.Field>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 4 }}>
-            <button
-              className="btn btn-secondary"
+            <Button
+              variant="secondary"
               style={{ justifyContent: 'center' }}
               onClick={() => editor.chain().focus().addRowAfter().run()}
             >
               + Row
-            </button>
-            <button
-              className="btn btn-secondary"
+            </Button>
+            <Button
+              variant="secondary"
               style={{ justifyContent: 'center' }}
               onClick={() => editor.chain().focus().addColumnAfter().run()}
             >
               + Column
-            </button>
-            <button
-              className="btn btn-ghost"
+            </Button>
+            <Button
+              variant="ghost"
               style={{ justifyContent: 'center' }}
               onClick={() => editor.chain().focus().deleteRow().run()}
             >
               − Row
-            </button>
-            <button
-              className="btn btn-ghost"
+            </Button>
+            <Button
+              variant="ghost"
               style={{ justifyContent: 'center' }}
               onClick={() => editor.chain().focus().deleteColumn().run()}
             >
               − Column
-            </button>
+            </Button>
           </div>
         </Panel.Section>
       )}
 
       <Panel.Section label="Actions">
-        <button
-          className="btn btn-ghost"
+        <Button
+          variant="ghost"
           style={{ width: '100%', justifyContent: 'flex-start' }}
           onClick={duplicate}
         >
           <Icons.Copy /> Duplicate block
-        </button>
-        <button
-          className="btn btn-ghost danger-btn"
+        </Button>
+        <Button
+          variant="ghost"
+          className="danger-btn"
           style={{ width: '100%', justifyContent: 'flex-start' }}
           onClick={deleteBlock}
         >
           <Icons.Trash /> Delete block
-        </button>
+        </Button>
       </Panel.Section>
     </Panel>
   );

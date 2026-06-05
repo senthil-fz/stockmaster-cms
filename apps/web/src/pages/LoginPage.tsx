@@ -6,6 +6,8 @@ import { loginSchema, type LoginInput } from '@stockmaster/shared';
 import { useAuth } from '../lib/auth';
 import { ApiError } from '../lib/api';
 import { Icons } from '../components/icons';
+import { Button } from '../components/ui/Button';
+import { Input, Field } from '../components/ui/Input';
 
 export function LoginPage() {
   const auth = useAuth();
@@ -36,9 +38,12 @@ export function LoginPage() {
   });
 
   return (
-    <div className="auth-screen">
-      <form className="auth-card" onSubmit={onSubmit}>
-        <div className="auth-brand">
+    <div className="grid min-h-full place-items-center bg-app p-6">
+      <form
+        className="w-full max-w-[380px] rounded-xl border border-line bg-canvas p-7 shadow-md"
+        onSubmit={onSubmit}
+      >
+        <div className="auth-brand mb-[22px] flex items-center gap-2.5">
           <span className="sb-logo">
             <Icons.Logo />
           </span>
@@ -48,42 +53,51 @@ export function LoginPage() {
           </div>
         </div>
 
-        <h1 className="auth-title">Welcome back</h1>
-        <p className="auth-sub">Sign in to your editorial workspace.</p>
+        <h1 className="m-0 text-[22px] font-bold tracking-[-0.02em]">Welcome back</h1>
+        <p className="mt-1 mb-5 text-sm text-muted">Sign in to your editorial workspace.</p>
 
-        <div className="field">
-          <label htmlFor="auth-email">Email</label>
-          <input
+        <Field label="Email" htmlFor="auth-email">
+          <Input
             id="auth-email"
-            className="input"
             type="email"
             autoComplete="email"
             placeholder="you@example.com"
             {...register('email')}
           />
-          {errors.email && <span className="field-error">{errors.email.message}</span>}
-        </div>
+          {errors.email && (
+            <span className="mt-[5px] block text-xs text-[#c0392b]">{errors.email.message}</span>
+          )}
+        </Field>
 
-        <div className="field">
-          <label htmlFor="auth-password">Password</label>
-          <input
+        <Field label="Password" htmlFor="auth-password">
+          <Input
             id="auth-password"
-            className="input"
             type="password"
             placeholder="••••••••"
             autoComplete="current-password"
             {...register('password')}
           />
-          {errors.password && <span className="field-error">{errors.password.message}</span>}
-        </div>
+          {errors.password && (
+            <span className="mt-[5px] block text-xs text-[#c0392b]">{errors.password.message}</span>
+          )}
+        </Field>
 
-        {serverError && <div className="auth-error">{serverError}</div>}
+        {serverError && (
+          <div className="my-1 rounded-md bg-[color-mix(in_oklch,#c0392b_10%,transparent)] px-3 py-[9px] text-[13px] text-[#c0392b]">
+            {serverError}
+          </div>
+        )}
 
-        <button className="btn btn-primary auth-submit" type="submit" disabled={isSubmitting}>
+        <Button
+          variant="primary"
+          type="submit"
+          disabled={isSubmitting}
+          className="mt-2 w-full justify-center"
+        >
           {isSubmitting ? 'Please wait…' : 'Sign in'}
-        </button>
+        </Button>
 
-        <p className="auth-sub" style={{ marginTop: 16, marginBottom: 0 }}>
+        <p className="mt-4 mb-0 text-sm text-muted">
           Need an account? Ask a workspace member to create one for you.
         </p>
       </form>

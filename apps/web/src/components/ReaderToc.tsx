@@ -13,27 +13,39 @@ function ChapterNode({
 }) {
   const [collapsed, setCollapsed] = useState(false);
   return (
-    <div className="chapter">
+    <div className="mb-0.5">
       <div
-        className={'chapter-row' + (collapsed ? ' collapsed' : '')}
+        className="flex items-center gap-1.5 px-2 py-[7px] rounded-lg cursor-pointer text-muted font-semibold text-[13px] hover:bg-hover hover:text-fg"
         onClick={() => setCollapsed((c) => !c)}
       >
-        <span className="twirl">
+        <span
+          className={
+            'w-4 h-4 grid place-items-center text-faint transition-transform flex-none [&_svg]:w-4 [&_svg]:h-4' +
+            (collapsed ? ' -rotate-90' : '')
+          }
+        >
           <Icons.ChevronDown />
         </span>
-        <span className="ch-name">{chapter.title}</span>
+        <span className="whitespace-nowrap overflow-hidden text-ellipsis">{chapter.title}</span>
       </div>
       {!collapsed && (
-        <div className="pages">
+        <div className="mt-px mb-1 ml-[15px] pl-[14px] border-l border-line">
           {chapter.pages.map((pg: PageSummary) => (
             <div
               key={pg.id}
-              className={'page-row' + (pg.id === activePageId ? ' active' : '')}
+              className={
+                'flex items-center gap-2 px-2 py-1.5 rounded-[7px] cursor-pointer text-[13px] font-medium border border-transparent [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:flex-none [&_svg]:opacity-70 ' +
+                (pg.id === activePageId
+                  ? 'bg-[var(--bg-active)] text-fg border-line shadow-xs'
+                  : 'text-muted hover:bg-hover hover:text-fg')
+              }
               onClick={() => onOpenPage(pg.id)}
             >
               <Icons.Doc />
-              <span className="pg-name">{pg.title || 'Untitled'}</span>
-              {pg.status === 'draft' && <span className="reader-toc-draft" />}
+              <span className="whitespace-nowrap overflow-hidden text-ellipsis">{pg.title || 'Untitled'}</span>
+              {pg.status === 'draft' && (
+                <span className="w-[7px] h-[7px] rounded-full bg-amber ml-auto flex-none" />
+              )}
             </div>
           ))}
         </div>
@@ -52,7 +64,7 @@ export function ReaderToc({
   onOpenPage: (pageId: string) => void;
 }) {
   return (
-    <div className="tree">
+    <div className="px-2.5 pt-0.5 pb-2.5">
       {chapters.map((ch) => (
         <ChapterNode
           key={ch.id}

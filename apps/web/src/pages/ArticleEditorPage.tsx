@@ -12,6 +12,9 @@ import { Sidebar } from '../components/Sidebar';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Topbar, type SaveState } from '../components/Topbar';
 import { ArticleSettings } from '../components/ArticleSettings';
+import { Button } from '../components/ui/Button';
+import { IconButton } from '../components/ui/IconButton';
+import { Badge } from '../components/ui/Badge';
 import { VersionHistory } from '../components/VersionHistory';
 import { Icons } from '../components/icons';
 import { useBlockEditor } from '../editor/useBlockEditor';
@@ -177,33 +180,33 @@ function ArticleWorkspace({ article }: { article: ArticleDetail }) {
         <Topbar.Spacer />
         <Topbar.Actions>
           <Topbar.SaveStatus state={saveState} />
-          <button
-            className="icon-btn bordered"
+          <IconButton
+            bordered
             title="Preview"
+            aria-label="Preview"
             onClick={() => {
               flushPending();
               navigate({ to: '/articles/$articleId/read', params: { articleId: article.id } });
             }}
           >
             <Icons.Eye />
-          </button>
+          </IconButton>
           {article.status === 'published' && article.hasUnpublishedChanges && (
-            <span className="status draft" title="The published article has edits not yet published">
-              <span className="led" />
+            <Badge tone="draft" title="The published article has edits not yet published">
               Unpublished changes
-            </span>
+            </Badge>
           )}
           {article.status === 'published' && (
-            <button
-              className="btn btn-secondary"
+            <Button
+              variant="secondary"
               disabled={publishBusy}
               onClick={() => unpublish.mutate()}
             >
               Unpublish
-            </button>
+            </Button>
           )}
-          <button
-            className="btn btn-primary"
+          <Button
+            variant="primary"
             disabled={publishBusy}
             onClick={() => {
               flushPending();
@@ -211,23 +214,25 @@ function ArticleWorkspace({ article }: { article: ArticleDetail }) {
             }}
           >
             {article.status === 'published' ? 'Publish changes' : 'Publish'}
-          </button>
-          <button
-            className="icon-btn bordered"
+          </Button>
+          <IconButton
+            bordered
             title="Version history"
+            aria-label="Version history"
             style={{ opacity: panel === 'versions' ? 1 : 0.6 }}
             onClick={() => setPanel((p) => (p === 'versions' ? null : 'versions'))}
           >
             <Icons.Clock />
-          </button>
-          <button
-            className="icon-btn bordered"
+          </IconButton>
+          <IconButton
+            bordered
             title="Article details"
+            aria-label="Article details"
             style={{ opacity: panel === 'settings' ? 1 : 0.6 }}
             onClick={() => setPanel((p) => (p === 'settings' ? null : 'settings'))}
           >
             <Icons.PanelLeft style={{ transform: 'scaleX(-1)' }} />
-          </button>
+          </IconButton>
         </Topbar.Actions>
       </Topbar>
 
