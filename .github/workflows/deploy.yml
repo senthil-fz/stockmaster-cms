@@ -28,14 +28,14 @@ jobs:
   build:
     runs-on: ubuntu-24.04   # match the server (Ubuntu 24.04) so the Prisma engine target lines up
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # pnpm version comes from the root package.json "packageManager" field.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
           cache: pnpm
 
       - name: Install
@@ -78,7 +78,7 @@ jobs:
           cp -a apps/web/dist/. artifact/web/
           tar -czf artifact/api.tar.gz -C out/api .
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: build
           path: artifact
@@ -90,9 +90,9 @@ jobs:
     runs-on: ubuntu-24.04
     environment: production
     steps:
-      - uses: actions/checkout@v4   # for deploy/ecosystem.config.cjs + deploy/remote-release.sh
+      - uses: actions/checkout@v6   # for deploy/ecosystem.config.cjs + deploy/remote-release.sh
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: build
           path: artifact
