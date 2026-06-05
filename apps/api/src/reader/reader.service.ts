@@ -1,8 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import type { BookSnapshot, BookSummary } from '@stockmaster/shared';
+import type {
+  ArticleDetail,
+  ArticleSnapshot,
+  ArticleSummary,
+  BookSnapshot,
+  BookSummary,
+} from '@stockmaster/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { toBookSummary, toPage } from '../books/serializers';
+import { toArticleDetail } from '../articles/serializers';
 
 // The reader is served entirely from the published version: its snapshot blob (frozen
 // reading structure + book metadata) plus the version's denormalized count columns.
@@ -15,6 +22,23 @@ type BookWithVersion = Prisma.BookGetPayload<{ include: typeof withPublishedVers
 type PublishedBook = BookWithVersion & {
   publishedVersion: NonNullable<BookWithVersion['publishedVersion']>;
 };
+
+// Articles mirror the book reader: served from `publishedVersion.snapshot` (frozen article
+// metadata + single TipTap doc + wordCount), never the live draft row.
+const withPublishedArticleVersion = {
+  publishedVersion: true,
+} satisfies Prisma.ArticleInclude;
+
+type ArticleWithVersion = Prisma.ArticleGetPayload<{
+  include: typeof withPublishedArticleVersion;
+}>;
+// Narrowed to "has a published version" — the only articles the reader ever serves.
+type PublishedArticle = ArticleWithVersion & {
+  publishedVersion: NonNullable<ArticleWithVersion['publishedVersion']>;
+};
+
+/** RFC-4122 textual uuid — the shape of an Article PK (slugs never match). */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * Read-only content access for the mobile app. Serves the **published snapshot**, never the
@@ -102,6 +126,69 @@ export class ReaderService {
       prevPage: pageNumber > 1 ? pageNumber - 1 : null,
       nextPage: pageNumber < totalPages ? pageNumber + 1 : null,
     };
+  }
+
+  // ─── Articles ───────────────────────────────────────────────────────────────────
+  // Single-page works (one TipTap doc, no chapter tree). Same published-snapshot contract
+  // as books: visible iff `publishedVersionId != null`, content/metadata frozen at publish.
+
+  async listArticles() {
+    const articles = await this.prisma.article.findMany({
+      where: { publishedVersionId: { not: null } },
+      orderBy: { updatedAt: 'desc' },
+      include: withPublishedArticleVersion,
+    });
+    return (articles as PublishedArticle[]).map((a) => this.articleSummary(a));
+  }
+
+  /** Resolve a published article by id OR slug. Returns the full detail (incl. content). */
+  async getArticle(idOrSlug: string) {
+    // Article ids are postgres uuids — querying `id = <slug>` would throw a uuid-cast error,
+    // so only match the id column when the token is uuid-shaped; otherwise match the slug.
+    const identity: Prisma.ArticleWhereInput = UUID_RE.test(idOrSlug)
+      ? { id: idOrSlug }
+      : { slug: idOrSlug };
+    const article = await this.prisma.article.findFirst({
+      where: { ...identity, publishedVersionId: { not: null } },
+      include: withPublishedArticleVersion,
+    });
+    if (!article?.publishedVersion) throw new NotFoundException('Article not found');
+    return this.articleDetail(article as PublishedArticle);
+  }
+
+  /** Reader detail: snapshot content + metadata + version wordCount, sans editorial state. */
+  private articleDetail(article: PublishedArticle): Omit<ArticleDetail, 'hasUnpublishedChanges'> {
+    const snap = this.articleSnapshotOf(article);
+    // `hasUnpublishedChanges` is editorial state — the reader contract strips it (mirror books).
+    const { hasUnpublishedChanges: _omit, ...detail } = toArticleDetail({
+      // Identity/state from the live row; everything else frozen in the snapshot.
+      id: article.id,
+      slug: snap.article.slug,
+      title: snap.article.title,
+      subtitle: snap.article.subtitle,
+      author: snap.article.author,
+      year: snap.article.year,
+      coverTone: snap.article.coverTone,
+      coverUrl: snap.article.coverUrl,
+      tags: snap.article.tags,
+      publishedVersionId: article.publishedVersionId,
+      draftDirty: article.draftDirty,
+      wordCount: snap.wordCount,
+      createdAt: article.createdAt,
+      updatedAt: article.updatedAt,
+      content: snap.content,
+    });
+    return detail;
+  }
+
+  /** Reader list summary: the detail minus the content body (covers + meta only). */
+  private articleSummary(article: PublishedArticle): Omit<ArticleSummary, 'hasUnpublishedChanges'> {
+    const { content: _content, ...summary } = this.articleDetail(article);
+    return summary;
+  }
+
+  private articleSnapshotOf(article: PublishedArticle): ArticleSnapshot {
+    return article.publishedVersion.snapshot as unknown as ArticleSnapshot;
   }
 
   /**
