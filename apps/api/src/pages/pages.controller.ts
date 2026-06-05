@@ -4,7 +4,8 @@ import { TrackRead } from '../common/decorators/track-read.decorator';
 import { PagesService } from './pages.service';
 import { CreatePageDto, UpdatePageDto } from './dto';
 
-@Controller()
+// Editor API namespace → /v1/admin/* (see books.controller.ts).
+@Controller('admin')
 export class PagesController {
   constructor(private readonly pages: PagesService) {}
 

@@ -47,6 +47,8 @@ function extractMessage(body: unknown, fallback: string): string {
 
 /** Build a client bound to one API base URL + one draft-only key. */
 export function createApiClient(apiUrl: string, apiKey: string): ApiClient {
+  // Generic transport: `apiUrl` is the bare host. Endpoint paths (which carry the /v1/admin
+  // version + namespace) are supplied by the caller — see EDITOR_API in tools.ts.
   const base = apiUrl.replace(/\/+$/, '');
 
   async function request<T>(method: Method, path: string, body?: unknown): Promise<T> {

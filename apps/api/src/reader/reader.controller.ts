@@ -16,7 +16,10 @@ import { ReaderService } from './reader.service';
  */
 @Public()
 @UseGuards(RateLimitGuard, AppHmacGuard)
-@Controller('v1')
+// Version pinned explicitly (NOT inherited from main.ts's defaultVersion): this is the
+// HMAC-signed external mobile contract, so /v1/books must never drift if the global default
+// is later bumped. URI versioning prepends /v1, so the routes below stay /v1/books, etc.
+@Controller({ version: '1' })
 export class ReaderController {
   constructor(private readonly reader: ReaderService) {}
 

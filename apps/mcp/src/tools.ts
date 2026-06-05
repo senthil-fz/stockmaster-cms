@@ -21,6 +21,10 @@ import { z } from 'zod';
 import { ApiClientError, type ApiClient } from './api-client';
 import { validateContent } from './validate-content';
 
+// Base path of the editor REST API: /v1 (URI versioning) + /admin (editor namespace).
+// Prepended to every endpoint below so the version is an explicit part of each URL.
+const EDITOR_API = '/v1/admin';
+
 // A SHALLOW, non-recursive stand-in for the Tiptap doc at the tool-input boundary.
 // The real schema (packages/shared tiptapDocSchema) is a recursive z.lazy; feeding it
 // into the SDK's `inputSchema` generic makes tsc's type inference blow up (heap OOM).
@@ -166,7 +170,7 @@ export function registerTools(server: McpServer, api: ApiClient): void {
       const params = new URLSearchParams();
       if (status) params.set('status', status);
       const q = params.toString();
-      return run(() => api.get(`/books${q ? `?${q}` : ''}`));
+      return run(() => api.get(`${EDITOR_API}/books${q ? `?${q}` : ''}`));
     },
   );
 
@@ -180,7 +184,7 @@ export function registerTools(server: McpServer, api: ApiClient): void {
         id: z.string().describe('Book id.'),
       },
     },
-    async ({ id }) => run(() => api.get(`/books/${seg(id)}`)),
+    async ({ id }) => run(() => api.get(`${EDITOR_API}/books/${seg(id)}`)),
   );
 
   // ── create_book ─────────────────────────────────────────────────────────────
@@ -196,7 +200,7 @@ export function registerTools(server: McpServer, api: ApiClient): void {
         title: titleField,
       },
     },
-    async ({ title }) => run(() => api.post('/books', title !== undefined ? { title } : {})),
+    async ({ title }) => run(() => api.post(`${EDITOR_API}/books`, title !== undefined ? { title } : {})),
   );
 
   // ── update_book ─────────────────────────────────────────────────────────────
@@ -218,7 +222,7 @@ export function registerTools(server: McpServer, api: ApiClient): void {
         buyLink: httpUrlNullable.describe('External purchase URL (books only): absolute http(s) URL, <=2000 chars. null clears it.'),
       },
     },
-    async ({ id, ...patch }) => run(() => api.patch(`/books/${seg(id)}`, patch)),
+    async ({ id, ...patch }) => run(() => api.patch(`${EDITOR_API}/books/${seg(id)}`, patch)),
   );
 
   // ── add_chapter ─────────────────────────────────────────────────────────────
@@ -233,7 +237,7 @@ export function registerTools(server: McpServer, api: ApiClient): void {
       },
     },
     async ({ bookId, title }) =>
-      run(() => api.post(`/books/${seg(bookId)}/chapters`, title !== undefined ? { title } : {})),
+      run(() => api.post(`${EDITOR_API}/books/${seg(bookId)}/chapters`, title !== undefined ? { title } : {})),
   );
 
   // ── update_chapter ──────────────────────────────────────────────────────────
@@ -248,7 +252,7 @@ export function registerTools(server: McpServer, api: ApiClient): void {
         order: z.number().int().min(0).optional().describe('New 0-based position among sibling chapters.'),
       },
     },
-    async ({ id, ...patch }) => run(() => api.patch(`/chapters/${seg(id)}`, patch)),
+    async ({ id, ...patch }) => run(() => api.patch(`${EDITOR_API}/chapters/${seg(id)}`, patch)),
   );
 
   // ── get_page ────────────────────────────────────────────────────────────────
@@ -263,7 +267,7 @@ export function registerTools(server: McpServer, api: ApiClient): void {
         id: z.string().describe('Page id.'),
       },
     },
-    async ({ id }) => run(() => api.get(`/pages/${seg(id)}`)),
+    async ({ id }) => run(() => api.get(`${EDITOR_API}/pages/${seg(id)}`)),
   );
 
   // ── add_page ────────────────────────────────────────────────────────────────
@@ -278,7 +282,7 @@ export function registerTools(server: McpServer, api: ApiClient): void {
       },
     },
     async ({ chapterId, title }) =>
-      run(() => api.post(`/chapters/${seg(chapterId)}/pages`, title !== undefined ? { title } : {})),
+      run(() => api.post(`${EDITOR_API}/chapters/${seg(chapterId)}/pages`, title !== undefined ? { title } : {})),
   );
 
   // ── update_page ─────────────────────────────────────────────────────────────
@@ -295,7 +299,7 @@ export function registerTools(server: McpServer, api: ApiClient): void {
         order: z.number().int().min(0).optional().describe('New 0-based position among sibling pages.'),
       },
     },
-    async ({ id, ...patch }) => run(() => api.patch(`/pages/${seg(id)}`, patch)),
+    async ({ id, ...patch }) => run(() => api.patch(`${EDITOR_API}/pages/${seg(id)}`, patch)),
   );
 
   // ── create_article ───────────────────────────────────────────────────────────
@@ -311,7 +315,7 @@ export function registerTools(server: McpServer, api: ApiClient): void {
         title: titleField,
       },
     },
-    async ({ title }) => run(() => api.post('/articles', title !== undefined ? { title } : {})),
+    async ({ title }) => run(() => api.post(`${EDITOR_API}/articles`, title !== undefined ? { title } : {})),
   );
 
   // ── list_articles ─────────────────────────────────────────────────────────────
@@ -330,7 +334,7 @@ export function registerTools(server: McpServer, api: ApiClient): void {
       const params = new URLSearchParams();
       if (status) params.set('status', status);
       const q = params.toString();
-      return run(() => api.get(`/articles${q ? `?${q}` : ''}`));
+      return run(() => api.get(`${EDITOR_API}/articles${q ? `?${q}` : ''}`));
     },
   );
 
@@ -346,7 +350,7 @@ export function registerTools(server: McpServer, api: ApiClient): void {
         idOrSlug: z.string().describe('Article id (uuid) or slug.'),
       },
     },
-    async ({ idOrSlug }) => run(() => api.get(`/articles/${seg(idOrSlug)}`)),
+    async ({ idOrSlug }) => run(() => api.get(`${EDITOR_API}/articles/${seg(idOrSlug)}`)),
   );
 
   // ── update_article ────────────────────────────────────────────────────────────
@@ -374,7 +378,7 @@ export function registerTools(server: McpServer, api: ApiClient): void {
         content: tiptapDocInput.optional().describe('The full Tiptap doc ({ type:"doc", content:[...] }). Same vocabulary as book pages — see the content model above. Run validate_content first.'),
       },
     },
-    async ({ id, ...patch }) => run(() => api.patch(`/articles/${seg(id)}`, patch)),
+    async ({ id, ...patch }) => run(() => api.patch(`${EDITOR_API}/articles/${seg(id)}`, patch)),
   );
 
   // ── validate_content (local — no API call) ───────────────────────────────────
