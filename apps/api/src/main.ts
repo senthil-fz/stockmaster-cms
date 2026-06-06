@@ -8,6 +8,15 @@ import { UploadsService } from './uploads/uploads.service';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Behind nginx (proxies 127.0.0.1 -> :3001, sets X-Forwarded-For): trust the
+  // loopback proxy so Express derives req.ip from X-Forwarded-For (the real client).
+  // Without this, req.ip is nginx's loopback address for EVERY request, which
+  // collapses the reader's per-IP rate limit (RateLimitGuard) into one global bucket
+  // shared by all clients — so normal reading intermittently 429s once total traffic
+  // crosses the window. See common/guards/rate-limit.guard.ts.
+  app.set('trust proxy', 'loopback');
+
   app.use(cookieParser());
   app.enableCors({
     origin: process.env.WEB_ORIGIN ?? 'http://localhost:5173',
