@@ -180,8 +180,11 @@ export const apiKeysApi = {
       body: { name, scopes, ...(expiresAt ? { expiresAt } : {}) },
       schema: createApiKeyResponseSchema,
     }),
-  // Revoke returns { ok: true } (HTTP 200, not 204) — no response schema needed.
-  revoke: (id: string) => request(`${EDITOR_API}/api-keys/${id}`, { method: 'DELETE' }),
+  // Revoke = reversible soft-disable (key stops working, row + audit trail kept). Returns
+  // { ok: true } (HTTP 200, not 204) — no response schema needed.
+  revoke: (id: string) => request(`${EDITOR_API}/api-keys/${id}/revoke`, { method: 'POST' }),
+  // Delete = permanent hard removal of the row. Irreversible. Also { ok: true }.
+  remove: (id: string) => request(`${EDITOR_API}/api-keys/${id}`, { method: 'DELETE' }),
 };
 
 const statsQs = (q: StatsQuery): string => qs({ client: q.client, from: q.from, to: q.to });

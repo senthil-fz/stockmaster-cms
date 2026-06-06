@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post } from '@nestjs/common';
 import { CurrentUser, type AuthUser } from '../common/decorators/current-user.decorator';
 import { JwtOnly } from '../common/decorators/scopes.decorator';
 import { ApiKeysService } from './api-keys.service';
@@ -23,9 +23,19 @@ export class ApiKeysController {
     return this.apiKeys.list(user.id);
   }
 
-  @Delete(':id')
+  // Revoke = reversible soft-disable: stamps `revokedAt` so the key stops authenticating but
+  // its row (and audit trail) is retained. POST, not DELETE — it mutates, it doesn't remove.
+  @Post(':id/revoke')
   @JwtOnly()
+  @HttpCode(200)
   revoke(@Param('id') id: string, @CurrentUser() user: AuthUser) {
     return this.apiKeys.revoke(id, user.id);
+  }
+
+  // Hard delete: the row is permanently removed (its unique hashedKey is freed). Irreversible.
+  @Delete(':id')
+  @JwtOnly()
+  remove(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+    return this.apiKeys.remove(id, user.id);
   }
 }

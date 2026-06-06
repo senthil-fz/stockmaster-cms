@@ -66,4 +66,20 @@ export class ApiKeysService {
     if (result.count === 0) throw new NotFoundException('API key not found');
     return { ok: true };
   }
+
+  /**
+   * Permanently delete a key the caller owns — the row is gone and its unique `hashedKey`
+   * is freed. Unlike `revoke` (a reversible soft-disable that keeps an audit record), this
+   * is irreversible. Scoped to `ownerUserId` via `deleteMany` (the only delete form that
+   * accepts a non-unique filter) so a user can never delete another user's key; a miss
+   * 404s without leaking whether the id exists. `ApiKey` has no inbound foreign keys, so
+   * there is nothing to cascade.
+   */
+  async remove(id: string, ownerUserId: string) {
+    const result = await this.prisma.apiKey.deleteMany({
+      where: { id, ownerUserId },
+    });
+    if (result.count === 0) throw new NotFoundException('API key not found');
+    return { ok: true };
+  }
 }
