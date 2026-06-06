@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { BookDetail, Chapter, User } from '@stockmaster/shared';
 import { Icon, Icons, type IconName } from './icons';
 import { Avatar } from './ui/Avatar';
@@ -83,9 +83,37 @@ function NavItem({
   );
 }
 
-function UserCard({ user, onClick }: { user: User; onClick?: () => void }) {
-  // The card doubles as the entry point to account settings (API keys) when given an
-  // onClick — the ChevUpDown affordance already signals it's interactive.
+function UserCard({
+  user,
+  onOpenApiKeys,
+  onLogout,
+}: {
+  user: User;
+  onOpenApiKeys?: () => void;
+  onLogout?: () => void;
+}) {
+  // The ChevUpDown affordance opens a small account menu (API keys + log out).
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const interactive = Boolean(onOpenApiKeys || onLogout);
+
+  // Close the menu on outside click or Escape.
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
   const cardClass =
     'mx-3 mt-2 mb-3.5 p-2.5 flex items-center gap-2.5 border border-line rounded-xl bg-canvas shadow-xs';
   const content = (
@@ -100,21 +128,56 @@ function UserCard({ user, onClick }: { user: User; onClick?: () => void }) {
       </span>
     </>
   );
-  if (onClick) {
-    // Render as a button for keyboard/click semantics; the inline overrides keep it visually
-    // identical to the static card (the .sb-user margin/border styling is shared).
-    return (
+
+  if (!interactive) return <div className={cardClass}>{content}</div>;
+
+  return (
+    <div ref={wrapRef} className="relative">
+      {open && (
+        <div
+          role="menu"
+          className="absolute left-3 right-3 bottom-full mb-1 p-1 border border-line rounded-xl bg-canvas shadow-md z-10"
+        >
+          {onOpenApiKeys && (
+            <button
+              role="menuitem"
+              className="flex items-center gap-2.5 w-full text-left px-2.5 py-2 rounded-lg text-sm font-medium text-muted hover:bg-hover hover:text-fg [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:opacity-85"
+              onClick={() => {
+                setOpen(false);
+                onOpenApiKeys();
+              }}
+            >
+              <Icons.Settings />
+              API keys & settings
+            </button>
+          )}
+          {onLogout && (
+            <button
+              role="menuitem"
+              className="flex items-center gap-2.5 w-full text-left px-2.5 py-2 rounded-lg text-sm font-medium text-muted hover:bg-[color-mix(in_oklch,#c0392b_12%,transparent)] hover:text-[#c0392b] [&_svg]:w-[17px] [&_svg]:h-[17px] [&_svg]:opacity-85"
+              onClick={() => {
+                setOpen(false);
+                onLogout();
+              }}
+            >
+              <Icons.LogOut />
+              Log out
+            </button>
+          )}
+        </div>
+      )}
       <button
         className={cardClass}
-        onClick={onClick}
-        title="API keys & settings"
+        onClick={() => setOpen((o) => !o)}
+        title="Account"
+        aria-haspopup="menu"
+        aria-expanded={open}
         style={{ width: 'calc(100% - 24px)', textAlign: 'left', cursor: 'pointer' }}
       >
         {content}
       </button>
-    );
-  }
-  return <div className={cardClass}>{content}</div>;
+    </div>
+  );
 }
 
 function BookHead({

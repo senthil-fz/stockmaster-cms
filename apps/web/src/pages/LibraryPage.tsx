@@ -125,6 +125,7 @@ export function LibraryPage() {
             active={tab}
             onTab={setTab}
             onOpenApiKeys={() => void navigate({ to: '/api-keys' })}
+            onLogout={() => void auth.logout().then(() => navigate({ to: '/login' }))}
           />
         )}
       >

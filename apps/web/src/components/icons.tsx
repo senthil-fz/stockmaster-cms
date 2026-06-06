@@ -266,6 +266,11 @@ export const Icons = {
       <path d="M9 9h6v6H9z" fill="currentColor" />
     </Svg>
   ),
+  LogOut: (p: IconProps) => (
+    <Svg {...p}>
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+    </Svg>
+  ),
 } satisfies Record<string, (p: IconProps) => JSX.Element>;
 
 export type IconName = keyof typeof Icons;

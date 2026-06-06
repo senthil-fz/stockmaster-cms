@@ -15,6 +15,7 @@ export function WorkspaceSidebar({
   active,
   onTab,
   onOpenApiKeys,
+  onLogout,
 }: {
   user: User;
   /** Total library items (books + articles) shown next to the Library nav. */
@@ -23,6 +24,7 @@ export function WorkspaceSidebar({
   active: string;
   onTab: (t: string) => void;
   onOpenApiKeys: () => void;
+  onLogout: () => void;
 }) {
   return (
     <Sidebar>
@@ -36,7 +38,7 @@ export function WorkspaceSidebar({
         <Sidebar.NavItem icon="Users" label="Authors" active={active === 'authors'} onClick={() => onTab('authors')} />
         <Sidebar.NavItem icon="Settings" label="API keys" active={active === 'api-keys'} onClick={onOpenApiKeys} />
       </Sidebar.Scroll>
-      <Sidebar.User user={user} onClick={onOpenApiKeys} />
+      <Sidebar.User user={user} onOpenApiKeys={onOpenApiKeys} onLogout={onLogout} />
     </Sidebar>
   );
 }
