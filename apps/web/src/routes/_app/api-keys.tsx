@@ -115,7 +115,7 @@ function ApiKeysPage() {
             active="api-keys"
             onTab={(t) => void navigate({ to: '/', hash: t })}
             onOpenApiKeys={() => undefined}
-            onLogout={() => void auth.logout().then(() => navigate({ to: '/login' }))}
+            onLogout={() => void auth.logout()}
           />
         )}
       >
