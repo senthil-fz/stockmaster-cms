@@ -49,6 +49,13 @@ export const Icons = {
       <path d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M7 7l1 12a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-12" />
     </Svg>
   ),
+  // Circle with a diagonal slash — "disable / revoke" (distinct from Trash = permanent delete).
+  Ban: (p: IconProps) => (
+    <Svg {...p}>
+      <circle cx={12} cy={12} r={8} />
+      <path d="M6.3 6.3l11.4 11.4" />
+    </Svg>
+  ),
   Star: (p: IconProps) => (
     <Svg {...p}>
       <path d="M12 4l2.3 4.9 5.2.7-3.8 3.7.9 5.3L12 16.9 7.4 18.6l.9-5.3L4.5 9.6l5.2-.7z" />

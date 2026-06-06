@@ -79,12 +79,21 @@ function ApiKeysPage() {
   // (which clears this state) makes it unrecoverable, matching the server's show-once contract.
   const [created, setCreated] = useState<CreateApiKeyResponse | null>(null);
   const [pendingRevoke, setPendingRevoke] = useState<ApiKeySummary | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ApiKeySummary | null>(null);
 
   const revoke = useMutation({
     mutationFn: (id: string) => apiKeysApi.revoke(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['api-keys'] });
       setPendingRevoke(null);
+    },
+  });
+
+  const remove = useMutation({
+    mutationFn: (id: string) => apiKeysApi.remove(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['api-keys'] });
+      setPendingDelete(null);
     },
   });
 
@@ -187,12 +196,17 @@ function ApiKeysPage() {
                         <td className="p-2.5 border-b border-line text-faint">
                           {k.expiresAt ? fmtDate(k.expiresAt) : 'Never'}
                         </td>
-                        <td className="p-2.5 border-b border-line" style={{ textAlign: 'right' }}>
-                          {!k.revokedAt && (
-                            <Button variant="ghostDanger" onClick={() => setPendingRevoke(k)}>
-                              <Icons.Trash /> Revoke
+                        <td className="p-2.5 border-b border-line">
+                          <span className="flex items-center justify-end gap-1">
+                            {!k.revokedAt && (
+                              <Button variant="ghostDanger" onClick={() => setPendingRevoke(k)}>
+                                <Icons.Ban /> Revoke
+                              </Button>
+                            )}
+                            <Button variant="ghostDanger" onClick={() => setPendingDelete(k)}>
+                              <Icons.Trash /> Delete
                             </Button>
-                          )}
+                          </span>
                         </td>
                       </tr>
                     ))}
@@ -220,6 +234,20 @@ function ApiKeysPage() {
         busy={revoke.isPending}
         onConfirm={() => pendingRevoke && revoke.mutate(pendingRevoke.id)}
         onCancel={() => setPendingRevoke(null)}
+      />
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Delete API key?"
+        message={
+          pendingDelete
+            ? `"${pendingDelete.name}" will be permanently deleted and removed from this list. Any MCP server or script still using it will stop working immediately. This cannot be undone.`
+            : ''
+        }
+        confirmLabel="Delete key"
+        busy={remove.isPending}
+        onConfirm={() => pendingDelete && remove.mutate(pendingDelete.id)}
+        onCancel={() => setPendingDelete(null)}
       />
     </>
   );
