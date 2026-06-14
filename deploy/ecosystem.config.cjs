@@ -9,7 +9,7 @@ module.exports = {
   apps: [
     {
       name: 'stockmaster-api',
-      cwd: '/var/www/api.laabam.in',
+      cwd: '/var/www/api.stockmasternagaraj.com',
       script: 'dist/src/main.js',
       interpreter: 'node',
       interpreter_args: '--env-file=/home/deploy/stockmaster/api.env',

@@ -1,8 +1,8 @@
 name: Deploy (production)
 
 # Build the web SPA + NestJS API and deploy them to the Vultr box behind nginx.
-#   app.laabam.in  -> static SPA      (/var/www/app.laabam.in)
-#   api.laabam.in  -> NestJS via PM2  (127.0.0.1:3001, reverse-proxied)
+#   app.stockmasternagaraj.com  -> static SPA      (/var/www/app.stockmasternagaraj.com)
+#   api.stockmasternagaraj.com  -> NestJS via PM2  (127.0.0.1:3001, reverse-proxied)
 #
 # Secrets (repo Settings -> Secrets and variables -> Actions):
 #   DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY  (the vultr-deployments private key)
@@ -59,7 +59,7 @@ jobs:
       - name: Build web (bake production API URL)
         run: pnpm --filter @stockmaster/web build
         env:
-          VITE_API_URL: https://api.laabam.in
+          VITE_API_URL: https://api.stockmasternagaraj.com
 
       # Self-contained Node bundle for the API (resolves the @stockmaster/shared
       # workspace dep + ships node_modules incl. prisma CLI for migrations).
@@ -128,8 +128,8 @@ jobs:
           JWT_REFRESH_TTL=7d
           MOBILE_APP_SECRET=${MOBILE_APP_SECRET}
           API_PORT=3001
-          WEB_ORIGIN=https://app.laabam.in
-          PUBLIC_API_URL=https://api.laabam.in
+          WEB_ORIGIN=https://app.stockmasternagaraj.com
+          PUBLIC_API_URL=https://api.stockmasternagaraj.com
           UPLOADS_DIR=/home/deploy/stockmaster/uploads
           EOF
           scp -i ~/.ssh/id_deploy api.env "$DEPLOY_USER@$DEPLOY_HOST:/home/deploy/stockmaster/api.env"
@@ -142,7 +142,7 @@ jobs:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         run: |
           rsync -az --delete -e "ssh -i ~/.ssh/id_deploy" \
-            artifact/web/ "$DEPLOY_USER@$DEPLOY_HOST:/var/www/app.laabam.in/"
+            artifact/web/ "$DEPLOY_USER@$DEPLOY_HOST:/var/www/app.stockmasternagaraj.com/"
 
       - name: Deploy API bundle
         env:
@@ -155,7 +155,7 @@ jobs:
           rm -rf api_bundle && mkdir -p api_bundle
           tar -xzf artifact/api.tar.gz -C api_bundle
           rsync -az --delete -e "ssh -i ~/.ssh/id_deploy" \
-            api_bundle/ "$DEPLOY_USER@$DEPLOY_HOST:/var/www/api.laabam.in/"
+            api_bundle/ "$DEPLOY_USER@$DEPLOY_HOST:/var/www/api.stockmasternagaraj.com/"
 
       - name: Migrate, reload PM2, health-check
         env:

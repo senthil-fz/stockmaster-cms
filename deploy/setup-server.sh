@@ -3,14 +3,14 @@
 #   sudo bash setup-server.sh
 #
 # Expects the two nginx confs alongside it (or in /tmp):
-#   ./nginx/app.laabam.in.conf  ./nginx/api.laabam.in.conf   (or /tmp/*.conf)
+#   ./nginx/app.stockmasternagaraj.com.conf  ./nginx/api.stockmasternagaraj.com.conf   (or /tmp/*.conf)
 #
 # Idempotent. Does NOT touch any other vhost or app on the box.
 set -euo pipefail
 
 DEPLOY_USER=deploy
-APP_DOMAIN=app.laabam.in
-API_DOMAIN=api.laabam.in
+APP_DOMAIN=app.stockmasternagaraj.com
+API_DOMAIN=api.stockmasternagaraj.com
 CERTBOT_EMAIL=senthil@mavanex.com
 
 # Locate the nginx confs (repo layout first, then /tmp).

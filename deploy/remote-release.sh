@@ -4,7 +4,7 @@
 # reloading the app, then gate on a health check.
 set -euo pipefail
 
-API_DIR=/var/www/api.laabam.in
+API_DIR=/var/www/api.stockmasternagaraj.com
 ENV_FILE=/home/deploy/stockmaster/api.env
 ECOSYSTEM=/home/deploy/stockmaster/ecosystem.config.cjs
 
