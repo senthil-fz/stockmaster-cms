@@ -307,28 +307,40 @@ const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagara
             >Read in the app →</a
           >
         </div>
-        <div id="pulse-grid" class="grid grid-cols-3 gap-6 max-[700px]:grid-cols-1">
+        <!-- Flex-wrap (not a fixed 3-col grid) so the row stays balanced no matter how
+             many articles are published: 1 centers, 2 pair up, 3 fill, 6 wrap to two rows.
+             JS swaps a single published article to a wide "featured" card (see below). -->
+        <div id="pulse-grid" class="flex flex-wrap justify-center gap-6">
           <!-- Skeletons shown until the live feed loads; replaced by JS (or the whole
                section is hidden if there are no published articles / the API is down). -->
-          <article class="bg-card border border-line rounded-[20px] overflow-hidden animate-pulse">
-            <div class="h-[170px] bg-[linear-gradient(135deg,#2F6BFF,#1E50D8)]"></div>
+          <article
+            class="flex-1 min-w-[280px] max-w-[372px] bg-white border border-line rounded-[20px] overflow-hidden animate-pulse"
+          >
+            <div class="aspect-[16/10] bg-[linear-gradient(135deg,#2F6BFF,#1E50D8)]"></div>
             <div class="p-6">
               <div class="h-[18px] w-3/4 rounded bg-line"></div>
-              <div class="h-[13px] w-1/3 rounded bg-line mt-3.5"></div>
+              <div class="h-[18px] w-1/2 rounded bg-line mt-2.5"></div>
+              <div class="h-[13px] w-1/3 rounded bg-line mt-5"></div>
             </div>
           </article>
-          <article class="bg-card border border-line rounded-[20px] overflow-hidden animate-pulse">
-            <div class="h-[170px] bg-[linear-gradient(135deg,#14151A,#2A3550)]"></div>
+          <article
+            class="flex-1 min-w-[280px] max-w-[372px] bg-white border border-line rounded-[20px] overflow-hidden animate-pulse max-[700px]:hidden"
+          >
+            <div class="aspect-[16/10] bg-[linear-gradient(135deg,#14151A,#2A3550)]"></div>
             <div class="p-6">
               <div class="h-[18px] w-3/4 rounded bg-line"></div>
-              <div class="h-[13px] w-1/3 rounded bg-line mt-3.5"></div>
+              <div class="h-[18px] w-1/2 rounded bg-line mt-2.5"></div>
+              <div class="h-[13px] w-1/3 rounded bg-line mt-5"></div>
             </div>
           </article>
-          <article class="bg-card border border-line rounded-[20px] overflow-hidden animate-pulse">
-            <div class="h-[170px] bg-[linear-gradient(135deg,#4C82FF,#6FA8FF)]"></div>
+          <article
+            class="flex-1 min-w-[280px] max-w-[372px] bg-white border border-line rounded-[20px] overflow-hidden animate-pulse max-[1000px]:hidden"
+          >
+            <div class="aspect-[16/10] bg-[linear-gradient(135deg,#4C82FF,#6FA8FF)]"></div>
             <div class="p-6">
               <div class="h-[18px] w-3/4 rounded bg-line"></div>
-              <div class="h-[13px] w-1/3 rounded bg-line mt-3.5"></div>
+              <div class="h-[18px] w-1/2 rounded bg-line mt-2.5"></div>
+              <div class="h-[13px] w-1/3 rounded bg-line mt-5"></div>
             </div>
           </article>
         </div>
@@ -361,6 +373,59 @@ const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagara
             : d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         };
 
+        // Small inline calendar glyph so the date reads as metadata, not body text.
+        const CAL =
+          '<svg viewBox="0 0 24 24" fill="none" class="w-[15px] h-[15px] shrink-0" aria-hidden="true">' +
+          '<rect x="3" y="4.5" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="1.6"/>' +
+          '<path d="M3 9h18M8 2.5v4M16 2.5v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+
+        // Cover image, or a brand-gradient block carrying the wordmark when none exists.
+        const coverBlock = (a, i, ratio) =>
+          a.coverUrl
+            ? '<img src="' +
+              esc(a.coverUrl) +
+              '" alt="" loading="lazy" class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />'
+            : '<div class="absolute inset-0 flex items-center justify-center" style="background:' +
+              GRADS[i % GRADS.length] +
+              '"><span class="text-white/90 font-extrabold tracking-[-0.02em] text-[19px]">Stock Master</span></div>';
+
+        // Footer row shared by both card shapes: date on the left, an in-app read hint right.
+        const metaRow = (a) =>
+          '<div class="mt-auto pt-5 flex items-center justify-between gap-3 border-t border-line/80">' +
+          '<span class="inline-flex items-center gap-1.5 text-[13px] text-muted">' +
+          CAL +
+          fmtDate(a.publishedAt) +
+          '</span>' +
+          '<span class="inline-flex items-center gap-1 text-[13px] font-bold text-brand-strong">' +
+          'Read in app <span class="transition-transform duration-300 group-hover:translate-x-0.5">&rarr;</span></span></div>';
+
+        // Standard vertical card (used when 2+ articles are published).
+        const vCard = (a, i) =>
+          '<article class="group flex flex-col flex-1 min-w-[280px] max-w-[372px] bg-white border border-line rounded-[20px] overflow-hidden transition-all duration-300 hover:border-brand/40 hover:shadow-[0_22px_44px_-26px_rgba(20,21,26,0.4)]">' +
+          '<div class="relative aspect-[16/10] overflow-hidden">' +
+          coverBlock(a, i) +
+          '</div>' +
+          '<div class="flex flex-col flex-1 p-6">' +
+          '<h3 class="text-[19px] font-bold leading-[1.3] tracking-[-0.01em] text-ink line-clamp-2">' +
+          esc(a.title) +
+          '</h3>' +
+          metaRow(a) +
+          '</div></article>';
+
+        // Wide featured card so a lone published article reads as intentional, not orphaned.
+        const fCard = (a) =>
+          '<article class="group grid grid-cols-2 max-[640px]:grid-cols-1 w-full max-w-[840px] bg-white border border-line rounded-[24px] overflow-hidden transition-all duration-300 hover:border-brand/40 hover:shadow-[0_28px_56px_-30px_rgba(20,21,26,0.45)]">' +
+          '<div class="relative min-h-[260px] max-[640px]:min-h-0 max-[640px]:aspect-[16/10] overflow-hidden">' +
+          coverBlock(a, 0) +
+          '</div>' +
+          '<div class="flex flex-col p-9 max-[640px]:p-7">' +
+          '<span class="inline-flex w-fit items-center gap-1.5 text-[12px] font-bold tracking-[0.1em] uppercase text-brand bg-tint px-2.5 py-1 rounded-full mb-4">Latest</span>' +
+          '<h3 class="text-[26px] max-[640px]:text-[22px] font-extrabold leading-[1.18] tracking-[-0.02em] text-ink">' +
+          esc(a.title) +
+          '</h3>' +
+          metaRow(a) +
+          '</div></article>';
+
         fetch(apiBase + '/v1/public/articles', { headers: { accept: 'application/json' } })
           .then((r) => (r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status))))
           .then((items) => {
@@ -368,27 +433,9 @@ const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagara
               section.style.display = 'none';
               return;
             }
-            grid.innerHTML = items
-              .slice(0, 6)
-              .map((a, i) => {
-                const cover = a.coverUrl
-                  ? '<img src="' +
-                    esc(a.coverUrl) +
-                    '" alt="" loading="lazy" class="h-[170px] w-full object-cover" />'
-                  : '<div class="h-[170px]" style="background:' + GRADS[i % GRADS.length] + '"></div>';
-                return (
-                  '<article class="bg-card border border-line rounded-[20px] overflow-hidden">' +
-                  cover +
-                  '<div class="p-6">' +
-                  '<h3 class="text-[19px] font-bold leading-[1.25] tracking-[-0.01em] text-ink">' +
-                  esc(a.title) +
-                  '</h3>' +
-                  '<div class="text-[13px] text-muted mt-3.5">' +
-                  fmtDate(a.publishedAt) +
-                  '</div></div></article>'
-                );
-              })
-              .join('');
+            const list = items.slice(0, 6);
+            grid.innerHTML =
+              list.length === 1 ? fCard(list[0]) : list.map((a, i) => vCard(a, i)).join('');
           })
           .catch(() => {
             section.style.display = 'none';
