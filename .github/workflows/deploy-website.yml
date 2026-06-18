@@ -1,0 +1,94 @@
+name: Deploy website (production)
+
+# Build the Astro marketing site in CI and rsync the static output to the Vultr
+# box, where nginx serves it.
+#   www.stockmasternagaraj.com -> static Astro site (/var/www/www.stockmasternagaraj.com)
+#
+# Deploys as the `senthilganesh` user with a dedicated CI key (separate from the
+# api/web `deploy` pipeline in deploy.yml).
+#
+# Secrets (repo Settings -> Secrets and variables -> Actions):
+#   WEBSITE_DEPLOY_HOST     45.77.169.33
+#   WEBSITE_DEPLOY_USER     senthilganesh
+#   WEBSITE_DEPLOY_SSH_KEY  private key of the stockmaster-website-ci deploy key
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'apps/website/**'
+      - '.github/workflows/deploy-website.yml'
+      - 'pnpm-lock.yaml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-website-production
+  cancel-in-progress: false
+
+env:
+  DEPLOY_PATH: /var/www/www.stockmasternagaraj.com
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build website
+        run: pnpm --filter @stockmaster/website build
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: website-dist
+          path: apps/website/dist
+          retention-days: 5
+          include-hidden-files: true
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: website-dist
+          path: dist
+
+      - name: Configure SSH
+        env:
+          WEBSITE_DEPLOY_SSH_KEY: ${{ secrets.WEBSITE_DEPLOY_SSH_KEY }}
+          WEBSITE_DEPLOY_HOST: ${{ secrets.WEBSITE_DEPLOY_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$WEBSITE_DEPLOY_SSH_KEY" > ~/.ssh/id_website
+          chmod 600 ~/.ssh/id_website
+          ssh-keyscan -H "$WEBSITE_DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy static site
+        env:
+          WEBSITE_DEPLOY_HOST: ${{ secrets.WEBSITE_DEPLOY_HOST }}
+          WEBSITE_DEPLOY_USER: ${{ secrets.WEBSITE_DEPLOY_USER }}
+        run: |
+          # Trailing slash on dist/ copies its contents into DEPLOY_PATH.
+          # --delete prunes files no longer in the build.
+          rsync -az --delete -e "ssh -i ~/.ssh/id_website" \
+            dist/ "$WEBSITE_DEPLOY_USER@$WEBSITE_DEPLOY_HOST:$DEPLOY_PATH/"
+
+      - name: Smoke check
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 https://www.stockmasternagaraj.com/ || true)
+          echo "https://www.stockmasternagaraj.com/ -> $code"
+          # Don't fail the deploy if TLS/nginx isn't wired yet (first run).
+          if [ "$code" != "200" ]; then
+            echo "::warning::Site did not return 200 — confirm the nginx vhost + TLS are installed (see deploy/README.md)."
+          fi

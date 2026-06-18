@@ -52,3 +52,63 @@ This is idempotent and touches only the StockMaster vhosts/dirs.
 successful workflow, or `pm2 restart stockmaster-api` after restoring a prior
 `/var/www/api.stockmasternagaraj.com`. DB: restore from the nightly `pg_dump` if a migration
 needs reverting.
+
+---
+
+# Marketing website — www.stockmasternagaraj.com
+
+Separate pipeline (`.github/workflows/deploy-website.yml`) for the **Astro static
+site** in `apps/website`. It builds in CI and rsyncs the static output to the box,
+where nginx serves it directly (no PM2). Deploys as the **`senthilganesh`** user
+with a dedicated CI key, independent of the api/web `deploy` pipeline above.
+
+## Pipeline
+
+Runs on push to `master` touching `apps/website/**` (or manual dispatch):
+
+1. **build** (`ubuntu-24.04`): `pnpm install --frozen-lockfile` →
+   `pnpm --filter @stockmaster/website build` → upload `apps/website/dist`.
+2. **deploy**: `rsync -az --delete` the build into
+   `/var/www/www.stockmasternagaraj.com/`, then an HTTPS smoke check.
+
+## Required GitHub secrets
+
+| Secret | Value |
+| --- | --- |
+| `WEBSITE_DEPLOY_HOST` | `45.77.169.33` |
+| `WEBSITE_DEPLOY_USER` | `senthilganesh` |
+| `WEBSITE_DEPLOY_SSH_KEY` | private key of the `stockmaster-website-ci` deploy key |
+
+The CI public key is already in `senthilganesh`'s `~/.ssh/authorized_keys`.
+
+## One-time server setup (needs sudo — run manually)
+
+`senthilganesh` has no passwordless sudo, so CI cannot create the vhost/dir or run
+certbot. Do this once from the repo checkout (DNS already points
+`www`/apex → `45.77.169.33`):
+
+```bash
+# 1) Deploy dir, owned by the CI user, group-readable by nginx (setgid keeps group).
+sudo mkdir -p /var/www/www.stockmasternagaraj.com
+sudo chown senthilganesh:www-data /var/www/www.stockmasternagaraj.com
+sudo chmod 2755 /var/www/www.stockmasternagaraj.com
+
+# 2) nginx vhost (copy this repo's conf up first).
+scp -i ~/.ssh/frenzo deploy/nginx/www.stockmasternagaraj.com.conf \
+    senthilganesh@45.77.169.33:/tmp/
+ssh -i ~/.ssh/frenzo senthilganesh@45.77.169.33 '
+  sudo cp /tmp/www.stockmasternagaraj.com.conf /etc/nginx/sites-available/ &&
+  sudo ln -sf /etc/nginx/sites-available/www.stockmasternagaraj.com.conf \
+              /etc/nginx/sites-enabled/ &&
+  sudo nginx -t && sudo systemctl reload nginx'
+
+# 3) TLS for www + apex (certbot rewrites the conf to add 443 + redirects).
+ssh -i ~/.ssh/frenzo senthilganesh@45.77.169.33 '
+  sudo certbot --nginx -d www.stockmasternagaraj.com -d stockmasternagaraj.com \
+    --redirect --agree-tos -m nagaraj.limica@gmail.com -n &&
+  sudo systemctl reload nginx'
+```
+
+After that, every push to `master` that touches `apps/website/**` deploys
+automatically. Server layout: `/var/www/www.stockmasternagaraj.com/` (rsync
+`--delete`).
