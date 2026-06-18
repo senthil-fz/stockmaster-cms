@@ -390,8 +390,12 @@ const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagara
               '"><span class="text-white/90 font-extrabold tracking-[-0.02em] text-[19px]">Stock Master</span></div>';
 
         // Footer row shared by both card shapes: date on the left, an in-app read hint right.
-        const metaRow = (a) =>
-          '<div class="mt-auto pt-5 flex items-center justify-between gap-3 border-t border-line/80">' +
+        // `push` pins it to the card bottom (vertical cards, so meta lines up across a row);
+        // the featured card centers its whole content block instead, so it omits the push.
+        const metaRow = (a, push) =>
+          '<div class="' +
+          (push ? 'mt-auto ' : '') +
+          'pt-5 flex items-center justify-between gap-3 border-t border-line/80">' +
           '<span class="inline-flex items-center gap-1.5 text-[13px] text-muted">' +
           CAL +
           fmtDate(a.publishedAt) +
@@ -409,21 +413,23 @@ const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagara
           '<h3 class="text-[19px] font-bold leading-[1.3] tracking-[-0.01em] text-ink line-clamp-2">' +
           esc(a.title) +
           '</h3>' +
-          metaRow(a) +
+          metaRow(a, true) +
           '</div></article>';
 
-        // Wide featured card so a lone published article reads as intentional, not orphaned.
+        // Full-width featured card for the lone-article case: it spans the whole content
+        // column (aligned to the section header), the cover fills its entire half, and the
+        // text block is vertically centered — so no whitespace is left floating around it.
         const fCard = (a) =>
-          '<article class="group grid grid-cols-2 max-[640px]:grid-cols-1 w-full max-w-[840px] bg-white border border-line rounded-[24px] overflow-hidden transition-all duration-300 hover:border-brand/40 hover:shadow-[0_28px_56px_-30px_rgba(20,21,26,0.45)]">' +
-          '<div class="relative min-h-[260px] max-[640px]:min-h-0 max-[640px]:aspect-[16/10] overflow-hidden">' +
+          '<article class="group grid grid-cols-2 max-[700px]:grid-cols-1 w-full bg-white border border-line rounded-[24px] overflow-hidden transition-all duration-300 hover:border-brand/40 hover:shadow-[0_28px_56px_-30px_rgba(20,21,26,0.45)]">' +
+          '<div class="relative min-h-[340px] max-[700px]:min-h-0 max-[700px]:aspect-[16/9] overflow-hidden">' +
           coverBlock(a, 0) +
           '</div>' +
-          '<div class="flex flex-col p-9 max-[640px]:p-7">' +
+          '<div class="flex flex-col justify-center p-11 max-[700px]:p-7">' +
           '<span class="inline-flex w-fit items-center gap-1.5 text-[12px] font-bold tracking-[0.1em] uppercase text-brand bg-tint px-2.5 py-1 rounded-full mb-4">Latest</span>' +
-          '<h3 class="text-[26px] max-[640px]:text-[22px] font-extrabold leading-[1.18] tracking-[-0.02em] text-ink">' +
+          '<h3 class="text-[30px] max-[700px]:text-[23px] font-extrabold leading-[1.16] tracking-[-0.02em] text-ink">' +
           esc(a.title) +
           '</h3>' +
-          metaRow(a) +
+          metaRow(a, false) +
           '</div></article>';
 
         fetch(apiBase + '/v1/public/articles', { headers: { accept: 'application/json' } })
