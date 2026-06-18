@@ -1,0 +1,167 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Footer from '../components/Footer.astro';
+
+const lastUpdated = 'June 18, 2026';
+const contactEmail = 'nagaraj.limica@gmail.com';
+
+// Shared utility strings for the legal prose
+const h2 = 'text-[22px] font-bold tracking-[-0.01em] text-ink mt-[38px] mb-3';
+const p = 'text-base leading-[1.7] text-[#3C4350] mb-3.5';
+const ul = 'list-disc pl-[22px] mb-3.5';
+const li = 'text-base leading-[1.7] text-[#3C4350] mb-2';
+const link = 'text-brand-strong font-semibold underline underline-offset-2';
+---
+
+<Layout
+  title="Privacy Policy — Stock Master"
+  description="How Stock Master handles your data. We do not collect personal information; ads are served by Google. Read the full privacy policy."
+>
+  <div class="bg-surface min-h-screen">
+    <!-- ============ HEADER ============ -->
+    <header class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-line">
+      <nav
+        class="mx-auto max-w-[880px] px-8 py-3.5 flex items-center justify-between gap-6 max-[560px]:px-5"
+      >
+        <a href="/" class="flex items-center gap-[11px] no-underline">
+          <img src="/uploads/icon.png" alt="Stock Master" class="w-[34px] h-[34px] rounded-[10px] shrink-0" />
+          <span class="font-extrabold text-[19px] tracking-[-0.02em] text-ink">Stock Master</span>
+        </a>
+        <a href="/" class="text-sm font-semibold text-ink-soft no-underline">← Back to home</a>
+      </nav>
+    </header>
+
+    <!-- ============ POLICY ============ -->
+    <main class="mx-auto max-w-[880px] px-8 pt-16 pb-10 max-[560px]:px-5">
+      <div class="text-[13px] font-bold tracking-[0.12em] uppercase text-brand mb-[14px]">Legal</div>
+      <h1 class="font-extrabold text-[44px] leading-[1.05] tracking-[-0.03em] text-ink">
+        Privacy Policy
+      </h1>
+      <p class="text-sm text-muted mt-3.5">Last updated: {lastUpdated}</p>
+
+      <!-- Summary card -->
+      <div class="mt-8 bg-tint border border-[#D5E3FF] rounded-[18px] px-[26px] py-6">
+        <div class="text-[13px] font-bold text-brand-strong mb-2.5">The short version</div>
+        <p class="text-[15px] leading-[1.6] text-[#3C4350]">
+          Stock Master is an educational stock-market app.
+          <strong class="text-ink"
+            >We don't ask you to sign up, and we don't collect, store, or sell your personal
+            information.</strong
+          > The app is supported by ads served through Google, and Google may collect limited data (such
+          as your device's advertising identifier) to show those ads. You can limit or reset that at any
+          time from your device settings.
+        </p>
+      </div>
+
+      <article class="mt-2">
+        <h2 class={h2}>1. Who we are</h2>
+        <p class={p}>
+          Stock Master (“the app”, “we”, “us”) is an educational application for learning about the
+          stock market — it provides trading calculators, a library of investing books, and Pulse
+          market insights. This Privacy Policy explains how the app handles information when you use
+          it. It applies to the Stock Master mobile app and this website.
+        </p>
+
+        <h2 class={h2}>2. Information we collect</h2>
+        <p class={p}>
+          <strong class="text-ink">We do not collect personal information.</strong> Stock Master does
+          not require an account, login, or registration. We do not ask for your name, email address,
+          phone number, or financial details, and we do not maintain user profiles or a server-side
+          database of your activity.
+        </p>
+        <p class={p}>
+          Any settings or values you enter into the calculators are processed on your device for the
+          purpose of showing you a result. They are not transmitted to us.
+        </p>
+
+        <h2 class={h2}>3. Advertising (Google)</h2>
+        <p class={p}>
+          The app is free and is supported by advertising delivered through Google (for example,
+          Google AdMob). To serve and measure ads, Google and its partners may collect and process
+          certain information from your device, which can include:
+        </p>
+        <ul class={ul}>
+          <li class={li}>your device's advertising identifier (e.g. Google Advertising ID);</li>
+          <li class={li}>general device and app information (device model, operating system, app version);</li>
+          <li class={li}>approximate location derived from your IP address; and</li>
+          <li class={li}>data about how ads are viewed or interacted with.</li>
+        </ul>
+        <p class={p}>
+          This collection is carried out by Google under its own privacy policy, not by us. We do not
+          receive your personal information through these ads. To understand how Google uses this
+          data, see
+          <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" class={link}
+            >Google's Privacy Policy</a
+          >
+          and
+          <a
+            href="https://policies.google.com/technologies/ads"
+            target="_blank"
+            rel="noopener"
+            class={link}>How Google uses information from sites or apps that use its services</a
+          >.
+        </p>
+
+        <h2 class={h2}>4. Your choices</h2>
+        <p class={p}>
+          You can control ad personalization and your advertising identifier directly on your device:
+        </p>
+        <ul class={ul}>
+          <li class={li}>
+            <strong class="text-ink">Android:</strong> Settings → Google → Ads, where you can reset your
+            advertising ID or opt out of ad personalization.
+          </li>
+          <li class={li}>
+            <strong class="text-ink">iOS:</strong> Settings → Privacy &amp; Security → Tracking and → Apple
+            Advertising.
+          </li>
+        </ul>
+
+        <h2 class={h2}>5. Links to other services</h2>
+        <p class={p}>
+          The app and this site link to third-party websites — for example, book pages on Amazon.
+          When you follow those links, the destination site's own privacy policy applies. We are not
+          responsible for the content or privacy practices of other services.
+        </p>
+
+        <h2 class={h2}>6. Children's privacy</h2>
+        <p class={p}>
+          Stock Master is intended for a general audience interested in financial education. We do
+          not knowingly collect personal information from children. Because we do not collect
+          personal information at all, the app does not build profiles of any user, including
+          children.
+        </p>
+
+        <h2 class={h2}>7. Data security</h2>
+        <p class={p}>
+          Because we do not collect or store your personal information on our servers, there is no
+          personal data held by us that could be exposed. Information handled by Google for
+          advertising is protected under Google's own security practices.
+        </p>
+
+        <h2 class={h2}>8. Changes to this policy</h2>
+        <p class={p}>
+          We may update this Privacy Policy from time to time — for example, if advertising providers
+          or app features change. When we do, we will revise the “Last updated” date above. We
+          encourage you to review this page periodically.
+        </p>
+
+        <h2 class={h2}>9. Disclaimer</h2>
+        <p class={p}>
+          Stock Master is an educational tool. Its calculators, books, and insights are for learning
+          purposes only and are not financial, investment, or trading advice. Investing in
+          securities involves risk.
+        </p>
+
+        <h2 class={h2}>10. Contact us</h2>
+        <p class={p}>
+          If you have questions about this Privacy Policy, contact us at
+          <a href={`mailto:${contactEmail}`} class={link}>{contactEmail}</a>.
+        </p>
+      </article>
+    </main>
+
+    <!-- ============ FOOTER ============ -->
+    <Footer />
+  </div>
+</Layout>

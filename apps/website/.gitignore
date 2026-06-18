@@ -1,0 +1,8 @@
+# build output
+dist/
+# generated types
+.astro/
+# turbo
+.turbo/
+# deps
+node_modules/

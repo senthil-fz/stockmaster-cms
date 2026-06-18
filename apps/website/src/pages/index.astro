@@ -1,0 +1,480 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Footer from '../components/Footer.astro';
+
+const PLAY_URL =
+  'https://play.google.com/store/apps/details?id=com.sharemarketclass.stockmaster';
+---
+
+<Layout>
+  <div class="bg-surface overflow-x-hidden">
+    <!-- ============ NAV ============ -->
+    <header class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-line">
+      <nav
+        class="mx-auto max-w-[1200px] px-8 py-3.5 flex items-center justify-between gap-6 max-[560px]:px-5"
+      >
+        <div class="flex items-center gap-[11px]">
+          <img src="/uploads/icon.png" alt="Stock Master" class="w-[34px] h-[34px] rounded-[10px] shrink-0" />
+          <span class="font-extrabold text-[19px] tracking-[-0.02em]">Stock Master</span>
+        </div>
+        <div
+          class="flex items-center gap-[30px] text-[15px] font-medium text-ink-soft max-[900px]:hidden"
+        >
+          <a href="#features" class="no-underline">Features</a>
+          <a href="#books" class="no-underline">Books</a>
+          <a href="#pulse" class="no-underline">Pulse</a>
+          <a href="#about" class="no-underline">About</a>
+        </div>
+        <a
+          href="#download"
+          class="inline-flex items-center gap-2 bg-brand text-white px-5 py-2.5 rounded-[11px] text-sm font-bold no-underline shadow-[0_6px_16px_-6px_rgba(47,107,255,0.6)]"
+          >Download App</a
+        >
+      </nav>
+    </header>
+
+    <!-- ============ HERO ============ -->
+    <section
+      class="relative mx-auto max-w-[1200px] px-8 pt-[60px] pb-9 grid grid-cols-[1.05fr_0.95fr] gap-12 items-center max-[900px]:grid-cols-1 max-[900px]:pt-10 max-[560px]:px-5"
+    >
+      <div
+        class="absolute -top-[60px] -right-[140px] w-[580px] h-[580px] rounded-full bg-[radial-gradient(circle_at_50%_50%,rgba(47,107,255,0.12),rgba(47,107,255,0)_70%)] z-0"
+      >
+      </div>
+      <div class="relative z-10">
+        <div
+          class="inline-flex items-center gap-[9px] bg-white border border-line px-[14px] py-[7px] rounded-full text-[13px] font-semibold text-brand-strong mb-[26px] shadow-[0_2px_8px_-4px_rgba(20,21,26,0.1)]"
+        >
+          <span class="text-gold text-sm">★</span>
+          Built by record-holder Nagaraj Balasubramaniam
+        </div>
+        <h1
+          class="font-extrabold text-[62px] leading-[1.02] tracking-[-0.04em] text-ink text-balance max-[900px]:text-[44px] max-[560px]:text-[36px]"
+        >
+          Master the markets, all in one app.
+        </h1>
+        <p class="text-lg leading-[1.6] text-ink-soft mt-[22px] max-w-[500px]">
+          Pro trading calculators, a library of investing books you can read in-app, and Pulse —
+          daily market insight. Built by Nagaraj Balasubramaniam, IIM Lucknow alumnus and
+          record-holding market educator.
+        </p>
+        <div class="flex flex-wrap gap-[14px] mt-8">
+          <span class="relative inline-flex cursor-default" role="img" aria-label="On the App Store — coming soon">
+            <img src="/uploads/app-store-badge.png" alt="Download on the App Store" class="h-[54px] w-auto opacity-[0.55]" />
+            <span
+              class="absolute -top-[9px] -right-[7px] bg-brand text-white text-[10px] font-extrabold tracking-[0.06em] uppercase px-[9px] py-[3px] rounded-full whitespace-nowrap shadow-[0_4px_12px_-3px_rgba(47,107,255,0.65)]"
+              >Coming soon</span
+            >
+          </span>
+          <a href={PLAY_URL} target="_blank" rel="noopener" aria-label="Get it on Google Play" class="inline-flex">
+            <img src="/uploads/google-play-badge.png" alt="Get it on Google Play" class="h-[54px] w-auto" />
+          </a>
+        </div>
+        <div class="flex items-center gap-2.5 mt-6 text-sm text-ink-soft">
+          <span class="text-gold text-[15px] tracking-[1px]">★★★★★</span>
+          <span>Free on Android — no ads, no clutter. iOS coming soon.</span>
+        </div>
+      </div>
+      <div class="relative z-10 flex justify-center">
+        <div
+          class="w-[312px] rounded-[46px] bg-ink p-[11px] shadow-[0_44px_90px_-34px_rgba(31,50,90,0.55)] animate-floaty"
+        >
+          <img src="/uploads/1-calculators.png" alt="Trading calculators screen" class="w-full rounded-[36px]" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FEATURE TRIO ============ -->
+    <section id="features" class="mx-auto max-w-[1200px] px-8 pt-14 pb-8 max-[560px]:px-5">
+      <div class="text-center max-w-[640px] mx-auto mb-11">
+        <div class="text-[13px] font-bold tracking-[0.12em] uppercase text-brand mb-[14px]">
+          What's inside
+        </div>
+        <h2 class="font-extrabold text-[38px] leading-[1.08] tracking-[-0.03em]">
+          Three tools that compound your edge
+        </h2>
+      </div>
+      <div class="grid grid-cols-3 gap-[22px] items-start max-[900px]:grid-cols-1">
+        <div
+          class="bg-white border border-line rounded-[20px] p-[30px] shadow-[0_2px_10px_-6px_rgba(20,21,26,0.08)]"
+        >
+          <div class="w-12 h-12 rounded-[13px] bg-tint flex items-center justify-center mb-5">
+            <div class="w-5 h-5 border-[2.5px] border-brand rounded-[5px]"></div>
+          </div>
+          <h3 class="text-xl font-bold tracking-[-0.01em] mb-2">Trading calculators</h3>
+          <p class="text-[15px] leading-[1.55] text-ink-soft">
+            Run the numbers before you place a trade — pivots, ranges and investment math, all built
+            in. Tap a value, get an answer.
+          </p>
+        </div>
+        <div
+          class="bg-white border border-line rounded-[20px] p-[30px] shadow-[0_2px_10px_-6px_rgba(20,21,26,0.08)]"
+        >
+          <div class="w-12 h-12 rounded-[13px] bg-tint flex items-center justify-center mb-5">
+            <div class="w-4 h-5 border-[2.5px] border-l-[5px] border-brand rounded-[2px]"></div>
+          </div>
+          <h3 class="text-xl font-bold tracking-[-0.01em] mb-2">Bestselling books</h3>
+          <p class="text-[15px] leading-[1.55] text-ink-soft">
+            Nagaraj's bestselling titles on options, behaviour and the markets — buy the paperback
+            on Amazon in a tap.
+          </p>
+        </div>
+        <div
+          class="bg-white border border-line rounded-[20px] p-[30px] shadow-[0_2px_10px_-6px_rgba(20,21,26,0.08)]"
+        >
+          <div class="w-12 h-12 rounded-[13px] bg-tint flex items-center justify-center mb-5">
+            <div
+              class="w-5 h-5 rounded-full border-[2.5px] border-brand border-t-transparent rotate-[-45deg]"
+            >
+            </div>
+          </div>
+          <h3 class="text-xl font-bold tracking-[-0.01em] mb-2">Pulse insights</h3>
+          <p class="text-[15px] leading-[1.55] text-ink-soft">
+            The market decoded daily — concise, jargon-free articles written for everyday investors.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ BOOKS ============ -->
+    <section id="books" class="mx-auto max-w-[1200px] px-8 py-[72px] max-[560px]:px-5">
+      <div class="text-center max-w-[640px] mx-auto mb-12">
+        <div class="text-[13px] font-bold tracking-[0.12em] uppercase text-brand mb-[14px]">
+          The library
+        </div>
+        <h2 class="font-extrabold text-[40px] leading-[1.06] tracking-[-0.03em] mb-[14px]">
+          Books by Nagaraj
+        </h2>
+        <p class="text-[17px] leading-[1.6] text-ink-soft">
+          Options trading, the markets and the psychology of investing — read them in the app, or
+          buy the paperback on Amazon.
+        </p>
+      </div>
+      <div
+        class="bg-white border border-line rounded-[28px] px-11 pt-[60px] pb-[52px] shadow-[0_6px_30px_-16px_rgba(20,21,26,0.16)]"
+      >
+        <div class="grid grid-cols-3 gap-11 items-end max-[900px]:grid-cols-1 max-[900px]:gap-[52px]">
+          <!-- Mastering Options -->
+          <a
+            class="group flex flex-col items-center text-center no-underline text-inherit"
+            href="https://www.amazon.in/Mastering-Options-Trading-Indian-Market/dp/9359890146"
+            target="_blank"
+            rel="noopener"
+          >
+            <div class="h-[300px] w-full flex flex-col items-center justify-end">
+              <img
+                src="/uploads/mastering-options.jpg"
+                alt="Mastering Options Trading in the Indian Stock Market"
+                class="max-h-full w-auto max-w-full rounded-lg shadow-[0_26px_46px_-22px_rgba(20,21,26,0.5)] transition-[transform,box-shadow] duration-[400ms] ease-[cubic-bezier(0.2,0.7,0.2,1)] group-hover:-translate-y-3 group-hover:shadow-[0_42px_60px_-26px_rgba(20,21,26,0.58)] motion-reduce:transition-none motion-reduce:group-hover:translate-y-0"
+              />
+              <span
+                class="w-[66%] h-[18px] mt-4 rounded-[50%] bg-[radial-gradient(50%_100%_at_50%_0%,rgba(20,21,26,0.2),transparent_72%)] transition-[transform,opacity] duration-[400ms] group-hover:scale-x-[0.82] group-hover:opacity-[0.65] motion-reduce:transition-none"
+              ></span>
+            </div>
+            <div class="mt-[30px] text-[11px] font-bold tracking-[0.14em] uppercase text-brand">
+              Options trading
+            </div>
+            <h3
+              class="mt-2.5 text-base font-bold leading-[1.34] tracking-[-0.01em] text-ink min-h-[64px] max-[900px]:min-h-0"
+            >
+              Mastering Options Trading in the Indian Stock Market
+            </h3>
+            <div class="mt-2 text-[13px] text-muted">Paperback · 2023</div>
+            <span
+              class="mt-5 inline-flex items-center gap-[7px] border-[1.5px] border-line text-brand-strong px-[18px] py-[9px] rounded-[10px] text-[13px] font-bold transition-[border-color,background,transform] duration-200 group-hover:border-brand group-hover:bg-[#f2f6ff] group-hover:-translate-y-px motion-reduce:transition-none"
+              >Buy on Amazon →</span
+            >
+          </a>
+
+          <!-- A Common Man's Voyage -->
+          <a
+            class="group flex flex-col items-center text-center no-underline text-inherit"
+            href="https://www.amazon.in/Comman-Mans-Voyage-STOCK-MARKET/dp/9358476141"
+            target="_blank"
+            rel="noopener"
+          >
+            <div class="h-[300px] w-full flex flex-col items-center justify-end">
+              <img
+                src="/uploads/common-mans-voyage.jpg"
+                alt="A Common Man's Voyage in the Stock Market"
+                class="max-h-full w-auto max-w-full rounded-lg shadow-[0_26px_46px_-22px_rgba(20,21,26,0.5)] transition-[transform,box-shadow] duration-[400ms] ease-[cubic-bezier(0.2,0.7,0.2,1)] group-hover:-translate-y-3 group-hover:shadow-[0_42px_60px_-26px_rgba(20,21,26,0.58)] motion-reduce:transition-none motion-reduce:group-hover:translate-y-0"
+              />
+              <span
+                class="w-[66%] h-[18px] mt-4 rounded-[50%] bg-[radial-gradient(50%_100%_at_50%_0%,rgba(20,21,26,0.2),transparent_72%)] transition-[transform,opacity] duration-[400ms] group-hover:scale-x-[0.82] group-hover:opacity-[0.65] motion-reduce:transition-none"
+              ></span>
+            </div>
+            <div class="mt-[30px] text-[11px] font-bold tracking-[0.14em] uppercase text-brand">
+              Stock market journey
+            </div>
+            <h3
+              class="mt-2.5 text-base font-bold leading-[1.34] tracking-[-0.01em] text-ink min-h-[64px] max-[900px]:min-h-0"
+            >
+              A Common Man's Voyage in the Stock Market
+            </h3>
+            <div class="mt-2 text-[13px] text-muted">Paperback · 2024</div>
+            <span
+              class="mt-5 inline-flex items-center gap-[7px] border-[1.5px] border-line text-brand-strong px-[18px] py-[9px] rounded-[10px] text-[13px] font-bold transition-[border-color,background,transform] duration-200 group-hover:border-brand group-hover:bg-[#f2f6ff] group-hover:-translate-y-px motion-reduce:transition-none"
+              >Buy on Amazon →</span
+            >
+          </a>
+
+          <!-- The Behavioural Investor -->
+          <a
+            class="group flex flex-col items-center text-center no-underline text-inherit"
+            href="https://www.amazon.in/Behavioral-Investor-People-Financial-Choices/dp/9358479183"
+            target="_blank"
+            rel="noopener"
+          >
+            <div class="h-[300px] w-full flex flex-col items-center justify-end">
+              <img
+                src="/uploads/behavioral-investor.jpg"
+                alt="The Behavioural Investor"
+                class="max-h-full w-auto max-w-full rounded-lg shadow-[0_26px_46px_-22px_rgba(20,21,26,0.5)] transition-[transform,box-shadow] duration-[400ms] ease-[cubic-bezier(0.2,0.7,0.2,1)] group-hover:-translate-y-3 group-hover:shadow-[0_42px_60px_-26px_rgba(20,21,26,0.58)] motion-reduce:transition-none motion-reduce:group-hover:translate-y-0"
+              />
+              <span
+                class="w-[66%] h-[18px] mt-4 rounded-[50%] bg-[radial-gradient(50%_100%_at_50%_0%,rgba(20,21,26,0.2),transparent_72%)] transition-[transform,opacity] duration-[400ms] group-hover:scale-x-[0.82] group-hover:opacity-[0.65] motion-reduce:transition-none"
+              ></span>
+            </div>
+            <div class="mt-[30px] text-[11px] font-bold tracking-[0.14em] uppercase text-brand">
+              Investor psychology
+            </div>
+            <h3
+              class="mt-2.5 text-base font-bold leading-[1.34] tracking-[-0.01em] text-ink min-h-[64px] max-[900px]:min-h-0"
+            >
+              The Behavioural Investor
+            </h3>
+            <div class="mt-2 text-[13px] text-muted">Paperback · 2025</div>
+            <span
+              class="mt-5 inline-flex items-center gap-[7px] border-[1.5px] border-line text-brand-strong px-[18px] py-[9px] rounded-[10px] text-[13px] font-bold transition-[border-color,background,transform] duration-200 group-hover:border-brand group-hover:bg-[#f2f6ff] group-hover:-translate-y-px motion-reduce:transition-none"
+              >Buy on Amazon →</span
+            >
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PULSE ============ -->
+    <section id="pulse" class="bg-white border-y border-line">
+      <div class="mx-auto max-w-[1200px] px-8 py-16 max-[560px]:px-5">
+        <div class="flex items-end justify-between gap-6 mb-9 flex-wrap">
+          <div class="max-w-[560px]">
+            <div class="text-[13px] font-bold tracking-[0.12em] uppercase text-brand mb-[14px]">
+              Pulse
+            </div>
+            <h2 class="font-extrabold text-[38px] leading-[1.08] tracking-[-0.03em]">
+              The market, decoded daily
+            </h2>
+          </div>
+          <a
+            href="#download"
+            class="inline-flex items-center gap-2 text-brand-strong font-bold text-[15px] no-underline border-b-2 border-brand pb-[3px]"
+            >Read in the app →</a
+          >
+        </div>
+        <div class="grid grid-cols-3 gap-6 max-[900px]:grid-cols-1">
+          <article class="bg-card border border-line rounded-[20px] overflow-hidden">
+            <div class="h-[170px] bg-[linear-gradient(135deg,#2F6BFF,#1E50D8)]"></div>
+            <div class="p-6">
+              <div class="text-xs font-bold tracking-[0.06em] uppercase text-brand mb-2.5">Strategy</div>
+              <h3 class="text-[19px] font-bold leading-[1.25] tracking-[-0.01em]">
+                Why position size matters more than your entry
+              </h3>
+              <div class="text-[13px] text-muted mt-3.5">June 16, 2026 · 4 min read</div>
+            </div>
+          </article>
+          <article class="bg-card border border-line rounded-[20px] overflow-hidden">
+            <div class="h-[170px] bg-[linear-gradient(135deg,#14151A,#2A3550)]"></div>
+            <div class="p-6">
+              <div class="text-xs font-bold tracking-[0.06em] uppercase text-brand mb-2.5">Markets</div>
+              <h3 class="text-[19px] font-bold leading-[1.25] tracking-[-0.01em]">
+                Reading volatility: a calm investor's playbook
+              </h3>
+              <div class="text-[13px] text-muted mt-3.5">June 14, 2026 · 6 min read</div>
+            </div>
+          </article>
+          <article class="bg-card border border-line rounded-[20px] overflow-hidden">
+            <div class="h-[170px] bg-[linear-gradient(135deg,#4C82FF,#6FA8FF)]"></div>
+            <div class="p-6">
+              <div class="text-xs font-bold tracking-[0.06em] uppercase text-brand mb-2.5">Education</div>
+              <h3 class="text-[19px] font-bold leading-[1.25] tracking-[-0.01em]">
+                Pivot points, explained in five charts
+              </h3>
+              <div class="text-[13px] text-muted mt-3.5">June 11, 2026 · 5 min read</div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ABOUT / RECORD HOLDER ============ -->
+    <section id="about" class="mx-auto max-w-[1200px] px-8 py-20 max-[560px]:px-5">
+      <div
+        class="bg-navy rounded-[28px] p-11 grid grid-cols-[0.8fr_1.2fr] gap-11 items-center overflow-hidden relative max-[900px]:grid-cols-1"
+      >
+        <div
+          class="absolute -bottom-[130px] -right-[90px] w-[380px] h-[380px] rounded-full bg-[rgba(111,168,255,0.12)]"
+        >
+        </div>
+        <img
+          src="/uploads/Nagaraj.png"
+          alt="Nagaraj Balasubramaniam"
+          class="w-full rounded-[20px] relative z-10 shadow-[0_30px_60px_-25px_rgba(0,0,0,0.5)] object-cover"
+        />
+        <div class="relative z-10 text-[#E8EDF6]">
+          <div
+            class="inline-flex items-center gap-2 bg-[rgba(215,162,46,0.16)] border border-[rgba(215,162,46,0.5)] text-[#EFC368] px-[14px] py-[7px] rounded-full text-[13px] font-bold mb-5"
+          >
+            <span>★</span> National &amp; Guinness Record Holder
+          </div>
+          <h2 class="font-extrabold text-[38px] leading-[1.06] tracking-[-0.03em] mb-4">
+            Meet Nagaraj Balasubramaniam
+          </h2>
+          <p class="text-base leading-[1.65] text-[#A9B6CE] max-w-[540px] mb-6">
+            A record-holding market educator who has spent decades teaching everyday people how the
+            market really works. Stock Master distills that lifetime of teaching into one app — the
+            calculators, the books and the daily insight, in your pocket.
+          </p>
+          <div class="flex flex-wrap gap-2 mb-[22px]">
+            <span class="bg-white/[0.08] border border-white/[0.14] px-3 py-1.5 rounded-lg text-[13px] font-semibold">Alumnus, IIM Lucknow</span>
+            <span class="bg-white/[0.08] border border-white/[0.14] px-3 py-1.5 rounded-lg text-[13px] font-semibold">NISM Certified</span>
+            <span class="bg-white/[0.08] border border-white/[0.14] px-3 py-1.5 rounded-lg text-[13px] font-semibold">NCFM Certified</span>
+            <span class="bg-white/[0.08] border border-white/[0.14] px-3 py-1.5 rounded-lg text-[13px] font-semibold">NSE Academy NCMP</span>
+            <span class="bg-white/[0.08] border border-white/[0.14] px-3 py-1.5 rounded-lg text-[13px] font-semibold">APMI Registered PMS Distributor</span>
+            <span class="bg-white/[0.08] border border-white/[0.14] px-3 py-1.5 rounded-lg text-[13px] font-semibold">AMFI Mutual Fund &amp; SIF Distributor</span>
+          </div>
+          <div class="text-[13px] text-[#9AA8C2] tracking-[0.02em] mb-6 leading-[1.85]">
+            <div>ARN Code: ARN309850</div>
+            <div>APRN Code: APRN07791</div>
+            <div>AP Code: AP2513037631</div>
+          </div>
+          <div class="flex gap-2.5">
+            <a href="#" class="w-[38px] h-[38px] rounded-full bg-white/10 flex items-center justify-center text-[13px] font-bold no-underline text-[#E8EDF6]">f</a>
+            <a href="#" class="w-[38px] h-[38px] rounded-full bg-white/10 flex items-center justify-center text-xs font-bold no-underline text-[#E8EDF6]">in</a>
+            <a href="#" class="w-[38px] h-[38px] rounded-full bg-white/10 flex items-center justify-center text-[11px] font-bold no-underline text-[#E8EDF6]">web</a>
+            <a href="#" class="w-[38px] h-[38px] rounded-full bg-white/10 flex items-center justify-center text-[11px] font-bold no-underline text-[#E8EDF6]">YT</a>
+            <a href="#" class="w-[38px] h-[38px] rounded-full bg-white/10 flex items-center justify-center text-xs font-bold no-underline text-[#E8EDF6]">ig</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TESTIMONIALS ============ -->
+    <section class="bg-white border-y border-line">
+      <div class="mx-auto max-w-[1000px] px-8 py-20 text-center max-[560px]:px-5">
+        <div class="text-[13px] font-bold tracking-[0.12em] uppercase text-brand mb-6">
+          Loved by investors
+        </div>
+        <p
+          class="font-bold text-[32px] leading-[1.32] tracking-[-0.02em] text-ink text-balance max-w-[820px] mx-auto"
+        >
+          “The calculators alone paid for themselves in a week. Add the books and Pulse, and Stock
+          Master is the only finance app I open every morning.”
+        </p>
+        <div class="flex items-center justify-center gap-3 mt-[26px]">
+          <div class="w-[46px] h-[46px] rounded-full bg-brand text-white flex items-center justify-center font-bold">AR</div>
+          <div class="text-left">
+            <div class="font-bold text-[15px]">Aravind R.</div>
+            <div class="text-[13px] text-muted">Retail investor · Chennai</div>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-5 mt-[52px] text-left max-[900px]:grid-cols-1">
+          <div class="bg-card border border-line rounded-[18px] p-[26px]">
+            <div class="text-gold text-sm mb-3 tracking-[1px]">★★★★★</div>
+            <p class="text-[15px] leading-[1.55] text-[#3C4350]">
+              “Finally a finance app that teaches instead of just selling. The library is gold.”
+            </p>
+            <div class="flex items-center gap-2.5 mt-[18px]">
+              <div class="w-[38px] h-[38px] rounded-full bg-navy text-white flex items-center justify-center font-bold text-sm">PM</div>
+              <div class="text-[13px]"><strong>Priya M.</strong><br /><span class="text-muted">SIP investor</span></div>
+            </div>
+          </div>
+          <div class="bg-card border border-line rounded-[18px] p-[26px]">
+            <div class="text-gold text-sm mb-3 tracking-[1px]">★★★★★</div>
+            <p class="text-[15px] leading-[1.55] text-[#3C4350]">
+              “Pulse keeps me calm in volatile weeks. Clear, short, and from someone who's earned the
+              credibility.”
+            </p>
+            <div class="flex items-center gap-2.5 mt-[18px]">
+              <div class="w-[38px] h-[38px] rounded-full bg-brand text-white flex items-center justify-center font-bold text-sm">SK</div>
+              <div class="text-[13px]"><strong>Suresh K.</strong><br /><span class="text-muted">Swing trader</span></div>
+            </div>
+          </div>
+          <div class="bg-card border border-line rounded-[18px] p-[26px]">
+            <div class="text-gold text-sm mb-3 tracking-[1px]">★★★★★</div>
+            <p class="text-[15px] leading-[1.55] text-[#3C4350]">
+              “The Camarilla and pivot calculators changed how I manage risk. Wish I'd had this years
+              ago.”
+            </p>
+            <div class="flex items-center gap-2.5 mt-[18px]">
+              <div class="w-[38px] h-[38px] rounded-full bg-gold text-white flex items-center justify-center font-bold text-sm">DN</div>
+              <div class="text-[13px]"><strong>Deepa N.</strong><br /><span class="text-muted">Long-term investor</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STATS ============ -->
+    <section class="mx-auto max-w-[1200px] px-8 py-16 max-[560px]:px-5">
+      <div class="grid grid-cols-4 gap-6 text-center max-[900px]:grid-cols-2 max-[560px]:grid-cols-1">
+        <div>
+          <div class="text-[46px] font-extrabold tracking-[-0.03em] text-navy">8</div>
+          <div class="text-sm text-muted mt-1.5">Trading calculators</div>
+        </div>
+        <div>
+          <div class="text-[46px] font-extrabold tracking-[-0.03em] text-navy">Daily</div>
+          <div class="text-sm text-muted mt-1.5">Pulse insights</div>
+        </div>
+        <div>
+          <div class="text-[46px] font-extrabold tracking-[-0.03em] text-navy">Read</div>
+          <div class="text-sm text-muted mt-1.5">Books in-app</div>
+        </div>
+        <div>
+          <div class="text-[46px] font-extrabold tracking-[-0.03em] text-navy">Free</div>
+          <div class="text-sm text-muted mt-1.5">Android — iOS soon</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DOWNLOAD CTA ============ -->
+    <section id="download" class="mx-auto max-w-[1200px] px-8 pt-8 pb-[88px] max-[560px]:px-5">
+      <div
+        class="bg-navy rounded-[32px] px-12 py-[60px] grid grid-cols-[1.1fr_0.9fr] gap-10 items-center overflow-hidden relative max-[900px]:grid-cols-1 max-[560px]:px-7"
+      >
+        <div
+          class="absolute -top-[110px] -right-[70px] w-[440px] h-[440px] rounded-full bg-[rgba(47,107,255,0.18)]"
+        >
+        </div>
+        <div class="relative z-10 text-[#E8EDF6]">
+          <h2 class="font-extrabold text-[46px] leading-[1.04] tracking-[-0.03em] text-balance">
+            Start mastering the market today.
+          </h2>
+          <p class="text-[17px] leading-[1.6] text-[#A9B6CE] mt-[18px] max-w-[420px]">
+            Free to download. Calculators, books and Pulse — all in one place, built by a record
+            holder.
+          </p>
+          <div class="flex flex-wrap gap-[14px] mt-[30px]">
+            <span class="relative inline-flex cursor-default" role="img" aria-label="On the App Store — coming soon">
+              <img src="/uploads/app-store-badge.png" alt="Download on the App Store" class="h-[54px] w-auto opacity-[0.55]" />
+              <span
+                class="absolute -top-[9px] -right-[7px] bg-brand text-white text-[10px] font-extrabold tracking-[0.06em] uppercase px-[9px] py-[3px] rounded-full whitespace-nowrap shadow-[0_4px_12px_-3px_rgba(47,107,255,0.65)]"
+                >Coming soon</span
+              >
+            </span>
+            <a href={PLAY_URL} target="_blank" rel="noopener" aria-label="Get it on Google Play" class="inline-flex">
+              <img src="/uploads/google-play-badge.png" alt="Get it on Google Play" class="h-[54px] w-auto" />
+            </a>
+          </div>
+        </div>
+        <div class="relative z-10 flex justify-center">
+          <div class="w-[236px] rounded-[38px] bg-black p-[9px] shadow-[0_40px_70px_-28px_rgba(0,0,0,0.6)]">
+            <img src="/uploads/3-about.png" alt="About screen" class="w-full rounded-[30px]" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FOOTER ============ -->
+    <Footer />
+  </div>
+</Layout>

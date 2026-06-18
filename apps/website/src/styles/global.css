@@ -1,0 +1,62 @@
+/* Tailwind CSS v4 entry (latest, CSS-first config).
+ *
+ * Design tokens for the Stock Master marketing site live in the @theme block
+ * below, so utilities like bg-brand / text-ink / border-line / bg-navy resolve
+ * to the brand palette. No JS tailwind.config is needed in v4. */
+@import 'tailwindcss';
+
+@theme {
+  /* Type */
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand palette */
+  --color-brand: #2f6bff; /* primary blue */
+  --color-brand-strong: #1e50d8; /* darker blue (links) */
+  --color-ink: #14151a; /* near-black headings/body */
+  --color-ink-soft: #5b6471; /* muted body text */
+  --color-muted: #8a93a1; /* lighter muted / captions */
+  --color-faint: #9ca3af; /* faintest text */
+  --color-line: #e5e9ef; /* hairline borders */
+  --color-surface: #f4f6f9; /* page background */
+  --color-card: #f7f9fc; /* subtle inner card bg */
+  --color-navy: #0f1e3d; /* dark sections */
+  --color-gold: #d7a22e; /* stars / accents */
+  --color-tint: #eaf1ff; /* light blue tint bg */
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-surface);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  img {
+    display: block;
+    max-width: 100%;
+  }
+}
+
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@utility animate-floaty {
+  animation: floaty 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-floaty {
+    animation: none;
+  }
+}
