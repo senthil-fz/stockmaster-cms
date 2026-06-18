@@ -71,6 +71,16 @@ describe('PublicService — published article cards', () => {
     expect(out[0].coverUrl).toBeNull();
   });
 
+  it('re-bases legacy laabam.in cover hosts onto the current API host', async () => {
+    const legacy = row();
+    legacy.publishedVersion.snapshot = {
+      article: { title: 'Old cover', coverUrl: 'https://api.laabam.in/uploads/2026/x.jpg' },
+    } as never;
+    const out = await make({ findMany: jest.fn().mockResolvedValue([legacy]) }).listPublishedArticles();
+    // PUBLIC_API_URL is unset in tests -> defaults to localhost:3001; only the host is rewritten.
+    expect(out[0].coverUrl).toBe('http://localhost:3001/uploads/2026/x.jpg');
+  });
+
   it('skips rows whose publishedVersion is missing instead of crashing the feed', async () => {
     const out = await make({
       findMany: jest.fn().mockResolvedValue([row(), row({ publishedVersion: null })]),

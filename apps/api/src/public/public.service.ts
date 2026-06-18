@@ -11,6 +11,23 @@ type ArticleRow = Prisma.ArticleGetPayload<{ include: typeof withPublishedVersio
 // Minimal shape the just-the-snapshot needs (title + optional cover).
 type ArticleSnapshot = { article: { title: string; coverUrl: string | null } };
 
+// Covers published before the laabam.in -> stockmasternagaraj.com rename have the old host
+// frozen in their snapshot. That host is gone (DNS dead), but the image file still lives at
+// the same /uploads path on the current host — so re-base legacy hosts onto PUBLIC_API_URL.
+const LEGACY_UPLOAD_HOSTS = new Set(['api.laabam.in', 'app.laabam.in', 'laabam.in']);
+const PUBLIC_BASE = (process.env.PUBLIC_API_URL ?? 'http://localhost:3001').replace(/\/+$/, '');
+
+function normalizeCoverUrl(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    if (LEGACY_UPLOAD_HOSTS.has(u.hostname)) return `${PUBLIC_BASE}${u.pathname}${u.search}`;
+    return url;
+  } catch {
+    return url; // not an absolute URL — leave as-is
+  }
+}
+
 /** A published-article card for the public marketing site: title + cover only. */
 export interface PublicArticleCard {
   id: string;
@@ -52,7 +69,7 @@ export class PublicService {
           // slug is the live routing key (mirrors the reader contract); title/cover are frozen.
           slug: r.slug,
           title: snap.article.title,
-          coverUrl: snap.article.coverUrl ?? null,
+          coverUrl: normalizeCoverUrl(snap.article.coverUrl ?? null),
           publishedAt: r.publishedVersion.createdAt,
         };
       });
