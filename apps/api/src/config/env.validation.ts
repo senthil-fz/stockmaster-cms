@@ -18,6 +18,10 @@ const envSchema = z
     // PUBLIC_API_URL is the absolute base used to build <img src> links to them.
     UPLOADS_DIR: z.string().optional(),
     PUBLIC_API_URL: z.string().url('must be a valid URL').default('http://localhost:3001'),
+    // Comma-separated browser origins allowed to call the public website API (/v1/public/*),
+    // e.g. "https://www.stockmasternagaraj.com,https://stockmasternagaraj.com". Optional —
+    // defaults to the local Astro dev server in main.ts when unset.
+    SITE_ORIGINS: z.string().optional(),
   })
   .superRefine((env, ctx) => {
     if (env.JWT_ACCESS_SECRET === env.JWT_REFRESH_SECRET) {

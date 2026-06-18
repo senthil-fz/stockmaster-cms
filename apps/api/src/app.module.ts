@@ -16,6 +16,7 @@ import { PagesModule } from './pages/pages.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { StatsModule } from './stats/stats.module';
 import { ReaderModule } from './reader/reader.module';
+import { PublicModule } from './public/public.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -35,6 +36,7 @@ import { HealthModule } from './health/health.module';
     UploadsModule,
     StatsModule,
     ReaderModule,
+    PublicModule,
     HealthModule,
   ],
   providers: [

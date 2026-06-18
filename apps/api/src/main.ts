@@ -18,8 +18,25 @@ async function bootstrap(): Promise<void> {
   app.set('trust proxy', 'loopback');
 
   app.use(cookieParser());
+  // Allowed browser origins: the editor SPA (WEB_ORIGIN, uses cookies) plus the public
+  // marketing site(s) (SITE_ORIGINS, comma-separated) which call /v1/public/* with no creds.
+  // A function origin lets cors reflect whichever allowlisted origin made the request —
+  // required because credentials:true forbids a wildcard ACAO.
+  const allowedOrigins = new Set(
+    [
+      process.env.WEB_ORIGIN ?? 'http://localhost:5173',
+      ...(process.env.SITE_ORIGINS ?? 'http://localhost:4321')
+        .split(',')
+        .map((o) => o.trim())
+        .filter(Boolean),
+    ],
+  );
   app.enableCors({
-    origin: process.env.WEB_ORIGIN ?? 'http://localhost:5173',
+    origin(origin, cb) {
+      // No Origin header = non-browser client (curl, mobile app, server-side) — allow.
+      if (!origin || allowedOrigins.has(origin)) return cb(null, true);
+      cb(null, false);
+    },
     credentials: true,
   });
 

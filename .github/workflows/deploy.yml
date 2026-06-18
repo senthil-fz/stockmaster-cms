@@ -129,6 +129,7 @@ jobs:
           MOBILE_APP_SECRET=${MOBILE_APP_SECRET}
           API_PORT=3001
           WEB_ORIGIN=https://app.stockmasternagaraj.com
+          SITE_ORIGINS=https://www.stockmasternagaraj.com,https://stockmasternagaraj.com
           PUBLIC_API_URL=https://api.stockmasternagaraj.com
           UPLOADS_DIR=/home/deploy/stockmaster/uploads
           EOF
