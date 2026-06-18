@@ -1,6 +1,8 @@
 ---
+import { Picture } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import Footer from '../components/Footer.astro';
+import iconImg from '../assets/icon.png';
 
 const lastUpdated = 'June 18, 2026';
 const contactEmail = 'nagaraj.limica@gmail.com';
@@ -24,7 +26,15 @@ const link = 'text-brand-strong font-semibold underline underline-offset-2';
         class="mx-auto max-w-[880px] px-8 py-3.5 flex items-center justify-between gap-6 max-[560px]:px-5"
       >
         <a href="/" class="flex items-center gap-[11px] no-underline">
-          <img src="/uploads/icon.png" alt="Stock Master" class="w-[34px] h-[34px] rounded-[10px] shrink-0" />
+          <Picture
+            src={iconImg}
+            formats={['avif', 'webp']}
+            pictureAttributes={{ class: 'contents' }}
+            alt="Stock Master"
+            widths={[34, 68]}
+            sizes="34px"
+            class="w-[34px] h-[34px] rounded-[10px] shrink-0"
+          />
           <span class="font-extrabold text-[19px] tracking-[-0.02em] text-ink">Stock Master</span>
         </a>
         <a href="/" class="text-sm font-semibold text-ink-soft no-underline">← Back to home</a>

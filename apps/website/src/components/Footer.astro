@@ -1,5 +1,7 @@
 ---
 // Shared site footer — dark, minimal.
+import { Picture } from 'astro:assets';
+import iconImg from '../assets/icon.png';
 ---
 
 <footer class="bg-navy text-[#A9B6CE]">
@@ -7,7 +9,15 @@
     class="mx-auto max-w-[1200px] px-8 py-12 flex items-center justify-between gap-6 flex-wrap max-[560px]:px-5 max-[560px]:flex-col max-[560px]:gap-6 max-[560px]:text-center"
   >
     <a href="/" class="flex items-center gap-[11px] no-underline">
-      <img src="/uploads/icon.png" alt="Stock Master" class="w-[34px] h-[34px] rounded-[10px] shrink-0" />
+      <Picture
+        src={iconImg}
+        formats={['avif', 'webp']}
+        pictureAttributes={{ class: 'contents' }}
+        alt="Stock Master"
+        widths={[34, 68]}
+        sizes="34px"
+        class="w-[34px] h-[34px] rounded-[10px] shrink-0"
+      />
       <span class="font-extrabold text-[19px] tracking-[-0.02em] text-white">Stock Master</span>
     </a>
     <div

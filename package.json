@@ -34,7 +34,8 @@
       "@prisma/engines",
       "@swc/core",
       "esbuild",
-      "prisma"
+      "prisma",
+      "sharp"
     ],
     "overrides": {
       "yjs": "^13.6.27"

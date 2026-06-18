@@ -1,6 +1,18 @@
 ---
+import { Picture } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import Footer from '../components/Footer.astro';
+import iconImg from '../assets/icon.png';
+import calculatorsImg from '../assets/1-calculators.png';
+import aboutScreenImg from '../assets/3-about.png';
+import masteringOptionsImg from '../assets/mastering-options.jpg';
+import commonMansVoyageImg from '../assets/common-mans-voyage.jpg';
+import behavioralInvestorImg from '../assets/behavioral-investor.jpg';
+import nagarajImg from '../assets/Nagaraj.png';
+
+// <picture> set to display:contents so the optimized <img> keeps the exact
+// layout/classes of the original tag while the browser still picks avif/webp.
+const PICTURE = { class: 'contents' };
 
 const PLAY_URL =
   'https://play.google.com/store/apps/details?id=com.sharemarketclass.stockmaster';
@@ -14,7 +26,15 @@ const PLAY_URL =
         class="mx-auto max-w-[1200px] px-8 py-3.5 flex items-center justify-between gap-6 max-[560px]:px-5"
       >
         <div class="flex items-center gap-[11px]">
-          <img src="/uploads/icon.png" alt="Stock Master" class="w-[34px] h-[34px] rounded-[10px] shrink-0" />
+          <Picture
+            src={iconImg}
+            formats={['avif', 'webp']}
+            pictureAttributes={PICTURE}
+            alt="Stock Master"
+            widths={[34, 68]}
+            sizes="34px"
+            class="w-[34px] h-[34px] rounded-[10px] shrink-0"
+          />
           <span class="font-extrabold text-[19px] tracking-[-0.02em]">Stock Master</span>
         </div>
         <div
@@ -79,7 +99,17 @@ const PLAY_URL =
         <div
           class="w-[312px] rounded-[46px] bg-ink p-[11px] shadow-[0_44px_90px_-34px_rgba(31,50,90,0.55)] animate-floaty"
         >
-          <img src="/uploads/1-calculators.png" alt="Trading calculators screen" class="w-full rounded-[36px]" />
+          <Picture
+            src={calculatorsImg}
+            formats={['avif', 'webp']}
+            pictureAttributes={PICTURE}
+            alt="Trading calculators screen"
+            widths={[300, 600]}
+            sizes="300px"
+            loading="eager"
+            fetchpriority="high"
+            class="w-full rounded-[36px]"
+          />
         </div>
       </div>
     </section>
@@ -162,9 +192,13 @@ const PLAY_URL =
             rel="noopener"
           >
             <div class="h-[300px] w-full flex flex-col items-center justify-end">
-              <img
-                src="/uploads/mastering-options.jpg"
+              <Picture
+                src={masteringOptionsImg}
+                formats={['avif', 'webp']}
+                pictureAttributes={PICTURE}
                 alt="Mastering Options Trading in the Indian Stock Market"
+                widths={[200, 400]}
+                sizes="200px"
                 class="max-h-full w-auto max-w-full rounded-lg shadow-[0_26px_46px_-22px_rgba(20,21,26,0.5)] transition-[transform,box-shadow] duration-[400ms] ease-[cubic-bezier(0.2,0.7,0.2,1)] group-hover:-translate-y-3 group-hover:shadow-[0_42px_60px_-26px_rgba(20,21,26,0.58)] motion-reduce:transition-none motion-reduce:group-hover:translate-y-0"
               />
               <span
@@ -194,9 +228,13 @@ const PLAY_URL =
             rel="noopener"
           >
             <div class="h-[300px] w-full flex flex-col items-center justify-end">
-              <img
-                src="/uploads/common-mans-voyage.jpg"
+              <Picture
+                src={commonMansVoyageImg}
+                formats={['avif', 'webp']}
+                pictureAttributes={PICTURE}
                 alt="A Common Man's Voyage in the Stock Market"
+                widths={[200, 400]}
+                sizes="200px"
                 class="max-h-full w-auto max-w-full rounded-lg shadow-[0_26px_46px_-22px_rgba(20,21,26,0.5)] transition-[transform,box-shadow] duration-[400ms] ease-[cubic-bezier(0.2,0.7,0.2,1)] group-hover:-translate-y-3 group-hover:shadow-[0_42px_60px_-26px_rgba(20,21,26,0.58)] motion-reduce:transition-none motion-reduce:group-hover:translate-y-0"
               />
               <span
@@ -226,9 +264,13 @@ const PLAY_URL =
             rel="noopener"
           >
             <div class="h-[300px] w-full flex flex-col items-center justify-end">
-              <img
-                src="/uploads/behavioral-investor.jpg"
+              <Picture
+                src={behavioralInvestorImg}
+                formats={['avif', 'webp']}
+                pictureAttributes={PICTURE}
                 alt="The Behavioural Investor"
+                widths={[200, 400]}
+                sizes="200px"
                 class="max-h-full w-auto max-w-full rounded-lg shadow-[0_26px_46px_-22px_rgba(20,21,26,0.5)] transition-[transform,box-shadow] duration-[400ms] ease-[cubic-bezier(0.2,0.7,0.2,1)] group-hover:-translate-y-3 group-hover:shadow-[0_42px_60px_-26px_rgba(20,21,26,0.58)] motion-reduce:transition-none motion-reduce:group-hover:translate-y-0"
               />
               <span
@@ -315,9 +357,13 @@ const PLAY_URL =
           class="absolute -bottom-[130px] -right-[90px] w-[380px] h-[380px] rounded-full bg-[rgba(111,168,255,0.12)]"
         >
         </div>
-        <img
-          src="/uploads/Nagaraj.png"
+        <Picture
+          src={nagarajImg}
+          formats={['avif', 'webp']}
+          pictureAttributes={PICTURE}
           alt="Nagaraj Balasubramaniam"
+          widths={[400, 560, 960]}
+          sizes="(max-width: 900px) 92vw, 460px"
           class="w-full rounded-[20px] relative z-10 shadow-[0_30px_60px_-25px_rgba(0,0,0,0.5)] object-cover"
         />
         <div class="relative z-10 text-[#E8EDF6]">
@@ -468,7 +514,15 @@ const PLAY_URL =
         </div>
         <div class="relative z-10 flex justify-center">
           <div class="w-[236px] rounded-[38px] bg-black p-[9px] shadow-[0_40px_70px_-28px_rgba(0,0,0,0.6)]">
-            <img src="/uploads/3-about.png" alt="About screen" class="w-full rounded-[30px]" />
+            <Picture
+              src={aboutScreenImg}
+              formats={['avif', 'webp']}
+              pictureAttributes={PICTURE}
+              alt="About screen"
+              widths={[236, 472]}
+              sizes="236px"
+              class="w-full rounded-[30px]"
+            />
           </div>
         </div>
       </div>

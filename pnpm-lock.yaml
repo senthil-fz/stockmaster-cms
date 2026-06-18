@@ -294,6 +294,9 @@ importers:
       astro:
         specifier: ^5.16.0
         version: 5.18.2(@types/node@22.19.19)(jiti@2.7.0)(lightningcss@1.32.0)(rollup@4.60.4)(terser@5.48.0)(typescript@5.9.3)(yaml@2.9.0)
+      sharp:
+        specifier: ^0.34.0
+        version: 0.34.5
     devDependencies:
       '@astrojs/check':
         specifier: ^0.9.4
@@ -6188,8 +6191,7 @@ snapshots:
     dependencies:
       react-hook-form: 7.76.1(react@18.3.1)
 
-  '@img/colour@1.1.0':
-    optional: true
+  '@img/colour@1.1.0': {}
 
   '@img/sharp-darwin-arm64@0.34.5':
     optionalDependencies:
@@ -10775,7 +10777,6 @@ snapshots:
       '@img/sharp-win32-arm64': 0.34.5
       '@img/sharp-win32-ia32': 0.34.5
       '@img/sharp-win32-x64': 0.34.5
-    optional: true
 
   shebang-command@2.0.0:
     dependencies:
