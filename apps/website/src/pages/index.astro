@@ -16,6 +16,9 @@ const PICTURE = { class: 'contents' };
 
 const PLAY_URL =
   'https://play.google.com/store/apps/details?id=com.sharemarketclass.stockmaster';
+
+// Public API base for the live Pulse feed (overridable via PUBLIC_API_URL at build).
+const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagaraj.com';
 ---
 
 <Layout>
@@ -313,40 +316,94 @@ const PLAY_URL =
             >Read in the app →</a
           >
         </div>
-        <div class="grid grid-cols-3 gap-6 max-[700px]:grid-cols-1">
-          <article class="bg-card border border-line rounded-[20px] overflow-hidden">
+        <div id="pulse-grid" class="grid grid-cols-3 gap-6 max-[700px]:grid-cols-1">
+          <!-- Skeletons shown until the live feed loads; replaced by JS (or the whole
+               section is hidden if there are no published articles / the API is down). -->
+          <article class="bg-card border border-line rounded-[20px] overflow-hidden animate-pulse">
             <div class="h-[170px] bg-[linear-gradient(135deg,#2F6BFF,#1E50D8)]"></div>
             <div class="p-6">
-              <div class="text-xs font-bold tracking-[0.06em] uppercase text-brand mb-2.5">Strategy</div>
-              <h3 class="text-[19px] font-bold leading-[1.25] tracking-[-0.01em]">
-                Why position size matters more than your entry
-              </h3>
-              <div class="text-[13px] text-muted mt-3.5">June 16, 2026 · 4 min read</div>
+              <div class="h-[18px] w-3/4 rounded bg-line"></div>
+              <div class="h-[13px] w-1/3 rounded bg-line mt-3.5"></div>
             </div>
           </article>
-          <article class="bg-card border border-line rounded-[20px] overflow-hidden">
+          <article class="bg-card border border-line rounded-[20px] overflow-hidden animate-pulse">
             <div class="h-[170px] bg-[linear-gradient(135deg,#14151A,#2A3550)]"></div>
             <div class="p-6">
-              <div class="text-xs font-bold tracking-[0.06em] uppercase text-brand mb-2.5">Markets</div>
-              <h3 class="text-[19px] font-bold leading-[1.25] tracking-[-0.01em]">
-                Reading volatility: a calm investor's playbook
-              </h3>
-              <div class="text-[13px] text-muted mt-3.5">June 14, 2026 · 6 min read</div>
+              <div class="h-[18px] w-3/4 rounded bg-line"></div>
+              <div class="h-[13px] w-1/3 rounded bg-line mt-3.5"></div>
             </div>
           </article>
-          <article class="bg-card border border-line rounded-[20px] overflow-hidden">
+          <article class="bg-card border border-line rounded-[20px] overflow-hidden animate-pulse">
             <div class="h-[170px] bg-[linear-gradient(135deg,#4C82FF,#6FA8FF)]"></div>
             <div class="p-6">
-              <div class="text-xs font-bold tracking-[0.06em] uppercase text-brand mb-2.5">Education</div>
-              <h3 class="text-[19px] font-bold leading-[1.25] tracking-[-0.01em]">
-                Pivot points, explained in five charts
-              </h3>
-              <div class="text-[13px] text-muted mt-3.5">June 11, 2026 · 5 min read</div>
+              <div class="h-[18px] w-3/4 rounded bg-line"></div>
+              <div class="h-[13px] w-1/3 rounded bg-line mt-3.5"></div>
             </div>
           </article>
         </div>
       </div>
     </section>
+
+    <script is:inline define:vars={{ apiBase }}>
+      // Pulse feed: load published articles from the public API at runtime so newly
+      // published pieces appear without a site rebuild. Missing covers fall back to a
+      // brand gradient; an empty feed or an API error hides the whole section.
+      (function () {
+        const section = document.getElementById('pulse');
+        const grid = document.getElementById('pulse-grid');
+        if (!section || !grid) return;
+
+        const GRADS = [
+          'linear-gradient(135deg,#2F6BFF,#1E50D8)',
+          'linear-gradient(135deg,#14151A,#2A3550)',
+          'linear-gradient(135deg,#4C82FF,#6FA8FF)',
+        ];
+        const esc = (s) =>
+          String(s ?? '').replace(
+            /[&<>"']/g,
+            (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+          );
+        const fmtDate = (iso) => {
+          const d = new Date(iso);
+          return isNaN(d.getTime())
+            ? ''
+            : d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        };
+
+        fetch(apiBase + '/v1/public/articles', { headers: { accept: 'application/json' } })
+          .then((r) => (r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status))))
+          .then((items) => {
+            if (!Array.isArray(items) || items.length === 0) {
+              section.style.display = 'none';
+              return;
+            }
+            grid.innerHTML = items
+              .slice(0, 6)
+              .map((a, i) => {
+                const cover = a.coverUrl
+                  ? '<img src="' +
+                    esc(a.coverUrl) +
+                    '" alt="" loading="lazy" class="h-[170px] w-full object-cover" />'
+                  : '<div class="h-[170px]" style="background:' + GRADS[i % GRADS.length] + '"></div>';
+                return (
+                  '<article class="bg-card border border-line rounded-[20px] overflow-hidden">' +
+                  cover +
+                  '<div class="p-6">' +
+                  '<h3 class="text-[19px] font-bold leading-[1.25] tracking-[-0.01em] text-ink">' +
+                  esc(a.title) +
+                  '</h3>' +
+                  '<div class="text-[13px] text-muted mt-3.5">' +
+                  fmtDate(a.publishedAt) +
+                  '</div></div></article>'
+                );
+              })
+              .join('');
+          })
+          .catch(() => {
+            section.style.display = 'none';
+          });
+      })();
+    </script>
 
     <!-- ============ ABOUT / RECORD HOLDER ============ -->
     <section id="about" class="mx-auto max-w-[1200px] px-8 py-20 max-[560px]:px-5">
