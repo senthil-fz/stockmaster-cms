@@ -27,6 +27,8 @@ type ArticleSnapshot = {
 // Roughly average adult reading speed; good enough for an "N min read" badge.
 const WORDS_PER_MINUTE = 200;
 const EXCERPT_MAX = 160;
+// The website shows at most 6 cards; cap at the query so we never pull (or ship) more.
+const MAX_CARDS = 6;
 
 function readingMinutes(wordCount: number | undefined): number {
   return Math.max(1, Math.round((wordCount ?? 0) / WORDS_PER_MINUTE));
@@ -109,6 +111,7 @@ export class PublicService {
       where: { publishedVersionId: { not: null } },
       orderBy: { updatedAt: 'desc' },
       include: withPublishedVersion,
+      take: MAX_CARDS, // newest 6 only — never pull more than the site can show
     });
 
     return rows

@@ -63,15 +63,21 @@ describe('PublicService — published article cards', () => {
         publishedAt: new Date('2026-06-04T00:00:00Z'),
       },
     ]);
-    // The full body and editorial fields never leak through.
-    for (const k of ['content', 'subtitle', 'tags', 'draftDirty', 'wordCount']) {
-      expect(k in out[0]).toBe(false);
-    }
-    // Published-only, newest first, version included (a dropped include 500s the feed).
+    // LEAK GUARD: the card exposes EXACTLY these keys — nothing else. The full body is only
+    // ever represented by `excerpt`; raw content, subtitle, tags, and all editorial/draft
+    // state (draftDirty, wordCount, publishedVersionId, …) must never appear. Asserting the
+    // exact key set means a future field addition can't silently start leaking.
+    expect(Object.keys(out[0]).sort()).toEqual(
+      ['author', 'coverUrl', 'excerpt', 'id', 'publishedAt', 'readingMinutes', 'slug', 'tag', 'title'].sort(),
+    );
+
+    // Published-only, newest first, version included (a dropped include 500s the feed),
+    // and capped at 6 so we never pull more than the site can show.
     const args = findMany.mock.calls[0][0];
     expect(args.where).toEqual({ publishedVersionId: { not: null } });
     expect(args.orderBy).toEqual({ updatedAt: 'desc' });
     expect(args.include).toEqual({ publishedVersion: true });
+    expect(args.take).toBe(6);
   });
 
   it('falls back to a trimmed body teaser when the subtitle is empty', async () => {
