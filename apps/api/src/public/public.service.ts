@@ -43,17 +43,35 @@ function plainText(node: unknown): string {
   return n.type && n.type !== 'text' ? `${inner} ` : inner;
 }
 
-/** Short teaser: subtitle if set, else the first ~160 chars of the body, trimmed at a word. */
+// A subtitle only makes a good card excerpt if it adds something beyond the headline.
+// Reject ones that are too short to be a sentence, or that just echo the title (e.g. a
+// title "Indian Markets at a Crossroads: …" with subtitle "Markets at a Crossroads") —
+// those fall through to a body teaser instead of showing a thin, redundant excerpt.
+function isUsefulSubtitle(subtitle: string, title: string): boolean {
+  if (subtitle.length < 24) return false;
+  const t = title.toLowerCase();
+  const s = subtitle.toLowerCase();
+  return !t.includes(s) && !s.includes(t);
+}
+
+/**
+ * Card excerpt: the subtitle when it's a real description, else the first ~160 chars of the
+ * body trimmed at a word. Falls back to the subtitle (even a weak one) only if there's no
+ * body to teaser; null when nothing usable exists.
+ */
 function buildExcerpt(snap: ArticleSnapshot): string | null {
-  const subtitle = snap.article.subtitle?.trim();
-  if (subtitle) return subtitle;
+  const subtitle = snap.article.subtitle?.trim() ?? '';
+  const title = snap.article.title?.trim() ?? '';
+  if (subtitle && isUsefulSubtitle(subtitle, title)) return subtitle;
 
   const body = plainText(snap.content).replace(/\s+/g, ' ').trim();
-  if (!body) return null;
-  if (body.length <= EXCERPT_MAX) return body;
-  const cut = body.slice(0, EXCERPT_MAX);
-  const lastSpace = cut.lastIndexOf(' ');
-  return `${(lastSpace > 40 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
+  if (body) {
+    if (body.length <= EXCERPT_MAX) return body;
+    const cut = body.slice(0, EXCERPT_MAX);
+    const lastSpace = cut.lastIndexOf(' ');
+    return `${(lastSpace > 40 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
+  }
+  return subtitle || null;
 }
 
 /** A published-article card for the public marketing site. */

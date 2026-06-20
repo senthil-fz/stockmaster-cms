@@ -106,6 +106,39 @@ describe('PublicService — published article cards', () => {
     expect(out[0].coverUrl).toBeNull();
   });
 
+  it('ignores a subtitle that just echoes the title and uses a body teaser instead', async () => {
+    const r = row();
+    r.publishedVersion.snapshot = {
+      article: {
+        // Subtitle is a fragment of the title -> thin/redundant, must not become the excerpt.
+        title: 'Indian Markets at a Crossroads: Where Are We Headed?',
+        subtitle: 'Markets at a Crossroads',
+        author: 'Nagaraj',
+        tags: [],
+        coverUrl: null,
+      },
+      content: {
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [
+              {
+                type: 'text',
+                text: 'After a volatile fortnight the Nifty sits at a hinge point for patient investors.',
+              },
+            ],
+          },
+        ],
+      },
+      wordCount: 14,
+    } as never;
+    const out = await make({ findMany: jest.fn().mockResolvedValue([r]) }).listPublishedArticles();
+    expect(out[0].excerpt).toBe(
+      'After a volatile fortnight the Nifty sits at a hinge point for patient investors.',
+    );
+  });
+
   it('excerpt is null only when both subtitle and body are empty', async () => {
     const r = row();
     r.publishedVersion.snapshot = {
