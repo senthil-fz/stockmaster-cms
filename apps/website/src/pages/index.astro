@@ -373,14 +373,8 @@ const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagara
             : d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         };
 
-        // Small inline calendar glyph so the date reads as metadata, not body text.
-        const CAL =
-          '<svg viewBox="0 0 24 24" fill="none" class="w-[15px] h-[15px] shrink-0" aria-hidden="true">' +
-          '<rect x="3" y="4.5" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="1.6"/>' +
-          '<path d="M3 9h18M8 2.5v4M16 2.5v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
-
         // Cover image, or a brand-gradient block carrying the wordmark when none exists.
-        const coverBlock = (a, i, ratio) =>
+        const coverBlock = (a, i) =>
           a.coverUrl
             ? '<img src="' +
               esc(a.coverUrl) +
@@ -389,30 +383,56 @@ const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagara
               GRADS[i % GRADS.length] +
               '"><span class="text-white/90 font-extrabold tracking-[-0.02em] text-[19px]">Stock Master</span></div>';
 
-        // Footer row shared by both card shapes: date on the left, an in-app read hint right.
-        // `push` pins it to the card bottom (vertical cards, so meta lines up across a row);
-        // the featured card centers its whole content block instead, so it omits the push.
+        // Eyebrow over the title: category tag and/or read time, dot-separated. `lead` lets the
+        // featured card prepend "Latest". Empty parts are dropped so we never render a lone dot.
+        const eyebrow = (a, lead) => {
+          const parts = [
+            lead,
+            a.tag ? esc(a.tag) : '',
+            a.readingMinutes ? a.readingMinutes + ' min read' : '',
+          ].filter(Boolean);
+          return parts.length
+            ? '<div class="text-[12px] font-bold tracking-[0.1em] uppercase text-brand mb-3">' +
+                parts.join(' &middot; ') +
+                '</div>'
+            : '';
+        };
+
+        // Excerpt paragraph (subtitle or body teaser). `lines` clamps it so card heights stay even.
+        const excerpt = (a, lines) =>
+          a.excerpt
+            ? '<p class="mt-2.5 text-[14.5px] leading-[1.55] text-ink-soft ' +
+              lines +
+              '">' +
+              esc(a.excerpt) +
+              '</p>'
+            : '';
+
+        // Byline footer: author (left) and date (right), split by a hairline. `push` pins it to
+        // the card bottom so a row of vertical cards lines up; the featured card omits it.
         const metaRow = (a, push) =>
           '<div class="' +
           (push ? 'mt-auto ' : '') +
-          'pt-5 flex items-center justify-between gap-3 border-t border-line/80">' +
-          '<span class="inline-flex items-center gap-1.5 text-[13px] text-muted">' +
-          CAL +
+          'pt-5 mt-5 flex items-center justify-between gap-3 border-t border-line/80 text-[13px]">' +
+          (a.author
+            ? '<span class="font-semibold text-ink truncate">' + esc(a.author) + '</span>'
+            : '<span></span>') +
+          '<span class="text-muted shrink-0">' +
           fmtDate(a.publishedAt) +
-          '</span>' +
-          '<span class="inline-flex items-center gap-1 text-[13px] font-bold text-brand-strong">' +
-          'Read in app <span class="transition-transform duration-300 group-hover:translate-x-0.5">&rarr;</span></span></div>';
+          '</span></div>';
 
-        // Standard vertical card (used when 2+ articles are published).
+        // Standard vertical article card (used when 2+ articles are published).
         const vCard = (a, i) =>
           '<article class="group flex flex-col flex-1 min-w-[280px] max-w-[372px] bg-white border border-line rounded-[20px] overflow-hidden transition-all duration-300 hover:border-brand/40 hover:shadow-[0_22px_44px_-26px_rgba(20,21,26,0.4)]">' +
           '<div class="relative aspect-[16/10] overflow-hidden">' +
           coverBlock(a, i) +
           '</div>' +
           '<div class="flex flex-col flex-1 p-6">' +
+          eyebrow(a, '') +
           '<h3 class="text-[19px] font-bold leading-[1.3] tracking-[-0.01em] text-ink line-clamp-2">' +
           esc(a.title) +
           '</h3>' +
+          excerpt(a, 'line-clamp-2') +
           metaRow(a, true) +
           '</div></article>';
 
@@ -425,10 +445,11 @@ const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagara
           coverBlock(a, 0) +
           '</div>' +
           '<div class="flex flex-col justify-center p-11 max-[700px]:p-7">' +
-          '<span class="inline-flex w-fit items-center gap-1.5 text-[12px] font-bold tracking-[0.1em] uppercase text-brand bg-tint px-2.5 py-1 rounded-full mb-4">Latest</span>' +
+          eyebrow(a, 'Latest') +
           '<h3 class="text-[30px] max-[700px]:text-[23px] font-extrabold leading-[1.16] tracking-[-0.02em] text-ink">' +
           esc(a.title) +
           '</h3>' +
+          excerpt(a, 'line-clamp-3') +
           metaRow(a, false) +
           '</div></article>';
 
