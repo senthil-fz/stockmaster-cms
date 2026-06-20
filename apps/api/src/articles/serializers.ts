@@ -5,6 +5,7 @@ import type {
   TiptapDoc,
   VersionSummary,
 } from '@stockmaster/shared';
+import { toPublicCoverUrl } from '../common/media/cover-url';
 
 // Loose row shape for what we select from Prisma.
 interface ArticleScalars {
@@ -37,7 +38,8 @@ export function toArticleSummary(a: ArticleScalars): ArticleSummary {
     author: a.author,
     year: a.year,
     coverTone: a.coverTone,
-    coverUrl: a.coverUrl,
+    // Stored domain-free; attach the current API origin on the way out (see cover-url.ts).
+    coverUrl: toPublicCoverUrl(a.coverUrl),
     status: a.publishedVersionId ? 'published' : 'draft',
     hasUnpublishedChanges: a.draftDirty,
     tags: a.tags,

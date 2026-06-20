@@ -10,6 +10,7 @@ import {
   type TiptapDoc,
   type UpdateArticleInput,
 } from '@stockmaster/shared';
+import { toStoredCoverUrl } from '../common/media/cover-url';
 import { buildArticleSnapshot } from '../common/versioning/snapshot';
 import { PrismaService } from '../prisma/prisma.service';
 import { toArticleDetail, toArticleSummary, toVersionSummary } from './serializers';
@@ -84,7 +85,8 @@ export class ArticlesService {
     if (input.author !== undefined) data.author = input.author;
     if (input.year !== undefined) data.year = input.year;
     if (input.coverTone !== undefined) data.coverTone = input.coverTone;
-    if (input.coverUrl !== undefined) data.coverUrl = input.coverUrl;
+    // Persist covers domain-free (see cover-url.ts) so a domain change never dead-links them.
+    if (input.coverUrl !== undefined) data.coverUrl = toStoredCoverUrl(input.coverUrl);
     if (input.tags !== undefined) data.tags = input.tags;
     if (input.content !== undefined) {
       data.content = input.content as Prisma.InputJsonValue;

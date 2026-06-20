@@ -10,6 +10,7 @@ import {
   type UpdateBookInput,
   type UpdateChapterInput,
 } from '@stockmaster/shared';
+import { toStoredCoverUrl } from '../common/media/cover-url';
 import { PrismaService } from '../prisma/prisma.service';
 import { newBookSkeleton } from './skeletons';
 import { toBookDetail, toBookSummary, toChapter } from './serializers';
@@ -101,7 +102,8 @@ export class BooksService {
       author: input.author,
       year: input.year,
       coverTone: input.coverTone,
-      coverUrl: input.coverUrl,
+      // Persist covers domain-free (see cover-url.ts) so a domain change never dead-links them.
+      coverUrl: toStoredCoverUrl(input.coverUrl),
       buyLink: input.buyLink,
       tags: input.tags,
       // A metadata edit diverges the draft from the published snapshot (which freezes

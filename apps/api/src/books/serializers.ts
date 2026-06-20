@@ -8,6 +8,7 @@ import type {
   PublishStatus,
   TiptapDoc,
 } from '@stockmaster/shared';
+import { toPublicCoverUrl } from '../common/media/cover-url';
 
 // Loose row shapes for what we select/include from Prisma.
 interface PageRow {
@@ -96,7 +97,8 @@ export function toBookSummary(w: BookSummaryInput): BookSummary {
     author: w.author,
     year: w.year,
     coverTone: w.coverTone,
-    coverUrl: w.coverUrl,
+    // Stored domain-free; attach the current API origin on the way out (see cover-url.ts).
+    coverUrl: toPublicCoverUrl(w.coverUrl),
     buyLink: w.buyLink,
     // Published iff a live version exists; the pointer is the sole source of truth.
     status: w.publishedVersionId ? 'published' : 'draft',
