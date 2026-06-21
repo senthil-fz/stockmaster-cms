@@ -12,7 +12,10 @@
     "lint": "astro check"
   },
   "dependencies": {
+    "@iconify-json/logos": "^1.2.11",
+    "@iconify-json/ph": "^1.2.2",
     "astro": "^5.16.0",
+    "astro-icon": "^1.1.5",
     "sharp": "^0.34.0"
   },
   "devDependencies": {

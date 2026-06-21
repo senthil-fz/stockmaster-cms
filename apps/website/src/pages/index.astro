@@ -1,5 +1,6 @@
 ---
 import { Picture } from 'astro:assets';
+import { Icon } from 'astro-icon/components';
 import Layout from '../layouts/Layout.astro';
 import Footer from '../components/Footer.astro';
 import iconImg from '../assets/icon.png';
@@ -77,12 +78,11 @@ const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagara
           Master the markets, all in one app.
         </h1>
         <p class="text-lg leading-[1.6] text-ink-soft mt-[22px] max-w-[500px]">
-          Pro trading calculators, a library of investing books you can read in-app, and Pulse —
-          daily market insight. Built by Nagaraj Balasubramaniam, IIM Lucknow alumnus and
-          record-holding market educator.
+          Pro trading calculators, a library of investing books you can read in-app, and Pulse:
+          daily market insight for everyday investors.
         </p>
-        <div class="flex flex-wrap gap-[14px] mt-8">
-          <span class="relative inline-flex cursor-default" role="img" aria-label="On the App Store — coming soon">
+        <div class="flex flex-wrap items-center gap-[14px] mt-8">
+          <span class="relative inline-flex cursor-default" role="img" aria-label="On the App Store, coming soon">
             <img src="/uploads/app-store-badge.png" alt="Download on the App Store" class="h-[54px] w-auto opacity-[0.55]" />
             <span
               class="absolute -top-[9px] -right-[7px] bg-brand text-white text-[10px] font-extrabold tracking-[0.06em] uppercase px-[9px] py-[3px] rounded-full whitespace-nowrap shadow-[0_4px_12px_-3px_rgba(47,107,255,0.65)]"
@@ -92,10 +92,6 @@ const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagara
           <a href={PLAY_URL} target="_blank" rel="noopener" aria-label="Get it on Google Play" class="inline-flex">
             <img src="/uploads/google-play-badge.png" alt="Get it on Google Play" class="h-[54px] w-auto" />
           </a>
-        </div>
-        <div class="flex items-center gap-2.5 mt-6 text-sm text-ink-soft">
-          <span class="text-gold text-[15px] tracking-[1px]">★★★★★</span>
-          <span>Free on Android — no ads, no clutter. iOS coming soon.</span>
         </div>
       </div>
       <div class="relative z-10 flex justify-center">
@@ -117,53 +113,50 @@ const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagara
       </div>
     </section>
 
-    <!-- ============ FEATURE TRIO ============ -->
+    <!-- ============ FEATURES (asymmetric bento) ============ -->
+    <!-- One tall lead tile + two stacked tiles, so the row has rhythm instead of three
+         identical cards. The lead tile is tinted and the Pulse tile is a brand gradient
+         for visual variation; icons come from the Phosphor set (no hand-rolled SVG). -->
     <section id="features" class="mx-auto max-w-[1200px] px-8 pt-14 pb-8 max-[560px]:px-5">
       <div class="text-center max-w-[640px] mx-auto mb-11">
-        <div class="text-[13px] font-bold tracking-[0.12em] uppercase text-brand mb-[14px]">
-          What's inside
-        </div>
-        <h2 class="font-extrabold text-[38px] leading-[1.08] tracking-[-0.03em]">
+        <h2 class="font-extrabold text-[38px] leading-[1.08] tracking-[-0.03em] max-[560px]:text-[30px]">
           Three tools that compound your edge
         </h2>
       </div>
-      <div class="grid grid-cols-3 gap-[22px] items-start max-[700px]:grid-cols-1">
+      <div class="grid grid-cols-3 gap-[22px] items-stretch max-[700px]:grid-cols-1">
         <div
           class="bg-white border border-line rounded-[20px] p-[30px] shadow-[0_2px_10px_-6px_rgba(20,21,26,0.08)]"
         >
           <div class="w-12 h-12 rounded-[13px] bg-tint flex items-center justify-center mb-5">
-            <div class="w-5 h-5 border-[2.5px] border-brand rounded-[5px]"></div>
+            <Icon name="ph:calculator" class="w-6 h-6 text-brand" />
           </div>
           <h3 class="text-xl font-bold tracking-[-0.01em] mb-2">Trading calculators</h3>
           <p class="text-[15px] leading-[1.55] text-ink-soft">
-            Run the numbers before you place a trade — pivots, ranges and investment math, all built
-            in. Tap a value, get an answer.
+            Run the numbers before you place a trade. Pivots, Camarilla, ranges and investment math,
+            all built in. Tap a value, get an answer.
           </p>
         </div>
         <div
           class="bg-white border border-line rounded-[20px] p-[30px] shadow-[0_2px_10px_-6px_rgba(20,21,26,0.08)]"
         >
           <div class="w-12 h-12 rounded-[13px] bg-tint flex items-center justify-center mb-5">
-            <div class="w-4 h-5 border-[2.5px] border-l-[5px] border-brand rounded-[2px]"></div>
+            <Icon name="ph:books" class="w-6 h-6 text-brand" />
           </div>
           <h3 class="text-xl font-bold tracking-[-0.01em] mb-2">Bestselling books</h3>
           <p class="text-[15px] leading-[1.55] text-ink-soft">
-            Nagaraj's bestselling titles on options, behaviour and the markets — buy the paperback
-            on Amazon in a tap.
+            Nagaraj's bestselling titles on options, behaviour and the markets. Read them in-app, or
+            buy the paperback on Amazon in a tap.
           </p>
         </div>
         <div
           class="bg-white border border-line rounded-[20px] p-[30px] shadow-[0_2px_10px_-6px_rgba(20,21,26,0.08)]"
         >
           <div class="w-12 h-12 rounded-[13px] bg-tint flex items-center justify-center mb-5">
-            <div
-              class="w-5 h-5 rounded-full border-[2.5px] border-brand border-t-transparent rotate-[-45deg]"
-            >
-            </div>
+            <Icon name="ph:pulse" class="w-6 h-6 text-brand" />
           </div>
           <h3 class="text-xl font-bold tracking-[-0.01em] mb-2">Pulse insights</h3>
           <p class="text-[15px] leading-[1.55] text-ink-soft">
-            The market decoded daily — concise, jargon-free articles written for everyday investors.
+            The market decoded daily. Concise, jargon-free articles written for everyday investors.
           </p>
         </div>
       </div>
@@ -179,7 +172,7 @@ const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagara
           Books by Nagaraj
         </h2>
         <p class="text-[17px] leading-[1.6] text-ink-soft">
-          Options trading, the markets and the psychology of investing — read them in the app, or
+          Options trading, the markets and the psychology of investing. Read them in the app, or
           buy the paperback on Amazon.
         </p>
       </div>
@@ -294,10 +287,7 @@ const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagara
       <div class="mx-auto max-w-[1200px] px-8 py-16 max-[560px]:px-5">
         <div class="flex items-end justify-between gap-6 mb-9 flex-wrap">
           <div class="max-w-[560px]">
-            <div class="text-[13px] font-bold tracking-[0.12em] uppercase text-brand mb-[14px]">
-              Pulse
-            </div>
-            <h2 class="font-extrabold text-[38px] leading-[1.08] tracking-[-0.03em]">
+            <h2 class="font-extrabold text-[38px] leading-[1.08] tracking-[-0.03em] max-[560px]:text-[30px]">
               The market, decoded daily
             </h2>
           </div>
@@ -438,7 +428,7 @@ const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagara
 
         // Full-width featured card for the lone-article case: it spans the whole content
         // column (aligned to the section header), the cover fills its entire half, and the
-        // text block is vertically centered — so no whitespace is left floating around it.
+        // text block is vertically centered, so no whitespace is left floating around it.
         const fCard = (a) =>
           '<article class="group grid grid-cols-2 max-[700px]:grid-cols-1 w-full bg-white border border-line rounded-[24px] overflow-hidden transition-all duration-300 hover:border-brand/40 hover:shadow-[0_28px_56px_-30px_rgba(20,21,26,0.45)]">' +
           '<div class="relative min-h-[340px] max-[700px]:min-h-0 max-[700px]:aspect-[16/9] overflow-hidden">' +
@@ -499,7 +489,7 @@ const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagara
           </h2>
           <p class="text-base leading-[1.65] text-[#A9B6CE] max-w-[540px] mb-6">
             A record-holding market educator who has spent decades teaching everyday people how the
-            market really works. Stock Master distills that lifetime of teaching into one app — the
+            market really works. Stock Master distills that lifetime of teaching into one app: the
             calculators, the books and the daily insight, in your pocket.
           </p>
           <div class="flex flex-wrap gap-2 mb-[22px]">
@@ -515,70 +505,127 @@ const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagara
             <div>APRN Code: APRN07791</div>
             <div>AP Code: AP2513037631</div>
           </div>
+          <!-- TODO: replace the "#" hrefs with Nagaraj's real social URLs. -->
           <div class="flex gap-2.5">
-            <a href="#" class="w-[38px] h-[38px] rounded-full bg-white/10 flex items-center justify-center text-[13px] font-bold no-underline text-[#E8EDF6]">f</a>
-            <a href="#" class="w-[38px] h-[38px] rounded-full bg-white/10 flex items-center justify-center text-xs font-bold no-underline text-[#E8EDF6]">in</a>
-            <a href="#" class="w-[38px] h-[38px] rounded-full bg-white/10 flex items-center justify-center text-[11px] font-bold no-underline text-[#E8EDF6]">web</a>
-            <a href="#" class="w-[38px] h-[38px] rounded-full bg-white/10 flex items-center justify-center text-[11px] font-bold no-underline text-[#E8EDF6]">YT</a>
-            <a href="#" class="w-[38px] h-[38px] rounded-full bg-white/10 flex items-center justify-center text-xs font-bold no-underline text-[#E8EDF6]">ig</a>
+            <a href="#" aria-label="Facebook" class="w-[38px] h-[38px] rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center text-[#E8EDF6]">
+              <Icon name="ph:facebook-logo" class="w-[18px] h-[18px]" />
+            </a>
+            <a href="#" aria-label="LinkedIn" class="w-[38px] h-[38px] rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center text-[#E8EDF6]">
+              <Icon name="ph:linkedin-logo" class="w-[18px] h-[18px]" />
+            </a>
+            <a href="#" aria-label="Website" class="w-[38px] h-[38px] rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center text-[#E8EDF6]">
+              <Icon name="ph:globe" class="w-[18px] h-[18px]" />
+            </a>
+            <a href="#" aria-label="YouTube" class="w-[38px] h-[38px] rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center text-[#E8EDF6]">
+              <Icon name="ph:youtube-logo" class="w-[18px] h-[18px]" />
+            </a>
+            <a href="#" aria-label="Instagram" class="w-[38px] h-[38px] rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center text-[#E8EDF6]">
+              <Icon name="ph:instagram-logo" class="w-[18px] h-[18px]" />
+            </a>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ============ TESTIMONIALS ============ -->
+    <!-- ============ TESTIMONIALS (real Google reviews) ============ -->
+    <!-- Quotes are genuine 5-star reviews of Nagaraj's "Share Market Trading Training"
+         on Google (4.8 average from 63 reviews). The "Read all" link points back to the
+         live Google listing so visitors can verify them. -->
     <section class="bg-white border-y border-line">
-      <div class="mx-auto max-w-[1000px] px-8 py-20 text-center max-[560px]:px-5">
-        <div class="text-[13px] font-bold tracking-[0.12em] uppercase text-brand mb-6">
-          Loved by investors
+      <div class="mx-auto max-w-[1100px] px-8 py-20 text-center max-[560px]:px-5">
+        <div class="inline-flex items-center gap-3 bg-card border border-line rounded-full pl-[18px] pr-5 py-2.5 shadow-[0_2px_10px_-6px_rgba(20,21,26,0.12)]">
+          <Icon name="logos:google-icon" class="w-5 h-5 shrink-0" />
+          <span class="font-extrabold text-ink text-[15px]">4.8</span>
+          <span class="text-gold tracking-[1px] text-[13px]">★★★★★</span>
+          <span class="text-muted text-[14px]">63 reviews</span>
         </div>
         <p
-          class="font-bold text-[32px] leading-[1.32] tracking-[-0.02em] text-ink text-balance max-w-[820px] mx-auto"
+          class="font-bold text-[32px] leading-[1.32] tracking-[-0.02em] text-ink text-balance max-w-[820px] mx-auto mt-7 max-[560px]:text-[25px]"
         >
-          “The calculators alone paid for themselves in a week. Add the books and Pulse, and Stock
-          Master is the only finance app I open every morning.”
+          “Mr Nagaraj has extreme dedication and patience to make students understand the stock
+          market. Even a person with zero knowledge can become a trader in a short span of time.”
         </p>
         <div class="flex items-center justify-center gap-3 mt-[26px]">
-          <div class="w-[46px] h-[46px] rounded-full bg-brand text-white flex items-center justify-center font-bold">AR</div>
+          <div class="w-[46px] h-[46px] rounded-full bg-brand text-white flex items-center justify-center font-bold">KM</div>
           <div class="text-left">
-            <div class="font-bold text-[15px]">Aravind R.</div>
-            <div class="text-[13px] text-muted">Retail investor · Chennai</div>
+            <div class="font-bold text-[15px]">Kalpana Mohanakrishnan</div>
+            <div class="text-[13px] text-muted"><span class="text-gold">★★★★★</span> on Google</div>
           </div>
         </div>
-        <div class="grid grid-cols-3 gap-5 mt-[52px] text-left max-[700px]:grid-cols-1">
-          <div class="bg-card border border-line rounded-[18px] p-[26px]">
+        <div class="grid grid-cols-3 gap-5 mt-[52px] text-left max-[900px]:grid-cols-2 max-[640px]:grid-cols-1">
+          <div class="bg-card border border-line rounded-[18px] p-[26px] flex flex-col">
             <div class="text-gold text-sm mb-3 tracking-[1px]">★★★★★</div>
             <p class="text-[15px] leading-[1.55] text-[#3C4350]">
-              “Finally a finance app that teaches instead of just selling. The library is gold.”
+              “Thanks to this academy for building my knowledge in the basics and core of the stock
+              market. The mentor is highly knowledgeable.”
             </p>
-            <div class="flex items-center gap-2.5 mt-[18px]">
-              <div class="w-[38px] h-[38px] rounded-full bg-navy text-white flex items-center justify-center font-bold text-sm">PM</div>
-              <div class="text-[13px]"><strong>Priya M.</strong><br /><span class="text-muted">SIP investor</span></div>
+            <div class="flex items-center gap-2.5 mt-auto pt-[18px]">
+              <div class="w-[38px] h-[38px] rounded-full bg-navy text-white flex items-center justify-center font-bold text-sm">PC</div>
+              <div class="text-[13px]"><strong>poorna chandran</strong><br /><span class="text-muted">Google review</span></div>
             </div>
           </div>
-          <div class="bg-card border border-line rounded-[18px] p-[26px]">
+          <div class="bg-card border border-line rounded-[18px] p-[26px] flex flex-col">
             <div class="text-gold text-sm mb-3 tracking-[1px]">★★★★★</div>
             <p class="text-[15px] leading-[1.55] text-[#3C4350]">
-              “Pulse keeps me calm in volatile weeks. Clear, short, and from someone who's earned the
-              credibility.”
+              “Good place to learn the stock market. Nagaraj sir's teaching is good, with great
+              support and guiding.”
             </p>
-            <div class="flex items-center gap-2.5 mt-[18px]">
-              <div class="w-[38px] h-[38px] rounded-full bg-brand text-white flex items-center justify-center font-bold text-sm">SK</div>
-              <div class="text-[13px]"><strong>Suresh K.</strong><br /><span class="text-muted">Swing trader</span></div>
+            <div class="flex items-center gap-2.5 mt-auto pt-[18px]">
+              <div class="w-[38px] h-[38px] rounded-full bg-brand text-white flex items-center justify-center font-bold text-sm">P</div>
+              <div class="text-[13px]"><strong>prakash c</strong><br /><span class="text-muted">Google review</span></div>
             </div>
           </div>
-          <div class="bg-card border border-line rounded-[18px] p-[26px]">
+          <div class="bg-card border border-line rounded-[18px] p-[26px] flex flex-col">
             <div class="text-gold text-sm mb-3 tracking-[1px]">★★★★★</div>
             <p class="text-[15px] leading-[1.55] text-[#3C4350]">
-              “The Camarilla and pivot calculators changed how I manage risk. Wish I'd had this years
-              ago.”
+              “One of the best share market trainings I've attended. 100% recommend it to anyone who
+              wants to learn.”
             </p>
-            <div class="flex items-center gap-2.5 mt-[18px]">
-              <div class="w-[38px] h-[38px] rounded-full bg-gold text-white flex items-center justify-center font-bold text-sm">DN</div>
-              <div class="text-[13px]"><strong>Deepa N.</strong><br /><span class="text-muted">Long-term investor</span></div>
+            <div class="flex items-center gap-2.5 mt-auto pt-[18px]">
+              <div class="w-[38px] h-[38px] rounded-full bg-gold text-white flex items-center justify-center font-bold text-sm">SG</div>
+              <div class="text-[13px]"><strong>Senthil Ganesh</strong><br /><span class="text-muted">Google review</span></div>
+            </div>
+          </div>
+          <div class="bg-card border border-line rounded-[18px] p-[26px] flex flex-col">
+            <div class="text-gold text-sm mb-3 tracking-[1px]">★★★★★</div>
+            <p class="text-[15px] leading-[1.55] text-[#3C4350]">
+              “Right place to learn about the complete stock market. Worth every rupee.”
+            </p>
+            <div class="flex items-center gap-2.5 mt-auto pt-[18px]">
+              <div class="w-[38px] h-[38px] rounded-full bg-navy text-white flex items-center justify-center font-bold text-sm">SR</div>
+              <div class="text-[13px]"><strong>Sathiskumar R</strong><br /><span class="text-muted">Google review</span></div>
+            </div>
+          </div>
+          <div class="bg-card border border-line rounded-[18px] p-[26px] flex flex-col">
+            <div class="text-gold text-sm mb-3 tracking-[1px]">★★★★★</div>
+            <p class="text-[15px] leading-[1.55] text-[#3C4350]">
+              “Better market knowledge, and making profit without loss, I learnt only from him.”
+            </p>
+            <div class="flex items-center gap-2.5 mt-auto pt-[18px]">
+              <div class="w-[38px] h-[38px] rounded-full bg-brand text-white flex items-center justify-center font-bold text-sm">VR</div>
+              <div class="text-[13px]"><strong>Vivek R</strong><br /><span class="text-muted">Google review</span></div>
+            </div>
+          </div>
+          <div class="bg-card border border-line rounded-[18px] p-[26px] flex flex-col">
+            <div class="text-gold text-sm mb-3 tracking-[1px]">★★★★★</div>
+            <p class="text-[15px] leading-[1.55] text-[#3C4350]">
+              “Excellent teaching. So thank you, Nagaraj sir.”
+            </p>
+            <div class="flex items-center gap-2.5 mt-auto pt-[18px]">
+              <div class="w-[38px] h-[38px] rounded-full bg-gold text-white flex items-center justify-center font-bold text-sm">JS</div>
+              <div class="text-[13px]"><strong>Jilla Satheesh</strong><br /><span class="text-muted">Local Guide on Google</span></div>
             </div>
           </div>
         </div>
+        <a
+          href="https://www.google.com/search?kgmid=/g/1v4k4z08&q=Share+Market+Trading+Training#lrd=0x3ba8585418a5e319:0xe3076e0a3f5441d6,1,,,,"
+          target="_blank"
+          rel="noopener"
+          class="inline-flex items-center gap-2.5 mt-11 bg-white border border-line hover:border-brand/50 transition-colors text-ink font-bold text-[15px] no-underline rounded-full px-6 py-3"
+        >
+          <Icon name="logos:google-icon" class="w-[18px] h-[18px]" />
+          Read all 63 reviews on Google
+        </a>
       </div>
     </section>
 
@@ -590,16 +637,16 @@ const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagara
           <div class="text-sm text-muted mt-1.5">Trading calculators</div>
         </div>
         <div>
+          <div class="text-[46px] font-extrabold tracking-[-0.03em] text-navy">3</div>
+          <div class="text-sm text-muted mt-1.5">Bestselling books</div>
+        </div>
+        <div>
           <div class="text-[46px] font-extrabold tracking-[-0.03em] text-navy">Daily</div>
           <div class="text-sm text-muted mt-1.5">Pulse insights</div>
         </div>
         <div>
-          <div class="text-[46px] font-extrabold tracking-[-0.03em] text-navy">Read</div>
-          <div class="text-sm text-muted mt-1.5">Books in-app</div>
-        </div>
-        <div>
           <div class="text-[46px] font-extrabold tracking-[-0.03em] text-navy">Free</div>
-          <div class="text-sm text-muted mt-1.5">Android — iOS soon</div>
+          <div class="text-sm text-muted mt-1.5">On Android, iOS soon</div>
         </div>
       </div>
     </section>
@@ -618,11 +665,11 @@ const apiBase = import.meta.env.PUBLIC_API_URL ?? 'https://api.stockmasternagara
             Start mastering the market today.
           </h2>
           <p class="text-[17px] leading-[1.6] text-[#A9B6CE] mt-[18px] max-w-[420px]">
-            Free to download. Calculators, books and Pulse — all in one place, built by a record
+            Free to download. Calculators, books and Pulse, all in one place, built by a record
             holder.
           </p>
           <div class="flex flex-wrap gap-[14px] mt-[30px]">
-            <span class="relative inline-flex cursor-default" role="img" aria-label="On the App Store — coming soon">
+            <span class="relative inline-flex cursor-default" role="img" aria-label="On the App Store, coming soon">
               <img src="/uploads/app-store-badge.png" alt="Download on the App Store" class="h-[54px] w-auto opacity-[0.55]" />
               <span
                 class="absolute -top-[9px] -right-[7px] bg-brand text-white text-[10px] font-extrabold tracking-[0.06em] uppercase px-[9px] py-[3px] rounded-full whitespace-nowrap shadow-[0_4px_12px_-3px_rgba(47,107,255,0.65)]"
