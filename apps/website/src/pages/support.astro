@@ -1,0 +1,137 @@
+---
+import { Picture } from 'astro:assets';
+import Layout from '../layouts/Layout.astro';
+import Footer from '../components/Footer.astro';
+import iconImg from '../assets/icon.png';
+
+const contactEmail = 'nagaraj.limica@gmail.com';
+
+// Shared utility strings (same scale as the privacy policy)
+const h2 = 'text-[22px] font-bold tracking-[-0.01em] text-ink mt-[38px] mb-3';
+const h3 = 'text-[17px] font-bold tracking-[-0.01em] text-ink mt-6 mb-1.5';
+const p = 'text-base leading-[1.7] text-[#3C4350] mb-3.5';
+const ul = 'list-disc pl-[22px] mb-3.5';
+const li = 'text-base leading-[1.7] text-[#3C4350] mb-2';
+const link = 'text-brand-strong font-semibold underline underline-offset-2';
+---
+
+<Layout
+  title="Support — Stock Master"
+  description="Get help with the Stock Master app: contact us, answers to common questions about the calculators, books, ads and your data."
+>
+  <div class="bg-surface min-h-screen">
+    <!-- ============ HEADER ============ -->
+    <header class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-line">
+      <nav
+        class="mx-auto max-w-[880px] px-8 py-3.5 flex items-center justify-between gap-6 max-[560px]:px-5"
+      >
+        <a href="/" class="flex items-center gap-[11px] no-underline">
+          <Picture
+            src={iconImg}
+            formats={['avif', 'webp']}
+            pictureAttributes={{ class: 'contents' }}
+            alt="Stock Master"
+            widths={[34, 68]}
+            sizes="34px"
+            class="w-[34px] h-[34px] rounded-[10px] shrink-0"
+          />
+          <span class="font-extrabold text-[19px] tracking-[-0.02em] text-ink">Stock Master</span>
+        </a>
+        <a href="/" class="text-sm font-semibold text-ink-soft no-underline">← Back to home</a>
+      </nav>
+    </header>
+
+    <!-- ============ SUPPORT ============ -->
+    <main class="mx-auto max-w-[880px] px-8 pt-16 pb-10 max-[560px]:px-5">
+      <div class="text-[13px] font-bold tracking-[0.12em] uppercase text-brand mb-[14px]">Help</div>
+      <h1 class="font-extrabold text-[44px] leading-[1.05] tracking-[-0.03em] text-ink">Support</h1>
+      <p class="text-base text-muted mt-3.5">
+        Questions, feedback or something not working in the Stock Master app? We're happy to help.
+      </p>
+
+      <!-- Contact card -->
+      <div class="mt-8 bg-tint border border-[#D5E3FF] rounded-[18px] px-[26px] py-6">
+        <div class="text-[13px] font-bold text-brand-strong mb-2.5">Contact us</div>
+        <p class="text-[15px] leading-[1.6] text-[#3C4350]">
+          Email
+          <a href={`mailto:${contactEmail}?subject=Stock%20Master%20app%20support`} class={link}
+            >{contactEmail}</a
+          >. To help us sort out a problem quickly, please include your phone model, its iOS or
+          Android version, and a screenshot if you can.
+        </p>
+      </div>
+
+      <article class="mt-2">
+        <h2 class={h2}>Frequently asked questions</h2>
+
+        <h3 class={h3}>Do I need an account?</h3>
+        <p class={p}>
+          No. Stock Master has no sign-up or login. Open the app and every feature is available
+          straight away.
+        </p>
+
+        <h3 class={h3}>How do I use a calculator?</h3>
+        <p class={p}>
+          On the Calculators tab, pick a calculator, enter the open, high, low and close values
+          (or the inputs that calculator asks for), and tap <strong class="text-ink">Calculate</strong>.
+          The levels appear instantly, with resistance shown in red and support in green. Tap
+          <strong class="text-ink">Clear</strong> to start again.
+        </p>
+
+        <h3 class={h3}>Which calculators are included?</h3>
+        <ul class={ul}>
+          <li class={li}>Standard, Woodie, Fibonacci and Tom DeMark pivot points</li>
+          <li class={li}>Camarilla pivots (H1–H6 and L1–L6)</li>
+          <li class={li}>Central Pivot Range (CPR)</li>
+          <li class={li}>Nifty POC (Point of Control)</li>
+          <li class={li}>Market Range from VIX</li>
+          <li class={li}>Intraday and Investment calculators</li>
+        </ul>
+
+        <h3 class={h3}>How do I read the books?</h3>
+        <p class={p}>
+          Open the Books tab and tap <strong class="text-ink">Read in app</strong>. Your reading
+          progress is saved on your phone, so the book opens where you left off. Tap
+          <strong class="text-ink">Buy paperback</strong> to open the book's page on Amazon.
+        </p>
+
+        <h3 class={h3}>Why does the app show ads?</h3>
+        <p class={p}>
+          Ads, served by Google, keep Stock Master free. See our
+          <a href="/privacy-policy" class={link}>Privacy Policy</a> for what information Google may
+          use to show them.
+        </p>
+
+        <h3 class={h3}>How do I delete my data?</h3>
+        <p class={p}>
+          We don't collect or store your personal information. Your settings and reading progress
+          live only on your phone, and uninstalling the app removes them.
+        </p>
+
+        <h3 class={h3}>Can I change the appearance?</h3>
+        <p class={p}>
+          Yes. Tap the gear icon on the Calculators tab to choose light, dark or system appearance
+          and to turn haptic feedback on or off.
+        </p>
+
+        <h3 class={h3}>Does the app give investment advice?</h3>
+        <p class={p}>
+          No. Stock Master is an educational tool. See the disclaimer below.
+        </p>
+
+        <!-- Disclaimer (same wording as the privacy policy) -->
+        <div class="mt-12 bg-tint border border-[#D5E3FF] rounded-[18px] px-[26px] py-6">
+          <h2 class="text-[22px] font-bold tracking-[-0.01em] text-ink mb-3">Disclaimer</h2>
+          <p class="text-[15px] leading-[1.7] text-[#3C4350]">
+            Stock Master is an educational tool. Its calculators, books, and insights are for
+            learning purposes only and are not financial, investment, or trading advice. Investing
+            in securities involves risk.
+          </p>
+        </div>
+      </article>
+    </main>
+
+    <!-- ============ FOOTER ============ -->
+    <Footer />
+  </div>
+</Layout>
